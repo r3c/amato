@@ -1,0 +1,85 @@
+a
+{
+	color		: #6666FF;
+}
+
+body
+{
+	padding		: 16px;
+	margin		: 0px;
+	background	: #F6F6FF;
+	font		: normal normal normal 10px verdana;
+}
+
+div.box
+{
+	padding		: 2px 2px 0px 2px;
+	margin		: 0px 0px 8px 0px;
+	background	: #CCCCFF;
+	border		: 1px solid #AAAAFF;
+}
+
+div.box div.body
+{
+	padding		: 2px 4px 2px 4px;
+	margin		: 0px 0px 2px 0px;
+	background	: #F6F6FF; 
+	border		: 1px solid #BBBBFF;
+}
+
+div.box div.head
+{
+	padding		: 2px 4px 2px 4px;
+	margin		: 0px 0px 2px 0px;
+	background	: #D6D6FF;
+	border		: 1px solid #AAAAFF;
+}
+
+form input, form select
+{
+	background	: #FFFFFF;
+	border		: 1px solid #8CA2AC;
+	color		: #333366;
+	font		: normal normal normal 10px verdana;
+}
+
+form textarea
+{
+	background	: #FFFFFF;
+	border		: 1px solid #8CA2AC;
+	color		: #333366;
+	font		: normal normal normal 12px courier new;
+}
+
+hr
+{
+	border-bottom	: 1px solid #C0C0F0;
+	border-top		: 1px solid #6060A0;
+}
+
+table
+{
+	border-collapse	: collapse;
+	border-bottom	: 1px solid #6060A0;
+	border-right	: 1px solid #6060A0;
+}
+
+table td
+{
+	background	: #E0E0FF;
+	border-left	: 1px solid #6060A0;
+	border-top	: 1px solid #6060A0;
+}
+
+table th
+{
+	background	: #C0C0F0;
+	border-left	: 1px solid #6060A0;
+	border-top	: 1px solid #6060A0;
+}
+
+ol, ul
+{
+	padding	: 0px 0px 0px 32px;
+	margin	: 0px;
+}
