@@ -18,11 +18,18 @@ function	formatCompile ($modifiers, $args)
 		array (),
 		array (),
 		array ()
+//--- NEW CODE ---
+		,
+		array (/*index	=> array (id, type, tag)*/),
+		array (/*char	=> array (...)*/)
+//--- NEW CODE ---
 	);
 
 	foreach ($modifiers as $id => $modifier)
 	{
-		$tags = array ();
+//--- NEW CODE ---
+		// FIXME: Build $hash[4] and $hash[5]
+//--- NEW CODE ---
 
 		foreach ($modifier['tags'] as $tag => $type)
 			if ($tag[0] != FORMAT_ESCAPE && $tag[0] != FORMAT_START)
@@ -63,12 +70,55 @@ function	formatString ($str, $hash)
 	$opts =& $hash[2];
 	$tags =& $hash[0];
 
+	$new_chars =& $hash[5];
+	$new_mods =& $hash[2];
+	$new_tags =& $hash[4];
+
 	$count = 0;
 	$stack = array ();
 
-	// Browse entire string
+	// Parse entire string
 	for ($i = 0; $i < $len; ++$i)
 	{
+
+//--- NEW CODE ---
+		// Browse through available tags if needed
+		if (isset ($new_chars[$str[$i]]))
+		{
+			// Search for matching tag
+			$tab =& $new_chars[$str[$i]];
+
+			for ($j = $i; is_array ($tab); ++$j)
+			{
+				$ptr =& $tab;
+				unset ($tab);
+				$tab =& $ptr[$str[$j]];
+				unset ($ptr);
+			}
+
+			// Matching tag has been found
+			if (isset ($tab))
+			{
+				// Tag is an escape character
+				if ($tab == -1)
+					$str = substr ($str, 0, $i) . substr ($str, $i + 1);
+
+				// Tag is a modifier
+				else
+				{
+					list ($id, $way, $tag) = $new_tags[$tab];
+
+					switch ($way)
+					{
+						//FIXME
+					}
+				}
+			}
+
+			unset ($tab);
+		}
+//--- NEW CODE ---
+
 		// Some special character has been found
 		if (isset ($tags[$str[$i]]))
 		{
