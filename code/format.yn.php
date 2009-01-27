@@ -143,7 +143,7 @@ $_formatModifiers = array
 		'init'	=> 'yNFormatMirariListInit',
 		'step'	=> 'yNFormatMirariListStep',
 		'stop'	=> 'yNFormatMirariListStop',
-		'tags'	=> array ('[mirari:list]' => 1, '*' => 2, '#' => 2, '[/mirari:list]' => 3)
+		'tags'	=> array ('[mirari:list]' => 1, '[*]' => 2, '[#]' => 2, '[/mirari:list]' => 3)
 	),
 	array
 	(
@@ -151,7 +151,7 @@ $_formatModifiers = array
 		'init'	=> 'yNFormatMirariTableInit',
 		'step'	=> 'yNFormatMirariTableStep',
 		'stop'	=> 'yNFormatMirariTableStop',
-		'tags'	=> array ('[mirari:table]' => 1, '[mirari:table=(i)]' => 1, '^' => 2, '|' => 2, "\n" => 2, '[/mirari:table]' => 3)
+		'tags'	=> array ('[mirari:table]' => 1, '[mirari:table=(i)]' => 1, '[^^]' => 2, '[||]' => 2, '[--]' => 2, '[/mirari:table]' => 3)
 	),
 	array
 	(
