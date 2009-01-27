@@ -1,14 +1,13 @@
 <?php
 
-define ('VARIABLE',		'0');
-define ('ENV_CHARSET',	'utf-8');
+define ('CHARSET',	'utf-8');
 
 require ('code/format.php');
 require ('code/format.yn.php');
 
 function	formatHTML ($str)
 {
-	$str = htmlspecialchars ($str);
+	$str = htmlspecialchars ($str, ENT_COMPAT, CHARSET);
 
 	$break = -1;
 	$level = 0;
@@ -45,7 +44,7 @@ function	formatW3C ($str)
 	return htmlspecialchars ('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
-		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . ENV_CHARSET . '" />
+		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . CHARSET . '" />
 		<title>Fragment</title>
 	</head>
 	<body>
@@ -53,14 +52,14 @@ function	formatW3C ($str)
 			' . $str . '
 		</div>
 	</body>
-</html>', ENT_COMPAT, ENV_CHARSET);
+</html>', ENT_COMPAT, CHARSET);
 }
 
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<link href="res/style.css" rel="stylesheet" type="text/css" />
-		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . ENV_CHARSET . '" />
+		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . CHARSET . '" />
 		<title>Mirari Format Test</title>
 	</head>
 	<body>
@@ -83,7 +82,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 
 if (isset ($_POST['mode']) && isset ($_POST['text']))
 {
-	$str = formatString ($_POST['text'], formatCompile ($_formatModifiers, $_formatArguments));
+	$str = formatString ($_POST['text'], formatCompile ($_formatModifiers, $_formatArguments), CHARSET);
 
 	echo '
 		<div class="box">
@@ -95,7 +94,7 @@ if (isset ($_POST['mode']) && isset ($_POST['text']))
 				<br />
 				<form action="http://validator.w3.org/check" method="POST" target="_blank">
 					<textarea cols="1" name="fragment" rows="1" style="display: none;">' . formatW3C ($str) . '</textarea>
-					<input name="charset" type="hidden" value="' . ENV_CHARSET . '" />
+					<input name="charset" type="hidden" value="' . CHARSET . '" />
 					<input type="submit" value="Submit to w3c validator" />
 				</form>
 			</div>
