@@ -5,7 +5,7 @@ $_formatArguments = array
 	'a'	=> '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
 	'h'	=> '#0123456789ABCDEFabcdef',
 	'i'	=> '0123456789',
-	's'	=> '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz&~"\'#{(-|_\\^@)=+}%*,?;.:/!'
+	's'	=> '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz&~"\'#{(-|_\\^@)=+}%*,?;.:/! '
 );
 
 $_formatModifiers = array
@@ -13,7 +13,7 @@ $_formatModifiers = array
 	array
 	(
 		'flag'	=> 1,
-		'limit'	=> 3,
+		'limit'	=> 10,
 		'stop'	=> 'yNFormatBoxStop',
 		'tags'	=> array ('[box=(s)]' => 1, '[/box]' => 3)
 	),
