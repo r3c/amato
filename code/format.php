@@ -8,11 +8,11 @@ define ('FORMAT_STOP',		')');
 ** Transform tags and parameters lists into faster hashmaps
 ** $modifiers	: tags list
 ** $args		: arguments list
-** return		: compiled transformations hashmap
+** return		: compiled format structure
 */
 function	formatCompile ($modifiers, $args)
 {
-	$hash = array
+	$format = array
 	(
 		array (),
 		array (),
@@ -20,7 +20,7 @@ function	formatCompile ($modifiers, $args)
 		array ()
 	);
 
-	$modifiers[]['tags'][FORMAT_ESCAPE] = -1;
+	$modifiers[]['tags'][FORMAT_ESCAPE] = null;
 	$tag = 0;
 
 	foreach ($modifiers as $id => $modifier)
@@ -29,8 +29,9 @@ function	formatCompile ($modifiers, $args)
 		foreach ($modifier['tags'] as $expr => $type)
 		{
 			// Build tag characters tree
-			$node =& $hash[0];
+			$node =& $format[0];
 			$len = strlen ($expr);
+			$arg = 0;
 
 			for ($i = 0; $i < $len; ++$i)
 			{
@@ -40,21 +41,23 @@ function	formatCompile ($modifiers, $args)
 						++$i;
 
 					foreach (str_split ($args[substr ($expr, $j, $i - $j)]) as $char)
-						$node[$char] =& $node;
+						$node[$char] = array (&$node, $arg);
+
+					++$arg;
 				}
 				else
 				{
 					if (!isset ($node[$expr[$i]]))
-						$node[$expr[$i]] = null;
+						$node[$expr[$i]] = array (null, null);
 
-					$node =& $node[$expr[$i]];
+					$node =& $node[$expr[$i]][0];
 				}
 			}
 
 			// Build tag information structure
-			if ($expr != FORMAT_ESCAPE)
+			if ($type !== null)
 			{
-				$hash[1][$tag] = array ($id, $type, $expr);
+				$format[1][$tag] = array ($id, $type, $expr);
 				$node = $tag++;
 			}
 			else
@@ -62,7 +65,7 @@ function	formatCompile ($modifiers, $args)
 		}
 
 		// Transform tag options
-		$hash[2][$id] = array
+		$format[2][$id] = array
 		(
 			isset ($modifier['flag']) ? $modifier['flag'] : 0,
 			isset ($modifier['init']) ? $modifier['init'] : null,
@@ -72,27 +75,27 @@ function	formatCompile ($modifiers, $args)
 		);
 
 		// Transform tag limits
-		$hash[3][$id] = isset ($modifier['limit']) ? $modifier['limit'] : PHP_INT_MAX;
+		$format[3][$id] = isset ($modifier['limit']) ? $modifier['limit'] : PHP_INT_MAX;
 	}
 
-	return $hash;
+	return $format;
 }
 
 /*
 ** Parse string and transform defined tags using callback functions
 ** $str		: input string
-** $hash	: compiled transformations hashmap
+** $format	: compiled format structure
 ** return	: formatted string
 */
-function	formatString ($str, $hash, $charset = 'utf-8')
+function	formatString ($str, $format, $charset = 'utf-8')
 {
 	$str = htmlspecialchars ($str, ENT_COMPAT, $charset);
 	$len = strlen ($str);
 
-	$limit = $hash[3];
-	$opts =& $hash[2];
-	$tags =& $hash[1];
-	$tree =& $hash[0];	
+	$limit = $format[3];
+	$opts =& $format[2];
+	$tags =& $format[1];
+	$tree =& $format[0];	
 
 	$count = 0;
 	$stack = array ();
@@ -105,10 +108,15 @@ function	formatString ($str, $hash, $charset = 'utf-8')
 		{
 			// Search for tag matching current string
 			$args = array ();
-			$node =& $tree[$str[$i]];
+			$node =& $tree;
 
-			for ($j = $i + 1; is_array ($node); ++$j)
-				$node =& $node[$str[$j]];
+			for ($j = $i; is_array ($node); ++$j)
+			{
+				if ($node[$str[$j]][1] !== null)
+					$args[$node[$str[$j]][1]] .= $str[$j];
+
+				$node =& $node[$str[$j]][0];
+			}
 
 			// Matching tag has been found
 			if (isset ($node))
