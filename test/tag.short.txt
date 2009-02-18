@@ -4,7 +4,7 @@ Voici un [url=http://www.google.fr]lien nommé[/url], un autre non nommé [url]w
 
 Passons à des tests plus utiles. [b][s][u]Beaucoup de balises imbriquées[/u][/s][/b] (dans l'ordre). [color=0F0][b][i]Beaucoup de balises imbriquées[/color][/b][/i] (dans le désordre le plus complet). [color=0FF]Succession [b][color=F00]de balises [size=125]de [i]tous les [u]types et toutes les [s]formes[/s], sans[/color] nécessairement les[/b] fermer[/u] dans l'ordre non plus[/color][/i][/size].
 
-Balise "\[b]" [u][b]ouverte et non fermée, mais interrompue[/u] par une autre.
+[b]a[align=left]b[/align]c[/b]
 
 [hr]
 [list]
@@ -14,10 +14,12 @@ Balise "\[b]" [u][b]ouverte et non fermée, mais interrompue[/u] par une autre.
 [/list]
 
 [table]
-^ Première colonne	^ Deuxième colonne	^ Troisième colonne
-| Gauche			|            Droite	|      Milieu  
-^ Header			| [color=F0F]Ligne incomplète
-|| Element sur 2 colonnes[/color]		| Dernier element
+^ Première colonne	^ Deuxième colonne	^ Troisième colonne $
+| Gauche			|            Droite	|      Milieu $
+^ Header			| [color=F0F]Ligne incomplète $
+|| Element sur 2 colonnes[/color]		| Dernier element $
 [/table]
 
 [align=invalid]balise invalide[/align]
+
+Balise "\[b]" [u][b]ouverte et non fermée, mais interrompue[/u] par une autre.

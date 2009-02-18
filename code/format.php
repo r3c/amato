@@ -6,7 +6,7 @@ define ('FORMAT_STOP',		')');
 
 /*
 ** Transform tags and parameters lists into faster hashmaps
-** $modifiers	: tags list
+** $modifiers	: modifiers list
 ** $args		: arguments list
 ** return		: compiled format structure
 */
@@ -67,11 +67,10 @@ function	formatCompile ($modifiers, $args)
 		// Transform tag options
 		$format[2][$id] = array
 		(
-			isset ($modifier['flag']) ? $modifier['flag'] : 0,
+			isset ($modifier['prec']) ? $modifier['prec'] : 1,
 			isset ($modifier['init']) ? $modifier['init'] : null,
 			isset ($modifier['step']) ? $modifier['step'] : null,
-			isset ($modifier['stop']) ? $modifier['stop'] : null,
-			isset ($modifier['wrap']) ? $modifier['wrap'] : null
+			isset ($modifier['stop']) ? $modifier['stop'] : null
 		);
 
 		// Transform tag limits
@@ -95,27 +94,27 @@ function	formatString ($str, $format, $charset = 'utf-8')
 	$limit = $format[3];
 	$opts =& $format[2];
 	$tags =& $format[1];
-	$tree =& $format[0];	
+	$tree =& $format[0];
 
 	$count = 0;
 	$stack = array ();
 
 	// Parse entire string
-	for ($i = 0; $i < $len; ++$i)
+	for ($i1 = 0; $i1 < $len; ++$i1)
 	{
 		// Browse through available tags if needed
-		if (isset ($tree[$str[$i]]))
+		if (isset ($tree[$str[$i1]]))
 		{
 			// Search for tag matching current string
 			$args = array ();
 			$node =& $tree;
 
-			for ($j = $i; is_array ($node); ++$j)
+			for ($j1 = $i1; is_array ($node); ++$j1)
 			{
-				if ($node[$str[$j]][1] !== null)
-					$args[$node[$str[$j]][1]] .= $str[$j];
+				if ($node[$str[$j1]][1] !== null)
+					$args[$node[$str[$j1]][1]] .= $str[$j1];
 
-				$node =& $node[$str[$j]][0];
+				$node =& $node[$str[$j1]][0];
 			}
 
 			// Matching tag has been found
@@ -123,141 +122,119 @@ function	formatString ($str, $format, $charset = 'utf-8')
 			{
 				// Tag is an escape character
 				if ($node == -1)
-					$str = substr ($str, 0, $i) . substr ($str, $j);
+					$str = substr ($str, 0, $i1) . substr ($str, $j1);
 
 				// Tag is a modifier
 				else
 				{
-					list ($id, $type, $expr) = $tags[$node];
+					list ($id1, $type, $expr) = $tags[$node];
 
+					// Prepare action
 					switch ($type)
 					{
-						// Standalone tag
 						case 0:
-							// Check if limit has been reached
-							if ($limit[$id] == 0)
-								break;
+						case 1:
+							// Check if limit has been reached for this tag
+							if (!($cancel = $limit[$id1] == 0))
+								--$limit[$id1];
 
-							$limit[$id]--;
+							// Skip all opened tags with lower precedence
+							for ($close = $count - 1; $close >= 0 && $opts[$id1][0] > $opts[$stack[$close][0]][0]; )
+								--$close;
 
-							// Call stop function and get replacement
-							$sStr = $opts[$id][3] ($expr, $args);
-
-							if ($sStr === null)
-								$sStr = substr ($str, $i, $j - $i);
-
-							// Update string and string length
-							$sLen = strlen ($sStr);
-
-							$str = substr ($str, 0, $i) . $sStr . substr ($str, $j);
-							$len += $sLen + $i - $j;
-
-							// Move cursor to end of tag
-							$i = $j - 1;
+							$cross = $close + 1;
 							break;
 
-						// Starting tag
+						case 2:
+						case 3:
+							// Browse stack for matching opened tag
+							for ($close = $count - 1; $close >= 0 && $stack[$close][0] != $id1; )
+								--$close;
+
+							// Cancel when tag could not be found
+							$cancel = $close < 0;
+							$cross = $close + 1;
+							break;
+					}
+
+					// Cancel procedure on invalid parameters
+					if ($cancel)
+						break;
+
+					// Close crossed tags
+					for ($k = $count - 1; $k >= $cross; --$k)
+					{
+						list ($id2, $i2, $j2) = $stack[$k];
+
+						$sStr = ($i1 > $j2 || $i2 < $j2) ? $opts[$id2][3] (substr ($str, $j2, $i1 - $j2), $stack[$k][3]) : '';
+
+						if ($sStr === null)
+							$sStr = substr ($str, $i2, $i1 - $i2);
+
+						$sLen = strlen ($sStr);
+
+						$str = substr ($str, 0, $i2) . $sStr . substr ($str, $i1);
+						$len += $sLen - $i1 + $i2;
+
+						$j1 = $j1 - $i1 + $i2 + $sLen;
+						$i1 = $i2 + $sLen;
+					}
+
+					// Close current tag
+					if ($type == 0 || $type == 3)
+					{
+						list ($id2, $i2, $j2, $args) = ($type == 0 ? array ($id1, $i1, $j1, $args) : $stack[$close]);
+
+						$sStr = ($i1 > $j2 || $i2 < $j2) ? $opts[$id2][3] (substr ($str, $j2, $i1 - $j2), $args) : '';
+
+						if ($sStr === null)
+							$sStr = substr ($str, $i2, $j1 - $i2);
+
+						$sLen = strlen ($sStr);
+
+						$str = substr ($str, 0, $i2) . $sStr . substr ($str, $j1);
+						$len += $sLen - $j1 + $i2;
+
+						$j1 = $i2 + $sLen;
+						$i1 = $j1 - 1;
+					}
+
+					// Restore crossed tags
+					for ($k = $count - 1; $k >= $cross; --$k)
+					{
+						$stack[$k][1] = $j1;
+						$stack[$k][2] = $j1;
+					}
+
+					// Finish action
+					switch ($type)
+					{
+						// Push or insert tag on the stack
 						case 1:
-							// Check if limit has been reached
-							if ($limit[$id] == 0)
-								break;
-
-							$limit[$id]--;
-
-							// Call wrap functions for previous tags
-							for ($k = $count; $k--; )
-								if ($opts[$stack[$k][0]][4])
-									$opts[$stack[$k][0]][4] ($opts[$id][0], $stack[$k][3]);
-
 							// Call init function if available
-							if ($opts[$id][1])
-								$opts[$id][1] ($expr, $args);
+							if ($opts[$id1][1])
+								$opts[$id1][1] ($expr, $args);
 
 							// Push tag on the stack
-							$stack[] = array ($id, $i, $j, $args);
+							array_splice ($stack, $cross, 0, array (array ($id1, $i1, $j1, $args)));
 							++$count;
 
 							// Move cursor to end of tag
-							$i = $j - 1;
+							$i1 = $j1 - 1;
 							break;
 
-						// Inner or ending tag
+						// Call step function
 						case 2:
+							$s =& $stack[$close];
+
+							$opts[$s[0]][2] ($expr, substr ($str, $s[2], $i1 - $s[2]), $s[3]);
+							$s[2] = $j1;
+							break;
+
+						// Remove tag from the stack
 						case 3:
-							// Find last matching starting tag in stack
-							for ($k = $count; $k > 0 && $stack[$k - 1][0] != $id; )
-								--$k;
-
-							// Exit if matching starting tag wasn't found
-							if ($k == 0)
-								break;
-
-							// Call modifiers for all crossed tags
-							for ($l = $count; $l-- > $k; )
-							{
-								$s =& $stack[$l];
-
-								$sStr = ($i > $s[2] || $s[1] < $s[2]) ? $opts[$s[0]][3] (substr ($str, $s[2], $i - $s[2]), $s[3]) : '';
-
-								if ($sStr === null)
-									$sStr = substr ($str, $s[1], $i - $s[1]);
-
-								$sLen = strlen ($sStr);
-
-								$str = substr ($str, 0, $s[1]) . $sStr . substr ($str, $i);
-								$len += $sLen - $i + $s[1];
-
-								$j = $j - $i + $s[1] + $sLen;
-								$i = $s[1] + $sLen;
-
-								unset ($s);
-							}
-
-							// Call modifier for end tag
-							if ($type == 3)
-							{
-								$s =& $stack[$k - 1];
-
-								$sStr = ($i > $s[2] || $s[1] < $s[2]) ? $opts[$s[0]][3] (substr ($str, $s[2], $i - $s[2]), $s[3]) : '';
-
-								if ($sStr === null)
-									$sStr = substr ($str, $s[1], $j - $s[1]);
-
-								$sLen = strlen ($sStr);
-
-								$str = substr ($str, 0, $s[1]) . $sStr . substr ($str, $j);
-								$len += $sLen - $j + $s[1];
-
-								$j = $s[1] + $sLen;
-								$i = $j - 1;
-
-								unset ($s);
-							}
-
-							// Reopen crossed tags
-							for ($l = $count; $l-- > $k; )
-							{
-								$stack[$l][1] = $j;
-								$stack[$l][2] = $j;
-							}
-
-							// Call inline function
-							if ($type == 2)
-							{
-								$s =& $stack[$k - 1];
-
-								$opts[$s[0]][2] ($expr, substr ($str, $s[2], $i - $s[2]), $s[3]);
-								$s[2] = $j;
-
-								unset ($s);
-							}
-
-							// Remove tag from the stack
-							else
-							{
-								array_splice ($stack, $k - 1, 1);
-								--$count;
-							}
+							array_splice ($stack, $close, 1);
+							--$count;
 							break;
 					}
 				}

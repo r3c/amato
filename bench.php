@@ -3,7 +3,7 @@
 define ('CHARSET',	'utf-8');
 
 require ('code/format.php');
-require ('code/format.yn.php');
+require ('code/format.mirari.php');
 require ('code/regexp.php');
 
 function	bench ($count, $init, $loop, $stop)

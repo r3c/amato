@@ -1,5 +1,10 @@
 <?php
 
+/*
+** List of accepted characters by parameter type (type name => characters)
+** type name:	type identifier as string
+** characters:	string containing accepted characters
+*/
 $_formatArguments = array
 (
 	'a'	=> '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
@@ -8,111 +13,137 @@ $_formatArguments = array
 	's'	=> '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz&~"\'#{(-|_\\^@)=+}%*,?;.:/!'
 );
 
+/*
+** List of modifiers, each modifier can define the following keys:
+** prec:	modifier precedence (optional, default is 1)
+** tags:	list of modifier tag expressions and types (expr => type)
+**			expr:	tag expression as string, can contain parameters
+**			type:	tag type as integer, valid types are:
+**				0:	standalone tag (eg. [hr])
+**				1:	opening tag (eg. [table])
+**				2:	inline tag (eg. |, ^ or $)
+**				3:	closing tag (eg. [/table])
+** init:	opening tags callback function ($tag, &$args) (optional)
+**			tag:	matched tag expression
+**			args:	value of variable parameters
+** step:	inline tags callback function ($tag, $str, &$args) (optional)
+**			tag:	matched tag expression
+**			str: 	string between previous tag and this one
+**			args:	value of variable parameters
+**			return:	replacement string or null
+** stop:	closing tags callback function ($str, &$args)
+**			str: 	string between previous tag and this one
+**			args:	value of variable parameters
+**			return:	replacement string or null
+*/
 $_formatModifiers = array
 (
 	array
 	(
-		'flag'	=> 1,
-		'stop'	=> 'mirariFormatAlignStop',
-		'tags'	=> array ('[align=(a)]' => 1, '[/align]' => 3)
+		'prec'	=> 2,
+		'tags'	=> array ('[align=(a)]' => 1, '[/align]' => 3),
+		'stop'	=> 'mirariFormatAlignStop'
 	),
 	array
 	(
+		'prec'	=> 1,
+		'tags'	=> array ('[b]' => 1, '[/b]' => 3),
 		'init'	=> 'mirariFormatSpanInit',
-		'stop'	=> 'mirariFormatSpanStop',
-		'wrap'	=> 'mirariFormatSpanWrap',
-		'tags'	=> array ('[b]' => 1, '[/b]' => 3)
+		'stop'	=> 'mirariFormatSpanStop'
 	),
 	array
 	(
-		'stop'	=> 'mirariFormatColorStop',
-		'wrap'	=> 'mirariFormatColorWrap',
-		'tags'	=> array ('[color=(h),(a)]' => 1, '[color=(h)]' => 1, '[/color]' => 3)
+		'prec'	=> 1,
+		'tags'	=> array ('[color=(h),(a)]' => 1, '[color=(h)]' => 1, '[/color]' => 3),
+		'stop'	=> 'mirariFormatColorStop'
 	),
 	array
 	(
-		'stop'	=> 'mirariFormatCommentStop',
-		'tags'	=> array ('[!]' => 1, '[/!]' => 3)
+		'prec'	=> 1,
+		'tags'	=> array ('[!]' => 1, '[/!]' => 3),
+		'stop'	=> 'mirariFormatCommentStop'
 	),
 	array
 	(
-		'flag'	=> 1,
-		'stop'	=> 'mirariFormatFloatStop',
-		'tags'	=> array ('[float=(a)]' => 1, '[/float]' => 3)
+		'prec'	=> 2,
+		'tags'	=> array ('[float=(a)]' => 1, '[/float]' => 3),
+		'stop'	=> 'mirariFormatFloatStop'
 	),
 	array
 	(
-		'stop'	=> 'mirariFormatImageStop',
-		'tags'	=> array ('[img]' => 1, '[img=(i),(i)]' => 1, '[/img]' => 3)
+		'prec'	=> 1,
+		'tags'	=> array ('[img]' => 1, '[img=(i),(i)]' => 1, '[/img]' => 3),
+		'stop'	=> 'mirariFormatImageStop'
 	),
 	array
 	(
+		'prec'	=> 1,
+		'tags'	=> array ('[i]' => 1, '[/i]' => 3),
 		'init'	=> 'mirariFormatSpanInit',
-		'stop'	=> 'mirariFormatSpanStop',
-		'wrap'	=> 'mirariFormatSpanWrap',
-		'tags'	=> array ('[i]' => 1, '[/i]' => 3)
+		'stop'	=> 'mirariFormatSpanStop'
 	),
 	array
 	(
-		'flag'	=> 1,
-		'stop'	=> 'mirariFormatLineStop',
-		'tags'	=> array ('[hr]' => 0)
+		'prec'	=> 2,
+		'tags'	=> array ('[hr]' => 0),
+		'stop'	=> 'mirariFormatLineStop'
 	),
 	array
 	(
-		'flag'	=> 1,
+		'prec'	=> 2,
+		'tags'	=> array ('[list]' => 1, '*' => 2, '#' => 2, '[/list]' => 3),
 		'init'	=> 'mirariFormatListInit',
 		'step'	=> 'mirariFormatListStep',
 		'stop'	=> 'mirariFormatListStop',
-		'tags'	=> array ('[list]' => 1, '*' => 2, '#' => 2, '[/list]' => 3)
 	),
 	array
 	(
+		'prec'	=> 1,
+		'tags'	=> array ('[size=(i)]' => 1, '[/size]' => 3),
 		'init'	=> 'mirariFormatSpanInit',
-		'stop'	=> 'mirariFormatSpanStop',
-		'wrap'	=> 'mirariFormatSpanWrap',
-		'tags'	=> array ('[size=(i)]' => 1, '[/size]' => 3)
+		'stop'	=> 'mirariFormatSpanStop'
 	),
 	array
 	(
+		'prec'	=> 1,
+		'tags'	=> array ('[s]' => 1, '[/s]' => 3),
 		'init'	=> 'mirariFormatSpanInit',
-		'stop'	=> 'mirariFormatSpanStop',
-		'wrap'	=> 'mirariFormatSpanWrap',
-		'tags'	=> array ('[s]' => 1, '[/s]' => 3)
+		'stop'	=> 'mirariFormatSpanStop'
 	),
 	array
 	(
+		'prec'	=> 1,
+		'tags'	=> array ('[sub]' => 1, '[/sub]' => 3),
 		'init'	=> 'mirariFormatSpanInit',
-		'stop'	=> 'mirariFormatSpanStop',
-		'wrap'	=> 'mirariFormatSpanWrap',
-		'tags'	=> array ('[sub]' => 1, '[/sub]' => 3)
+		'stop'	=> 'mirariFormatSpanStop'
 	),
 	array
 	(
+		'prec'	=> 1,
+		'tags'	=> array ('[sup]' => 1, '[/sup]' => 3),
 		'init'	=> 'mirariFormatSpanInit',
-		'stop'	=> 'mirariFormatSpanStop',
-		'wrap'	=> 'mirariFormatSpanWrap',
-		'tags'	=> array ('[sup]' => 1, '[/sup]' => 3)
+		'stop'	=> 'mirariFormatSpanStop'
 	),
 	array
 	(
-		'flag'	=> 1,
+		'prec'	=> 2,
+		'tags'	=> array ('[table]' => 1, '[table=(i)]' => 1, '^' => 2, '|' => 2, '$' => 2, '[/table]' => 3),		
 		'init'	=> 'mirariFormatTableInit',
 		'step'	=> 'mirariFormatTableStep',
-		'stop'	=> 'mirariFormatTableStop',
-		'tags'	=> array ('[table]' => 1, '[table=(i)]' => 1, '^' => 2, '|' => 2, "\n" => 2, '[/table]' => 3)
+		'stop'	=> 'mirariFormatTableStop'
 	),
 	array
 	(
+		'prec'	=> 1,
+		'tags'	=> array ('[u]' => 1, '[/u]' => 3),
 		'init'	=> 'mirariFormatSpanInit',
-		'stop'	=> 'mirariFormatSpanStop',
-		'wrap'	=> 'mirariFormatSpanWrap',
-		'tags'	=> array ('[u]' => 1, '[/u]' => 3)
+		'stop'	=> 'mirariFormatSpanStop'
 	),
 	array
 	(
-		'stop'	=> 'mirariFormatUrlStop',
-		'tags'	=> array ('[url]' => 1, '[url=(s)]' => 1, '[/url]' => 3)
+		'prec'	=> 1,
+		'tags'	=> array ('[url]' => 1, '[url=(s)]' => 1, '[/url]' => 3),
+		'stop'	=> 'mirariFormatUrlStop'
 	)
 );
 
@@ -143,12 +174,6 @@ function	mirariFormatColorStop ($str, &$args)
 		return '<div ' . $attr . '>' . $str . '</div>';
 
 	return '<span ' . $attr . '>' . $str . '</span>';
-}
-
-function	mirariFormatColorWrap ($flag, &$args)
-{
-	if ($flag)
-		$args['div'] = true;
 }
 
 function	mirariFormatCommentStop ($str)
@@ -252,12 +277,6 @@ function	mirariFormatSpanStop ($str, &$args)
 		return '<div' . $args['attr'] . '>' . $str . '</div>';
 
 	return '<span' . $args['attr'] . '>' . $str . '</span>';
-}
-
-function	mirariFormatSpanWrap ($flag, &$args)
-{
-	if ($flag)
-		$args['div'] = true;
 }
 
 function	mirariFormatTableInit ($tag, &$args)
