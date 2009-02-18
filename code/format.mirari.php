@@ -15,6 +15,7 @@ $_formatArguments = array
 
 /*
 ** List of modifiers, each modifier can define the following keys:
+** limit:	maximum allowed occurrences of this modifier per string (optional)
 ** prec:	modifier precedence (optional, default is 1)
 ** tags:	list of modifier tag expressions and types (expr => type)
 **			expr:	tag expression as string, can contain parameters
@@ -53,8 +54,20 @@ $_formatModifiers = array
 	),
 	array
 	(
+		'prec'	=> 2,
+		'tags'	=> array ('[block=(i),(i),(i)]' => 1, '[block=(i),(i)]' => 1, '[block=(i)]' => 1, '[/block]' => 3),
+		'stop'	=> 'mirariFormatBlockStop'
+	),
+	array
+	(
+		'prec'	=> 2,
+		'tags'	=> array ('[box=(h),(h),(i)]' => 1, '[box=(h),(h)]' => 1, '[box=(h)]' => 1, '[/box]' => 3),
+		'stop'	=> 'mirariFormatBoxStop'
+	),
+	array
+	(
 		'prec'	=> 1,
-		'tags'	=> array ('[color=(h),(a)]' => 1, '[color=(h)]' => 1, '[/color]' => 3),
+		'tags'	=> array ('[color=(h)]' => 1, '[/color]' => 3),
 		'stop'	=> 'mirariFormatColorStop'
 	),
 	array
@@ -127,7 +140,7 @@ $_formatModifiers = array
 	array
 	(
 		'prec'	=> 2,
-		'tags'	=> array ('[table]' => 1, '[table=(i)]' => 1, '^' => 2, '|' => 2, '$' => 2, '[/table]' => 3),		
+		'tags'	=> array ('[table=(i)]' => 1, '[table]' => 1, '^' => 2, '|' => 2, '$' => 2, '[/table]' => 3),		
 		'init'	=> 'mirariFormatTableInit',
 		'step'	=> 'mirariFormatTableStep',
 		'stop'	=> 'mirariFormatTableStop'
@@ -155,25 +168,43 @@ function	mirariFormatAlignStop ($str, &$args)
 	return null;
 }
 
+function	mirariFormatBlockStop ($str, &$args)
+{
+	if (isset ($args[2]))
+		$padding = ' padding: ' . max (min ($args[1], 128), 0) . 'px ' . max (min ($args[2], 128), 0) . 'px;';
+	else if (isset ($args[1]))
+		$padding = ' padding: ' . max (min ($args[1], 128), 0) . 'px;';
+	else
+		$padding = '';
+
+	return '<div style="width: ' . max (min ($args[0], 100), 5) . '%;' . $padding . '">' . $str . '</div>';
+}
+
+function	mirariFormatBoxStop ($str, &$args)
+{
+	$len1 = strlen ($args[0]);
+	$len2 = isset ($args[1]) ? strlen ($args[1]) : 3;
+
+	if (($len1 != 3 && $len1 != 6) || ($len2 != 3 && $len2 != 6))
+		return null;
+	else if (isset ($args[2]))
+		$style = 'background: #' . $args[0] . '; border: ' . max (min (128, $args[2]), 1) . 'px solid #' . $args[1] . ';';
+	else if (isset ($args[1]))
+		$style = 'background: #' . $args[0] . '; border: 1px solid #' . $args[1] . ';';
+	else
+		$style = 'background: #' . $args[0] . ';';
+
+	return '<div style="' . $style . '">' . $str . '</div>';
+}
+
 function	mirariFormatColorStop ($str, &$args)
 {
-	$hexa = $args[0];
-	$mode = isset ($args[1]) ? $args[1] : 'fg';
-	$len = strlen ($hexa);
+	$len = strlen ($args[0]);
 
 	if ($len != 3 && $len != 6)
 		return null;
-	else if ($mode == 'bg')
-		$attr = 'style="background: #' . $hexa . ';"';
-	else if ($mode == 'fg')
-		$attr = 'style="color: #' . $hexa . ';"';
-	else
-		return null;
 
-	if ($args['div'])
-		return '<div ' . $attr . '>' . $str . '</div>';
-
-	return '<span ' . $attr . '>' . $str . '</span>';
+	return '<span style="color: #' . $args[0] . ';">' . $str . '</span>';
 }
 
 function	mirariFormatCommentStop ($str)
@@ -273,9 +304,6 @@ function	mirariFormatSpanInit ($tag, &$args)
 
 function	mirariFormatSpanStop ($str, &$args)
 {
-	if ($args['div'])
-		return '<div' . $args['attr'] . '>' . $str . '</div>';
-
 	return '<span' . $args['attr'] . '>' . $str . '</span>';
 }
 

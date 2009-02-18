@@ -63,11 +63,12 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 				Available tags:<br />
 				<br />
 				<ul>
-					<li>[align=left]...[/align], [align=center]...[/align], [align=right]...[/align]: align paragraph</li>
-					<li>[b]...[/b]: bold text</li>
-					<li>[color=FF0000]...[/color]: change text color</li>
-					<li>[color=FF0000,bg]...[/color]: change background color</li>
-					<li>[float=left]...[/float], [float=right]...[/float]: make floatable block</li>
+					<li>[align=left]...[/align]: align paragraph to the left ("center" and "right" are also valid)</li>
+					<li>[b]...[/b]: set font weight to bold</li>
+					<li>[block=100,2,4]...[/block]: make block of 100% width, with 2px vertical and 4px horizontal padding</li>
+					<li>[box=FF0000,00FF00,2]...[/box]: make box with 2px green borders and red background</li>
+					<li>[color=FF0000]...[/color], [color=00F]...[/color]: change text color to red</li>
+					<li>[float=left]...[/float]: make block float to the left ("right" is also valid)</li>
 					<li>[img]...[/img], [img=32,32]...[/img]: insert image</li>
 					<li>[i]...[/i]: make text italic</li>
 					<li>[hr]: insert horizontal line</li>
@@ -76,15 +77,14 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 					<li>[s]...[/s]: strikeout text</li>
 					<li>[sub]...[/sub]: make text subscript</li>
 					<li>[sup]...[/sup]: make text superscript</li>
-					<li>[table]...[/table], [table=50]...[/table]: make table (| to create colum, ^ to create header, $ to finish row)</li>
+					<li>[table]...[/table], [table=50]...[/table]: make table (use | to create colum, ^ to create header, $ to finish row)</li>
 					<li>[u]...[/u]: underline text</li>
-					<li>[url]...[/url], [url=...]...[/url]: make text an hyperlink</li>
+					<li>[url]google.com[/url], [url=google.com]...[/url]: insert hyperlink</li>
 				</ul>
 			</div>
 			<div class="body">
 				<form action="" method="POST">
-					<textarea name="text" rows="16" style="width: 100%;">' . htmlspecialchars ($_POST['text']) . '</textarea>
-					<br />
+					<textarea name="text" rows="10" style="width: 100%;">' . htmlspecialchars ($_POST['text']) . '</textarea>
 					<select name="mode">
 						<option' . ($_POST['mode'] != 'code' ? ' selected="selected"' : '') . ' value="html">Display result as HTML</option>
 						<option' . ($_POST['mode'] == 'code' ? ' selected="selected"' : '') . ' value="code">Display result as code</option>

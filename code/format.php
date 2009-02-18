@@ -105,7 +105,7 @@ function	formatString ($str, $format, $charset = 'utf-8')
 		// Browse through available tags if needed
 		if (isset ($tree[$str[$i1]]))
 		{
-			// Search for tag matching current string
+			// Search in tree for tag matching current string
 			$args = array ();
 			$node =& $tree;
 
@@ -120,11 +120,11 @@ function	formatString ($str, $format, $charset = 'utf-8')
 			// Matching tag has been found
 			if (isset ($node))
 			{
-				// Tag is an escape character
+				// Tag is an escape character, remove it
 				if ($node == -1)
 					$str = substr ($str, 0, $i1) . substr ($str, $j1);
 
-				// Tag is a modifier
+				// Tag is a modifier, replace it
 				else
 				{
 					list ($id1, $type, $expr) = $tags[$node];
@@ -159,7 +159,7 @@ function	formatString ($str, $format, $charset = 'utf-8')
 
 					// Cancel procedure on invalid parameters
 					if ($cancel)
-						break;
+						continue;
 
 					// Close crossed tags
 					for ($k = $count - 1; $k >= $cross; --$k)
