@@ -173,12 +173,12 @@ function	mirariFormatBlockStop ($str, &$args)
 	else if ($args[0] != 'normal')
 		return;
 
-	if (isset ($args[3]))
+	if (is_numeric ($args[3]))
 		$style .= ' width: ' . max (min ($args[1], 100), 5) . '%;';
 
-	if (isset ($args[2]))
+	if (is_numeric ($args[2]))
 		$style .= ' padding: ' . max (min ($args[1], 128), 0) . 'px ' . max (min ($args[2], 128), 0) . 'px;';
-	else if (isset ($args[1]))
+	else if (is_numeric ($args[1]))
 		$style .= ' padding: ' . max (min ($args[1], 128), 0) . 'px;';
 
 	return '<div style="' . substr ($style, 1) . '">' . $str . '</div>';
@@ -225,7 +225,7 @@ function	mirariFormatImageStop ($str, &$args)
 	else
 		return null;
 
-	if (isset ($args[0]) && isset ($args[1]))
+	if (is_numeric ($args[0]) && is_numeric ($args[1]))
 		return '<img alt="image" height="' . max (min ($args[1], 768), 1) . '" src="' . $src . '" width="' . max (min ($args[0], 1024), 1) . '" />';
 
 	return '<img alt="image" src="' . $src . '" />';
