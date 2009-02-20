@@ -173,13 +173,13 @@ function	mirariFormatBlockStop ($str, &$args)
 	else if ($args[0] != 'normal')
 		return;
 
-	if (isset ($args[1]))
+	if (isset ($args[3]))
 		$style .= ' width: ' . max (min ($args[1], 100), 5) . '%;';
 
-	if (isset ($args[3]))
-		$style .= ' padding: ' . max (min ($args[2], 128), 0) . 'px ' . max (min ($args[3], 128), 0) . 'px;';
-	else if (isset ($args[2]))
-		$style .= ' padding: ' . max (min ($args[2], 128), 0) . 'px;';
+	if (isset ($args[2]))
+		$style .= ' padding: ' . max (min ($args[1], 128), 0) . 'px ' . max (min ($args[2], 128), 0) . 'px;';
+	else if (isset ($args[1]))
+		$style .= ' padding: ' . max (min ($args[1], 128), 0) . 'px;';
 
 	return '<div style="' . substr ($style, 1) . '">' . $str . '</div>';
 }

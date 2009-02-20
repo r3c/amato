@@ -65,7 +65,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 				<ul>
 					<li>[align=left]...[/align]: align text to the left ("center" and "right" are also valid)</li>
 					<li>[b]...[/b]: set font weight to bold</li>
-					<li>[block=normal,100,2,4]...[/block]: make block of 100% width, with 2px and 4px padding ("left", "right" and "center" are also valid)</li>
+					<li>[block=center,2,4,100]...[/block]: make centered block with 2px and 4px padding, with a width of 100% ("left", "right" and "normal" are also valid)</li>
 					<li>[box=FF0000,00FF00,2]...[/box]: make box with 2px green borders and red background</li>
 					<li>[color=FF0000]...[/color], [color=00F]...[/color]: change text color to red</li>
 					<li>[img]...[/img], [img=32,32]...[/img]: insert image</li>
