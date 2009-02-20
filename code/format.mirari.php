@@ -55,7 +55,7 @@ $_formatModifiers = array
 	array
 	(
 		'prec'	=> 2,
-		'tags'	=> array ('[block=(i),(i),(i)]' => 1, '[block=(i),(i)]' => 1, '[block=(i)]' => 1, '[/block]' => 3),
+		'tags'	=> array ('[block=(a),(i),(i),(i)]' => 1, '[block=(a),(i),(i)]' => 1, '[block=(a),(i)]' => 1, '[block=(a),(i)]' => 1, '[block=(a)]' => 1, '[/block]' => 3),
 		'stop'	=> 'mirariFormatBlockStop'
 	),
 	array
@@ -75,12 +75,6 @@ $_formatModifiers = array
 		'prec'	=> 1,
 		'tags'	=> array ('[!]' => 1, '[/!]' => 3),
 		'stop'	=> 'mirariFormatCommentStop'
-	),
-	array
-	(
-		'prec'	=> 2,
-		'tags'	=> array ('[float=(a)]' => 1, '[/float]' => 3),
-		'stop'	=> 'mirariFormatFloatStop'
 	),
 	array
 	(
@@ -170,14 +164,24 @@ function	mirariFormatAlignStop ($str, &$args)
 
 function	mirariFormatBlockStop ($str, &$args)
 {
-	if (isset ($args[2]))
-		$padding = ' padding: ' . max (min ($args[1], 128), 0) . 'px ' . max (min ($args[2], 128), 0) . 'px;';
-	else if (isset ($args[1]))
-		$padding = ' padding: ' . max (min ($args[1], 128), 0) . 'px;';
-	else
-		$padding = '';
+	$style = '';
 
-	return '<div style="width: ' . max (min ($args[0], 100), 5) . '%;' . $padding . '">' . $str . '</div>';
+	if ($args[0] == 'left' || $args[0] == 'right')
+		$style .= ' float: ' . $args[0] . ';';
+	else if ($args[0] == 'center')
+		$style .= ' margin: auto;';
+	else if ($args[0] != 'normal')
+		return;
+
+	if (isset ($args[1]))
+		$style .= ' width: ' . max (min ($args[1], 100), 5) . '%;';
+
+	if (isset ($args[3]))
+		$style .= ' padding: ' . max (min ($args[2], 128), 0) . 'px ' . max (min ($args[3], 128), 0) . 'px;';
+	else if (isset ($args[2]))
+		$style .= ' padding: ' . max (min ($args[2], 128), 0) . 'px;';
+
+	return '<div style="' . substr ($style, 1) . '">' . $str . '</div>';
 }
 
 function	mirariFormatBoxStop ($str, &$args)
@@ -210,14 +214,6 @@ function	mirariFormatColorStop ($str, &$args)
 function	mirariFormatCommentStop ($str)
 {
 	return '<!--' . $str . '-->';
-}
-
-function	mirariFormatFloatStop ($str, &$args)
-{
-	if ($args[0] == 'left' || $args[0] == 'right')
-		return '<div style="float: ' . $args[0] . ';">' . $str . '</div>';
-
-	return null;
 }
 
 function	mirariFormatImageStop ($str, &$args)

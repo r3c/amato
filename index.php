@@ -63,12 +63,11 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 				Available tags:<br />
 				<br />
 				<ul>
-					<li>[align=left]...[/align]: align paragraph to the left ("center" and "right" are also valid)</li>
+					<li>[align=left]...[/align]: align text to the left ("center" and "right" are also valid)</li>
 					<li>[b]...[/b]: set font weight to bold</li>
-					<li>[block=100,2,4]...[/block]: make block of 100% width, with 2px vertical and 4px horizontal padding</li>
+					<li>[block=normal,100,2,4]...[/block]: make block of 100% width, with 2px and 4px padding ("left", "right" and "center" are also valid)</li>
 					<li>[box=FF0000,00FF00,2]...[/box]: make box with 2px green borders and red background</li>
 					<li>[color=FF0000]...[/color], [color=00F]...[/color]: change text color to red</li>
-					<li>[float=left]...[/float]: make block float to the left ("right" is also valid)</li>
 					<li>[img]...[/img], [img=32,32]...[/img]: insert image</li>
 					<li>[i]...[/i]: make text italic</li>
 					<li>[hr]: insert horizontal line</li>
