@@ -2,8 +2,8 @@
 
 define ('CHARSET',	'utf-8');
 
-require ('code/format.php');
-require ('code/format.mirari.php');
+require ('inc/format.php');
+require ('inc/format.mirari.php');
 
 function	formatHTML ($str)
 {
@@ -46,6 +46,9 @@ function	formatW3C ($str)
 	</body>
 </html>', ENT_COMPAT, CHARSET);
 }
+
+if (!isset ($_POST['text']))
+	$_POST['text'] = file_get_contents ('res/sample.txt');
 
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
