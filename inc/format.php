@@ -109,9 +109,9 @@ function	formatString ($str, $format, $charset = 'utf-8')
 			$args = array ();
 			$node =& $tree;
 
-			for ($j1 = $i1; is_array ($node); ++$j1)
+			for ($j1 = $i1; $j1 < $len && is_array ($node); ++$j1)
 			{
-				if ($node[$str[$j1]][1] !== null)
+				if (isset ($node[$str[$j1]][1]))
 					$args[$node[$str[$j1]][1]] .= $str[$j1];
 
 				$node =& $node[$str[$j1]][0];
