@@ -1,27 +1,5 @@
 <?php
 
-/** FIXME **/
-include ('src/yml.php');
-include ('src/rules/demo.php');
-
-ymlRender ('1;0,u,[u];5,u,[/u];6,b,[b];13,a,[url=,google],google;2,a,[/url];26,b,[/b]|début test : hyperlien fin', $rules);
-
-if (isset ($_POST['text']))
-{
-	$compiled = ymlCompile ($rules);
-
-	var_dump (ymlEncode ($_POST['text'], $compiled));
-}
-
-echo '
-<form action="" method="post">
-	<textarea name="text" style="width: 400px; height: 300px;">' . htmlspecialchars (isset ($_POST['text']) ? $_POST['text'] : '') . '</textarea><br />
-	<input type="submit" value="OK" />
-</form>';
-
-exit ();
-/** FIXME **/
-
 define ('CHARSET',	'utf-8');
 
 require ('inc/format.php');
@@ -70,12 +48,12 @@ function	formatW3C ($str)
 }
 
 if (!isset ($_POST['text']))
-	$_POST['text'] = file_get_contents ('res/sample.txt');
+	$_POST['text'] = file_get_contents ('../../res/sample.txt');
 
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
-		<link href="res/style.css" rel="stylesheet" type="text/css" />
+		<link href="../../res/style.css" rel="stylesheet" type="text/css" />
 		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . CHARSET . '" />
 		<title>Mirari Format Test</title>
 	</head>
