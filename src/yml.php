@@ -279,15 +279,15 @@ global $_ymlCallbacks;
 }
 
 /*
-** Parse tokenized string into (modifiers, text) array.
+** Parse tokenized string into (scopes, text) array.
 ** $token:	tokenized string
-** return:	(modifiers, text) array, null on parsing error.
+** return:	(scopes, text) array, null on parsing error.
 */
 function	ymlParse ($token)
 {
 	$characters = array (YML_CHAR_FIELD => true, YML_CHAR_BLOCK => true, YML_CHAR_HEADER => true);
 	$length = strlen ($token);
-	$modifiers = array ();
+	$scopes = array ();
 
 	// Parse version
 	for ($i = 0; $i < $length && $token[$i] >= '0' && $token[$i] <= '9'; )
@@ -362,13 +362,13 @@ function	ymlParse ($token)
 			$arguments[] = substr ($token, $j, $i - $j);
 		}
 
-		$modifiers[] = array ($name, $tag, $raw, $arguments);
+		$scopes[] = array ($delta, $name, $tag, $raw, $arguments);
 	}
 
 	if ($i >= $length || $token[$i++] != YML_CHAR_HEADER)
 		return null;
 
-	return array ($modifiers, substr ($token, $i));
+	return array ($scopes, substr ($token, $i));
 }
 
 /*
@@ -385,10 +385,10 @@ function	ymlRender ($token, $rules)
 	if ($parsed === null)
 		return null;
 
-	list ($modifiers, $text) = $parsed;
+	list ($scopes, $text) = $parsed;
 
-	// Apply modifiers on plain text
-	var_export ($modifiers);
+	// Apply scopes on plain text
+	var_export ($scopes);
 	var_export ($text);
 /*
 

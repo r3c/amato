@@ -2,6 +2,38 @@
 
 require_once ('src/yml.php');
 
+/*
+** Parsing rules for each available tag, as name => properties
+**   .level:	optional nesting level (a tag can only enclose tags of lower or
+**				equal levels), default is 1
+**   .limit:	optional allowed number of uses of this tag, default is 100
+**   .tags:		matching tags array, as tag => action
+**   .onParse:	optional tag parse callback, undefined if none
+**   .onStart:	optional tag begin callback, undefined if none
+**   .onStep:	optional tag break callback, undefined if none
+**   .onStop:	tag end callback
+*/
+$rules = array
+(
+	'a'	=> array
+	(
+		'level'		=> 1,
+		'tags'		=> array
+		(
+			'[url]'		=> YML_ACTION_BEGIN,
+			'[url='		=> YML_ACTION_BEGIN,
+			'[/url]'	=> YML_ACTION_END
+		),
+		'onParse'	=> 'ymlRuleDemoAParse',
+//		'onStart'	=> 'ymlRuleDemoAStart',
+//		'onStep'	=> 'ymlRuleDemoAStep',
+		'onStop'	=> 'ymlRuleDemoAStop'
+	)
+);
+
+/*
+** Rule callbacks definitions.
+*/
 function	ymlRuleDemoAParse ($tag, $plain, &$i)
 {
 	$arguments = array ();
@@ -37,35 +69,6 @@ function	ymlRuleDemoAStop ($body, $arguments)
 
 	return '<a href="' . $href . '">' . $body . '</a>';
 }
-
-/*
-** Parsing rules for each available tag, as name => properties
-**   .level:	optional nesting level (a tag can only enclose tags of lower or
-**				equal levels), default is 1
-**   .limit:	optional allowed number of uses of this tag, default is 100
-**   .tags:		matching tags array, as tag => action
-**   .onParse:	optional tag parse callback, undefined if none
-**   .onStart:	optional tag begin callback, undefined if none
-**   .onStep:	optional tag break callback, undefined if none
-**   .onStop:	tag end callback
-*/
-$rules = array
-(
-	'a'	=> array
-	(
-		'level'		=> 1,
-		'tags'		=> array
-		(
-			'[url]'		=> YML_ACTION_BEGIN,
-			'[url='		=> YML_ACTION_BEGIN,
-			'[/url]'	=> YML_ACTION_END
-		),
-		'onParse'	=> 'ymlRuleDemoAParse',
-//		'onStart'	=> 'ymlRuleDemoAStart',
-//		'onStep'	=> 'ymlRuleDemoAStep',
-		'onStop'	=> 'ymlRuleDemoAStop'
-	)
-);
 
 /* DELETE BELOW */
 
