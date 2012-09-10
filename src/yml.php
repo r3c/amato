@@ -285,6 +285,7 @@ global $_ymlCallbacks;
 */
 function	ymlParse ($token)
 {
+	$actions = array ('*' => YML_ACTION_ALONE, '+' => YML_ACTION_BEGIN, '/' => YML_ACTION_BREAK, '-' => YML_ACTION_END);
 	$characters = array (YML_CHAR_FIELD => true, YML_CHAR_BLOCK => true, YML_CHAR_HEADER => true);
 	$length = strlen ($token);
 	$scopes = array ();
@@ -298,53 +299,34 @@ function	ymlParse ($token)
 	// Parse header
 	while ($i < $length && $token[$i] == YML_CHAR_BLOCK)
 	{
+		++$i;
+
 		// Parse delta
-		for ($j = ++$i; $i < $length && $token[$i] >= '0' && $token[$i] <= '9'; )
+		for ($j = $i; $i < $length && $token[$i] >= '0' && $token[$i] <= '9'; )
 			++$i;
 
-		$delta = (int)substr ($token, $j, $i - $j);
+		if ($i > $j)
+			$delta = (int)substr ($token, $j, $i - $j);
+		else
+			continue;
+
+		// Parse action
+		if ($i < $length && isset ($actions[$token[$i]]))
+			$action = $actions[$token[$i++]];
+		else
+			continue;
 
 		// Parse name
-		if ($i < $length && $token[$i] == YML_CHAR_FIELD)
+		for ($j = $i; $i < $length && !isset ($characters[$token[$i]]); ++$i)
 		{
-			for ($j = ++$i; $i < $length && !isset ($characters[$token[$i]]); ++$i)
-			{
-				if ($token[$i] == YML_CHAR_ESCAPE && $i + 1 < $length)
-					++$i;
-			}
+			if ($token[$i] == YML_CHAR_ESCAPE && $i + 1 < $length)
+				++$i;
+		}
 
+		if ($i > $j)
 			$name = substr ($token, $j, $i - $j);
-		}
 		else
-			$name = '';
-
-		// Parse tag
-		if ($i < $length && $token[$i] == YML_CHAR_FIELD)
-		{
-			for ($j = ++$i; $i < $length && !isset ($characters[$token[$i]]); ++$i)
-			{
-				if ($token[$i] == YML_CHAR_ESCAPE && $i + 1 < $length)
-					++$i;
-			}
-
-			$tag = substr ($token, $j, $i - $j);
-		}
-		else
-			$tag = '';
-
-		// Parse raw
-		if ($i < $length && $token[$i] == YML_CHAR_FIELD)
-		{
-			for ($j = ++$i; $i < $length && !isset ($characters[$token[$i]]); ++$i)
-			{
-				if ($token[$i] == YML_CHAR_ESCAPE && $i + 1 < $length)
-					++$i;
-			}
-
-			$raw = substr ($token, $j, $i - $j);
-		}
-		else
-			$raw = '';
+			continue;
 
 		// Parse arguments
 		for ($arguments = array (); $i < $length && $token[$i] == YML_CHAR_FIELD; )
@@ -362,7 +344,7 @@ function	ymlParse ($token)
 			$arguments[] = substr ($token, $j, $i - $j);
 		}
 
-		$scopes[] = array ($delta, $name, $tag, $raw, $arguments);
+		$scopes[] = array ($delta, $action, $name, $arguments);
 	}
 
 	if ($i >= $length || $token[$i++] != YML_CHAR_HEADER)
@@ -373,11 +355,11 @@ function	ymlParse ($token)
 
 /*
 ** Render tokenized string.
-** $token:	tokenized string
-** $rules:	parsing rules
-** return:	rendered string
+** $token:		tokenized string
+** $modifiers:	text modifiers
+** return:		rendered string
 */
-function	ymlRender ($token, $rules)
+function	ymlRender ($token, $modifiers)
 {
 	// Parse tokenized string
 	$parsed = ymlParse ($token);
@@ -387,20 +369,154 @@ function	ymlRender ($token, $rules)
 
 	list ($scopes, $text) = $parsed;
 
+	// FIXME: debug
+	var_dump (json_encode ($scopes));
+	var_dump (json_encode ($text));
+
 	// Apply scopes on plain text
-	var_export ($scopes);
-	var_export ($text);
-/*
+	$count = 0;
+	$offset = 0;
+	$stack = array ();
+	$uses = array ();
 
-[u]début[/u] [b]test : [url=google]hyperlien[/url] fin[/b]
+	foreach ($scopes as $scope)
+	{
+		list ($delta, $action, $name, $arguments) = $scope;
 
-1;0,[u],u;5,[/u],u;6,[b],b;13,[url=google],a,google;2,[/url]2,a;26,[/b],b|début test : hyperlien fin
-                                                                          ^    ^^      ^        ^   ^
-                                                                          0    56      13       22  26
+		if (!isset ($modifiers[$name]))
+			continue;
 
-<u>début</u> <b>test : </b><a href="google"><b>hyperlien</b></a><b> fin</b>
+		$modifier = $modifiers[$name];
+		$offset = $delta; // FIXME: += $delta
+$i1 = $offset;
+$j1 = $offset;
+echo "modifier $name:$action @ $offset<br />";
+		// FIXME
+		switch ($action)
+		{
+			case YML_ACTION_ALONE:
+			case YML_ACTION_BEGIN:
+				// Check if limit has been reached for this tag
+				if (isset ($modifier['limit']))
+				{
+					if (!isset ($uses[$name]))
+						$uses[$name] = 0;
 
-*/
+					if ($uses[$name] >= $modifier['limit'])
+						continue;
+
+					++$uses[$name];
+				}
+
+				// Skip all opened tags with lower precedence
+				for ($close = $count - 1; $close >= 0 && $modifier['level'] > $stack[$close][0]['level']; )
+					--$close;
+
+				$cross = $close + 1;
+
+				break;
+
+			case YML_ACTION_BREAK:
+			case YML_ACTION_END:
+				// Browse stack for matching opened tag
+				for ($close = $count - 1; $close >= 0 && $stack[$close][1] != $name; )
+					--$close;
+
+				// Cancel when tag could not be found
+				if ($close < 0)
+					continue;
+
+				$cross = $close + 1;
+
+				break;
+
+			default:
+				continue;
+		}
+
+		// Close crossed tags
+		for ($k = $count - 1; $k >= $cross; --$k)
+		{
+			$other =& $stack[$k];
+
+			$sStr = ($i1 > $other[4] || $other[3] < $other[4]) ? $other[0]['stop'] (substr ($text, $other[4], $i1 - $other[4]), $other[2]) : '';
+
+			if ($sStr === null)
+				$sStr = substr ($text, $other[3], $i1 - $other[3]);
+
+			$sLen = strlen ($sStr);
+
+			$text = substr ($text, 0, $other[3]) . $sStr . substr ($text, $i1);
+
+			$j1 = $j1 - $i1 + $other[3] + $sLen;
+			$i1 = $other[3] + $sLen;
+		}
+
+		// Close current tag
+		if ($action == YML_ACTION_ALONE || $action == YML_ACTION_END)
+		{
+			list ($otherModifier, $otherName, $otherArguments, $i2, $j2) = ($action == YML_ACTION_ALONE ? array ($id1, $i1, $j1, $args) : $stack[$close]);
+echo "close $otherName at $i2, $j2: \"" . substr ($text, $j2, $i1 - $j2) . "\"<br />";
+			$sStr = ($i1 > $j2 || $i2 < $j2) ? $otherModifier['stop'] (substr ($text, $j2, $i1 - $j2), $otherArguments) : '';
+var_dump ($sStr);
+			if ($sStr === null)
+				$sStr = substr ($text, $i2, $j1 - $i2);
+
+			$sLen = strlen ($sStr);
+
+			$text = substr ($text, 0, $i2) . $sStr . substr ($text, $j1);
+
+			$j1 = $i2 + $sLen;
+			$i1 = $j1 - 1;
+		}
+
+		// Restore crossed tags
+		for ($k = $count - 1; $k >= $cross; --$k)
+		{
+			$stack[$k][3] = $j1;
+			$stack[$k][4] = $j1;
+		}
+
+		// Finish action
+		switch ($action)
+		{
+			// Push or insert tag on the stack
+			case YML_ACTION_BEGIN:
+				if (isset ($modifier['start']))
+					$modifier['start'] ($fixme, $arguments);
+
+				// Push tag on the stack
+				array_splice ($stack, $cross, 0, array (array ($modifier, $name, $arguments, $i1, $j1)));
+
+				++$count;
+
+				// Move cursor to end of tag
+				$i1 = $j1 - 1;
+
+				break;
+
+			// Call step function
+			case YML_ACTION_BREAK:
+				$other =& $stack[$close];
+
+				if (isset ($other[0]['step']))
+					$other[0]['step'] ($expr, substr ($text, $other[3], $i1 - $other[3]), $other[2]);
+
+				$other[3] = $j1;
+
+				break;
+
+			// Remove tag from the stack
+			case YML_ACTION_END:
+				array_splice ($stack, $close, 1);
+
+				--$count;
+
+				break;
+		}
+	}
+
+	return $text;
 }
 
 ?>

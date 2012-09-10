@@ -4,7 +4,19 @@
 include ('src/yml.php');
 include ('src/rules/demo.php');
 
-ymlRender ('1;0,u,[u];5,u,[/u];6,b,[b];13,a,[url=,google],google;2,a,[/url];26,b,[/b]|début test : hyperlien fin', $rules);
+/*
+
+[u]debut[/u] [b]test : [url=mirari.fr]hyperlien[/url] fin[/b]
+
+1;0+u;5-u;6+b;13+a,mirari.fr;22-a;26-b|debut test : hyperlien fin
+                                       ^    ^^      ^        ^   ^
+                                       0    56      13       22  26
+
+<u>debut</u> <b>test : </b><a href="mirari.fr"><b>hyperlien</b></a><b> fin</b>
+
+*/
+
+var_dump (ymlRender ('1;0+u;5-u;6+b;13+a,mirari.fr;22-a;26-b|debut test : hyperlien fin', $modifiers));
 
 if (isset ($_POST['text']))
 {
