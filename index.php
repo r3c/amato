@@ -8,15 +8,15 @@ include ('src/rules/demo.php');
 
 [u]debut[/u] [b]test : [url=mirari.fr]hyperlien[/url] fin[/b]
 
-1;0+u;5-u;6+b;13+a,mirari.fr;22-a;26-b|debut test : hyperlien fin
-                                       ^    ^^      ^        ^   ^
-                                       0    56      13       22  26
+1;0+u;5-u;1*hr;0+b;7+a,mirari.fr;9-a;4-b|debut test : hyperlien fin
+                                         ^    ^^      ^        ^   ^
+                                         0    56      13       22  26
 
-<u>debut</u> <b>test : </b><a href="mirari.fr"><b>hyperlien</b></a><b> fin</b>
+<u>debut</u> <hr /><b>test : </b><a href="mirari.fr"><b>hyperlien</b></a><b> fin</b>
 
 */
 
-var_dump (ymlRender ('1;0+u;5-u;6+b;13+a,mirari.fr;22-a;26-b|debut test : hyperlien fin', $modifiers));
+var_dump (ymlRender ('1;0+u;5-u;1*hr;0+b;7+a,mirari.fr;9-a;4-b|debut test : hyperlien fin', $modifiers));
 
 if (isset ($_POST['text']))
 {

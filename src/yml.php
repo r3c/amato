@@ -353,6 +353,24 @@ function	ymlParse ($token)
 	return array ($scopes, substr ($token, $i));
 }
 
+function	locate ($string, $from, $to = null)
+{
+	if ($to === null)
+		$to = $from;
+
+	$lhs = substr ($string, 0, max ($from, 0));
+	$mid = substr ($string, min ($from, strlen ($string)), max ($to - $from, 0));
+	$rhs = substr ($string, min ($to, strlen ($string)));
+
+	if (strlen ($lhs) > 25)
+		$lhs = '...' . substr ($lhs, strlen ($lhs) - 25);
+
+	if (strlen ($rhs) > 25)
+		$rhs = substr ($rhs, 0, 25) . '...';
+
+	return '<span style="font: normal normal normal 11px courier;"><span style="color: gray;">' . htmlspecialchars ($lhs) . '</span><span style="color: red;">' . ($from < $to ? '[' : '|') . '</span><span style="color: green;">' . htmlspecialchars ($mid) . '</span><span style="color: red;">' . ($from < $to ? ']' : '') . '</span><span style="color: gray;">' . htmlspecialchars ($rhs) . '</span></span>';
+}
+
 /*
 ** Render tokenized string.
 ** $token:		tokenized string
@@ -369,13 +387,8 @@ function	ymlRender ($token, $modifiers)
 
 	list ($scopes, $text) = $parsed;
 
-	// FIXME: debug
-	var_dump (json_encode ($scopes));
-	var_dump (json_encode ($text));
-
 	// Apply scopes on plain text
-	$count = 0;
-	$offset = 0;
+	$index = 0;
 	$stack = array ();
 	$uses = array ();
 
@@ -383,20 +396,25 @@ function	ymlRender ($token, $modifiers)
 	{
 		list ($delta, $action, $name, $arguments) = $scope;
 
+		$index += $delta;
+
 		if (!isset ($modifiers[$name]))
 			continue;
 
 		$modifier = $modifiers[$name];
-		$offset = $delta; // FIXME: += $delta
-$i1 = $offset;
-$j1 = $offset;
-echo "modifier $name:$action @ $offset<br />";
-		// FIXME
+echo "modifier $action \"$name\" = $index: " . locate ($text, $index) . "<br />";
+		// Initialize action effect
 		switch ($action)
 		{
 			case YML_ACTION_ALONE:
 			case YML_ACTION_BEGIN:
-				// Check if limit has been reached for this tag
+				// Get precedence level for this modifier
+				if (isset ($modifier['level']))
+					$level = $modifier['level'];
+				else
+					$level = 1;
+
+				// Check usage limit for this modifier
 				if (isset ($modifier['limit']))
 				{
 					if (!isset ($uses[$name]))
@@ -408,8 +426,116 @@ echo "modifier $name:$action @ $offset<br />";
 					++$uses[$name];
 				}
 
-				// Skip all opened tags with lower precedence
-				for ($close = $count - 1; $close >= 0 && $modifier['level'] > $stack[$close][0]['level']; )
+				// Browse pending tags with lower precedence
+				for ($touch = count ($stack); $touch > 0 && $level > $stack[$touch - 1][3]; )
+					--$touch;
+
+				$close = $action == YML_ACTION_ALONE ? $touch : $touch + 1;
+
+				// Call initializer and push modifier to stack
+				if (isset ($modifier['start']))
+					$modifier['start'] ($arguments);
+
+				array_splice ($stack, $touch, 0, array (array
+				(
+					$name,
+					$index,
+					$arguments,
+					$level,
+					isset ($modifier['step']) ? $modifier['step'] : null,
+					isset ($modifier['stop']) ? $modifier['stop'] : null
+				)));
+
+				break;
+
+			case YML_ACTION_BREAK:
+			case YML_ACTION_END:
+				// Search for matching tag in pending stack
+				for ($touch = count ($stack) - 1; $touch >= 0 && $stack[$touch][0] != $name; )
+					--$touch;
+
+				if ($touch < 0)
+					continue;
+
+				$close = $touch;
+
+				break;
+
+			default:
+				continue;
+		}
+
+		// Close crossed modifiers
+		for ($i = count ($stack) - 1; $i >= $close; --$i)
+		{
+			$closed =& $stack[$i];
+			$body = substr ($text, $closed[1], $index - $closed[1]);
+
+			if (isset ($closed[5]))
+				$body = $closed[5] ($body, $closed[2]);
+echo "close \"$closed[0]\" = $closed[3] -&gt; $index: " . locate ($text, $closed[1], $index) . " -&gt; " . htmlspecialchars ($body) . "<br />";
+			$length = strlen ($body);
+			$text = substr ($text, 0, $closed[1]) . $body . substr ($text, $index);
+
+			$index = $closed[1] + $length;
+		}
+
+		// Update modifiers indices
+		for ($i = count ($stack) - 1; $i >= $touch; --$i)
+{
+echo "update \"" . $stack[$i][0] . "\" = $index: " . locate ($text, $index) . "<br />";
+			$stack[$i][1] = $index;
+}
+
+		// Finalize action effect
+		switch ($action)
+		{
+			// Remove tag from the stack
+			case YML_ACTION_ALONE:
+			case YML_ACTION_END:
+echo "remove \"" . $stack[$touch][0] . "\"<br />";
+				array_splice ($stack, $touch, 1);
+
+				break;
+
+			// Call step function
+			case YML_ACTION_BREAK:
+				$broken =& $stack[$touch];
+echo "break on \"$broken[1]\"<br />";
+				if (isset ($broken[4]))
+					$broken[4] (substr ($text, $broken[1], $index - $broken[1]), $broken[2]);
+
+				$broken[1] = $index;
+
+				break;
+		}
+
+/*
+		// FIXME
+		switch ($action)
+		{
+			case YML_ACTION_ALONE:
+			case YML_ACTION_BEGIN:
+				// Get precedence level for this modifier
+				if (isset ($modifier['level']))
+					$level = $modifier['level'];
+				else
+					$level = 1;
+
+				// Check usage limit for this modifier
+				if (isset ($modifier['limit']))
+				{
+					if (!isset ($uses[$name]))
+						$uses[$name] = 0;
+
+					if ($uses[$name] >= $modifier['limit'])
+						continue;
+
+					++$uses[$name];
+				}
+
+				// Browse pending tags with lower precedence
+				for ($close = count ($stack) - 1; $close >= 0 && $level > (isset ($stack[$close][0]['level']) ? $stack[$close][0]['level'] : 1); )
 					--$close;
 
 				$cross = $close + 1;
@@ -418,11 +544,10 @@ echo "modifier $name:$action @ $offset<br />";
 
 			case YML_ACTION_BREAK:
 			case YML_ACTION_END:
-				// Browse stack for matching opened tag
-				for ($close = $count - 1; $close >= 0 && $stack[$close][1] != $name; )
+				// Search for matching tag in pending stack
+				for ($close = count ($stack) - 1; $close >= 0 && $stack[$close][1] != $name; )
 					--$close;
 
-				// Cancel when tag could not be found
 				if ($close < 0)
 					continue;
 
@@ -435,47 +560,42 @@ echo "modifier $name:$action @ $offset<br />";
 		}
 
 		// Close crossed tags
-		for ($k = $count - 1; $k >= $cross; --$k)
+		for ($i = count ($stack) - 1; $i >= $cross; --$i)
 		{
-			$other =& $stack[$k];
+			$other =& $stack[$i];
+echo "cross \"$other[1]\" @ $other[3]<br />";
+			$replace = ($index > $other[3]) ? $other[0]['stop'] (substr ($text, $other[3], $index - $other[3]), $other[2]) : '';
+var_dump (substr ($text, $other[3], $index - $other[3]));
+var_dump ($replace);
+			if ($replace === null)
+				$replace = substr ($text, $other[3], $index - $other[3]);
 
-			$sStr = ($i1 > $other[4] || $other[3] < $other[4]) ? $other[0]['stop'] (substr ($text, $other[4], $i1 - $other[4]), $other[2]) : '';
+			$length = strlen ($replace);
+			$text = substr ($text, 0, $other[3]) . $replace . substr ($text, $index);
 
-			if ($sStr === null)
-				$sStr = substr ($text, $other[3], $i1 - $other[3]);
-
-			$sLen = strlen ($sStr);
-
-			$text = substr ($text, 0, $other[3]) . $sStr . substr ($text, $i1);
-
-			$j1 = $j1 - $i1 + $other[3] + $sLen;
-			$i1 = $other[3] + $sLen;
+			$index = $other[3] + $length;
 		}
 
 		// Close current tag
 		if ($action == YML_ACTION_ALONE || $action == YML_ACTION_END)
 		{
-			list ($otherModifier, $otherName, $otherArguments, $i2, $j2) = ($action == YML_ACTION_ALONE ? array ($id1, $i1, $j1, $args) : $stack[$close]);
-echo "close $otherName at $i2, $j2: \"" . substr ($text, $j2, $i1 - $j2) . "\"<br />";
-			$sStr = ($i1 > $j2 || $i2 < $j2) ? $otherModifier['stop'] (substr ($text, $j2, $i1 - $j2), $otherArguments) : '';
-var_dump ($sStr);
-			if ($sStr === null)
-				$sStr = substr ($text, $i2, $j1 - $i2);
+			list ($otherModifier, $otherName, $otherArguments, $otherOffset) = ($action == YML_ACTION_ALONE ? array ($modifier, $name, $arguments, $index) : $stack[$close]);
+echo "close \"$otherName\" @ $otherOffset<br />";
+			$replace = ($index > $otherOffset) ? $otherModifier['stop'] (substr ($text, $otherOffset, $index - $otherOffset), $otherArguments) : '';
+var_dump (substr ($text, $otherOffset, $index - $otherOffset));
+var_dump ($replace);
+			if ($replace === null)
+				$replace = substr ($text, $otherOffset, $index - $otherOffset);
 
-			$sLen = strlen ($sStr);
+			$length = strlen ($replace);
+			$text = substr ($text, 0, $otherOffset) . $replace . substr ($text, $index);
 
-			$text = substr ($text, 0, $i2) . $sStr . substr ($text, $j1);
-
-			$j1 = $i2 + $sLen;
-			$i1 = $j1 - 1;
+			$index = $otherOffset + $length;
 		}
 
 		// Restore crossed tags
-		for ($k = $count - 1; $k >= $cross; --$k)
-		{
-			$stack[$k][3] = $j1;
-			$stack[$k][4] = $j1;
-		}
+		for ($i = count ($stack) - 1; $i >= $cross; --$i)
+			$stack[$i][3] = $index;
 
 		// Finish action
 		switch ($action)
@@ -483,15 +603,10 @@ var_dump ($sStr);
 			// Push or insert tag on the stack
 			case YML_ACTION_BEGIN:
 				if (isset ($modifier['start']))
-					$modifier['start'] ($fixme, $arguments);
+					$modifier['start'] ($arguments);
 
 				// Push tag on the stack
-				array_splice ($stack, $cross, 0, array (array ($modifier, $name, $arguments, $i1, $j1)));
-
-				++$count;
-
-				// Move cursor to end of tag
-				$i1 = $j1 - 1;
+				array_splice ($stack, $cross, 0, array (array ($modifier, $name, $arguments, $index)));
 
 				break;
 
@@ -500,9 +615,9 @@ var_dump ($sStr);
 				$other =& $stack[$close];
 
 				if (isset ($other[0]['step']))
-					$other[0]['step'] ($expr, substr ($text, $other[3], $i1 - $other[3]), $other[2]);
+					$other[0]['step'] (substr ($text, $other[3], $index - $other[3]), $other[2]);
 
-				$other[3] = $j1;
+				$other[3] = $index;
 
 				break;
 
@@ -510,10 +625,9 @@ var_dump ($sStr);
 			case YML_ACTION_END:
 				array_splice ($stack, $close, 1);
 
-				--$count;
-
 				break;
 		}
+*/
 	}
 
 	return $text;

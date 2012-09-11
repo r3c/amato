@@ -13,13 +13,25 @@ require_once ('src/yml.php');
 */
 $modifiers = array
 (
-	'a'	=> array
+	'a'		=> array
 	(
-//		'level'		=> 1,
+		'level'		=> 2,
 //		'limit'		=> 100,
 //		'start'		=> 'ymlDemoAStart',
 //		'step'		=> 'ymlDemoAStep',
 		'stop'		=> 'ymlDemoAStop',
+	),
+	'b'		=> array
+	(
+		'stop'		=> function ($body) { return $body ? '<b>' . $body . '</b>' : ''; },
+	),
+	'hr'	=> array
+	(
+		'stop'		=> function ($body) { return '<hr />'; },
+	),
+	'u'		=> array
+	(
+		'stop'		=> function ($body) { return $body ? '<u>' . $body . '</u>' : ''; },
 	)
 );
 
