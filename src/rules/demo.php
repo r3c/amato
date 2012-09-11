@@ -43,7 +43,7 @@ $modifiers = array
 */
 $rules = array
 (
-	'a'	=> array
+	'a'		=> array
 	(
 		'decode'	=> 'ymlDemoADecode',
 		'encode'	=> 'ymlDemoAEncode',
@@ -53,11 +53,37 @@ $rules = array
 			'[url='		=> YML_ACTION_BEGIN,
 			'[/url]'	=> YML_ACTION_END
 		)
+	),
+	'b'		=> array
+	(
+		'decode'	=> 'ymlDemoBDecode',
+		'tags'		=> array
+		(
+			'[b]'	=> YML_ACTION_BEGIN,
+			'[/b]'	=> YML_ACTION_END
+		)
+	),
+	'u'		=> array
+	(
+		'decode'	=> 'ymlDemoUDecode',
+		'tags'		=> array
+		(
+			'[u]'	=> YML_ACTION_BEGIN,
+			'[/u]'	=> YML_ACTION_END
+		)
 	)
 );
 
-function	ymlDemoADecode ()
+function	ymlDemoADecode ($action, $arguments)
 {
+	switch ($action)
+	{
+		case YML_ACTION_BEGIN:
+			return isset ($arguments[0]) ? '[url=' . $arguments[0] . ']' : '[url]';
+
+		case YML_ACTION_END:
+			return '[/url]';
+	}
 }
 
 function	ymlDemoAEncode ($tag, $plain, &$i)
@@ -94,6 +120,30 @@ function	ymlDemoAStop ($body, $arguments)
 		return null;
 
 	return '<a href="' . $href . '">' . $body . '</a>';
+}
+
+function	ymlDemoBDecode ($action, $arguments)
+{
+	switch ($action)
+	{
+		case YML_ACTION_BEGIN:
+			return '[b]';
+
+		case YML_ACTION_END:
+			return '[/b]';
+	}
+}
+
+function	ymlDemoUDecode ($action, $arguments)
+{
+	switch ($action)
+	{
+		case YML_ACTION_BEGIN:
+			return '[u]';
+
+		case YML_ACTION_END:
+			return '[/u]';
+	}
 }
 
 /* DELETE BELOW */

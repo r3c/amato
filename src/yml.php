@@ -85,20 +85,36 @@ function	ymlCompile ($rules, $arguments)
 /*
 ** Decode tokenized string to plain format.
 ** $token:	tokenized string
+** $rules:	parsing rules
 ** return:	plain string
 */
-function	ymlDecode ($token)
+function	ymlDecode ($token, $rules)
 {
 	$parsed = ymlParse ($token);
 
 	if ($parsed === null)
 		return null;
 
-	list ($tags, $text) = $parsed;
+	list ($scopes, $text) = $parsed;
 
-	// FIXME
+	$index = 0;
 
-	return '';
+	foreach ($scopes as $scope)
+	{
+		list ($delta, $action, $name, $arguments) = $scope;
+
+		$index += $delta;
+
+		if (!isset ($rules[$name]) || !isset ($rules[$name]['decode']))
+			continue;
+
+		$tag = $rules[$name]['decode'] ($action, $arguments);
+		$text = substr ($text, 0, $index) . $tag . substr ($text, $index);
+
+		$index += strlen ($tag);
+	}
+
+	return $text;
 }
 
 /*
@@ -353,24 +369,6 @@ function	ymlParse ($token)
 	return array ($scopes, substr ($token, $i));
 }
 
-function	locate ($string, $from, $to = null)
-{
-	if ($to === null)
-		$to = $from;
-
-	$lhs = substr ($string, 0, max ($from, 0));
-	$mid = substr ($string, min ($from, strlen ($string)), max ($to - $from, 0));
-	$rhs = substr ($string, min ($to, strlen ($string)));
-
-	if (strlen ($lhs) > 25)
-		$lhs = '...' . substr ($lhs, strlen ($lhs) - 25);
-
-	if (strlen ($rhs) > 25)
-		$rhs = substr ($rhs, 0, 25) . '...';
-
-	return '<span style="font: normal normal normal 11px courier;"><span style="color: gray;">' . htmlspecialchars ($lhs) . '</span><span style="color: red;">' . ($from < $to ? '[' : '|') . '</span><span style="color: green;">' . htmlspecialchars ($mid) . '</span><span style="color: red;">' . ($from < $to ? ']' : '') . '</span><span style="color: gray;">' . htmlspecialchars ($rhs) . '</span></span>';
-}
-
 /*
 ** Render tokenized string.
 ** $token:		tokenized string
@@ -509,125 +507,6 @@ echo "break on \"$broken[1]\"<br />";
 
 				break;
 		}
-
-/*
-		// FIXME
-		switch ($action)
-		{
-			case YML_ACTION_ALONE:
-			case YML_ACTION_BEGIN:
-				// Get precedence level for this modifier
-				if (isset ($modifier['level']))
-					$level = $modifier['level'];
-				else
-					$level = 1;
-
-				// Check usage limit for this modifier
-				if (isset ($modifier['limit']))
-				{
-					if (!isset ($uses[$name]))
-						$uses[$name] = 0;
-
-					if ($uses[$name] >= $modifier['limit'])
-						continue;
-
-					++$uses[$name];
-				}
-
-				// Browse pending tags with lower precedence
-				for ($close = count ($stack) - 1; $close >= 0 && $level > (isset ($stack[$close][0]['level']) ? $stack[$close][0]['level'] : 1); )
-					--$close;
-
-				$cross = $close + 1;
-
-				break;
-
-			case YML_ACTION_BREAK:
-			case YML_ACTION_END:
-				// Search for matching tag in pending stack
-				for ($close = count ($stack) - 1; $close >= 0 && $stack[$close][1] != $name; )
-					--$close;
-
-				if ($close < 0)
-					continue;
-
-				$cross = $close + 1;
-
-				break;
-
-			default:
-				continue;
-		}
-
-		// Close crossed tags
-		for ($i = count ($stack) - 1; $i >= $cross; --$i)
-		{
-			$other =& $stack[$i];
-echo "cross \"$other[1]\" @ $other[3]<br />";
-			$replace = ($index > $other[3]) ? $other[0]['stop'] (substr ($text, $other[3], $index - $other[3]), $other[2]) : '';
-var_dump (substr ($text, $other[3], $index - $other[3]));
-var_dump ($replace);
-			if ($replace === null)
-				$replace = substr ($text, $other[3], $index - $other[3]);
-
-			$length = strlen ($replace);
-			$text = substr ($text, 0, $other[3]) . $replace . substr ($text, $index);
-
-			$index = $other[3] + $length;
-		}
-
-		// Close current tag
-		if ($action == YML_ACTION_ALONE || $action == YML_ACTION_END)
-		{
-			list ($otherModifier, $otherName, $otherArguments, $otherOffset) = ($action == YML_ACTION_ALONE ? array ($modifier, $name, $arguments, $index) : $stack[$close]);
-echo "close \"$otherName\" @ $otherOffset<br />";
-			$replace = ($index > $otherOffset) ? $otherModifier['stop'] (substr ($text, $otherOffset, $index - $otherOffset), $otherArguments) : '';
-var_dump (substr ($text, $otherOffset, $index - $otherOffset));
-var_dump ($replace);
-			if ($replace === null)
-				$replace = substr ($text, $otherOffset, $index - $otherOffset);
-
-			$length = strlen ($replace);
-			$text = substr ($text, 0, $otherOffset) . $replace . substr ($text, $index);
-
-			$index = $otherOffset + $length;
-		}
-
-		// Restore crossed tags
-		for ($i = count ($stack) - 1; $i >= $cross; --$i)
-			$stack[$i][3] = $index;
-
-		// Finish action
-		switch ($action)
-		{
-			// Push or insert tag on the stack
-			case YML_ACTION_BEGIN:
-				if (isset ($modifier['start']))
-					$modifier['start'] ($arguments);
-
-				// Push tag on the stack
-				array_splice ($stack, $cross, 0, array (array ($modifier, $name, $arguments, $index)));
-
-				break;
-
-			// Call step function
-			case YML_ACTION_BREAK:
-				$other =& $stack[$close];
-
-				if (isset ($other[0]['step']))
-					$other[0]['step'] (substr ($text, $other[3], $index - $other[3]), $other[2]);
-
-				$other[3] = $index;
-
-				break;
-
-			// Remove tag from the stack
-			case YML_ACTION_END:
-				array_splice ($stack, $close, 1);
-
-				break;
-		}
-*/
 	}
 
 	return $text;
