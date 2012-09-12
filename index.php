@@ -1,21 +1,5 @@
 <?php
 
-/** FIXME **/
-include ('src/formats/html.php');
-include ('src/rules/demo.php');
-
-/*
-
-[u]debut[/u] [b]test : [url=mirari.fr]hyperlien[/url] fin[/b]
-
-1;0+u;5-u;1*hr;0+b;7+a,mirari.fr;9-a;4-b|debut test : hyperlien fin
-                                         ^    ^^      ^        ^   ^
-                                         0    56      13       22  26
-
-<u>debut</u> <hr /><b>test : </b><a href="mirari.fr"><b>hyperlien</b></a><b> fin</b>
-
-*/
-
 function	locate ($string, $from, $to = null)
 {
 	if ($to === null)
@@ -34,44 +18,10 @@ function	locate ($string, $from, $to = null)
 	return '<span style="font: normal normal normal 11px courier;"><span style="color: gray;">' . htmlspecialchars ($lhs) . '</span><span style="color: red;">' . ($from < $to ? '[' : '|') . '</span><span style="color: blue;">' . htmlspecialchars ($mid) . '</span><span style="color: red;">' . ($from < $to ? ']' : '') . '</span><span style="color: gray;">' . htmlspecialchars ($rhs) . '</span></span>';
 }
 
-$parser = ymlCompile ($ymlRulesDemo, $ymlParamsDemo);
-
-if (isset ($_POST['text']))
-	$plain = $_POST['text'];
-else
-	$plain = '[u]debut[/u] [b]test : [url=mirari.fr]hyperlien[/url] fin[/b]';
-
-echo "plain:<br />";
-var_dump ($plain);
-
-$token = ymlEncode ($plain, $parser);
-
-echo "token:<br />";
-var_dump ($token);
-
-$render = ymlRender ($token, $ymlFormatsHTML);
-
-echo "render:<br />";
-var_dump ($render);
-
-$plain = ymlDecode ($token, $parser);
-
-echo "plain:<br />";
-var_dump ($plain);
-
-echo '
-<form action="" method="post">
-	<textarea name="text" style="width: 400px; height: 300px;">' . htmlspecialchars (isset ($_POST['text']) ? $_POST['text'] : '') . '</textarea><br />
-	<input type="submit" value="OK" />
-</form>';
-
-exit ();
-/** FIXME **/
-
 define ('CHARSET',	'utf-8');
 
-require ('inc/format.php');
-require ('inc/format.mirari.php');
+include ('src/formats/html.php');
+include ('src/rules/demo.php');
 
 function	formatHTML ($str)
 {
@@ -156,8 +106,8 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 				<form action="" method="POST">
 					<textarea name="text" rows="10" style="width: 100%;">' . htmlspecialchars ($_POST['text']) . '</textarea>
 					<select name="mode">
-						<option' . ($_POST['mode'] != 'code' ? ' selected="selected"' : '') . ' value="html">Display result as HTML</option>
-						<option' . ($_POST['mode'] == 'code' ? ' selected="selected"' : '') . ' value="code">Display result as code</option>
+						<option' . (isset ($_POST['mode']) && $_POST['mode'] != 'code' ? ' selected="selected"' : '') . ' value="html">Display result as HTML</option>
+						<option' . (isset ($_POST['mode']) && $_POST['mode'] == 'code' ? ' selected="selected"' : '') . ' value="code">Display result as code</option>
 					</select>
 					<input type="submit" value="Format" />
 				</form>
@@ -166,7 +116,8 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 
 if (isset ($_POST['mode']) && isset ($_POST['text']))
 {
-	$str = formatString ($_POST['text'], formatCompile ($_formatModifiers, $_formatArguments), CHARSET);
+	$parser = ymlCompile ($ymlRulesDemo, $ymlParamsDemo);
+	$str = nl2br (ymlRender (ymlEncode (htmlspecialchars ($_POST['text'], ENT_COMPAT, CHARSET), $parser), $ymlFormatsHTML));
 
 	if ($_POST['mode'] == 'code')
 	{
@@ -195,6 +146,34 @@ if (isset ($_POST['mode']) && isset ($_POST['text']))
 			</div>
 		</div>';
 }
+
+/* FIXME */
+
+if (isset ($_POST['text']))
+{
+	$parser = ymlCompile ($ymlRulesDemo, $ymlParamsDemo);
+	$plain = $_POST['text'];
+
+	echo "<b>plain:</b><br />";
+	echo htmlspecialchars ($plain, ENT_COMPAT, CHARSET) . "<br />";
+
+	$token = ymlEncode ($plain, $parser);
+
+	echo "<b>token:</b><br />";
+	echo htmlspecialchars ($token, ENT_COMPAT, CHARSET) . "<br />";
+
+	$render = ymlRender ($token, $ymlFormatsHTML);
+
+	echo "<b>render:</b><br />";
+	echo htmlspecialchars ($render, ENT_COMPAT, CHARSET) . "<br />";
+
+	$plain = ymlDecode ($token, $parser);
+
+	echo "<b>plain:</b><br />";
+	echo htmlspecialchars ($plain, ENT_COMPAT, CHARSET) . "<br />";
+}
+
+/* FIXME */
 
 echo '
 	</body>

@@ -13,6 +13,11 @@ require_once ('src/yml.php');
 */
 $ymlFormatsHTML = array
 (
+	'!'		=> array
+	(
+		'level'		=> 0,
+		'stop'		=> function ($body, $params) { return $params[0]; }
+	),
 	'a'		=> array
 	(
 		'level'		=> 2,
@@ -23,30 +28,58 @@ $ymlFormatsHTML = array
 	),
 	'b'		=> array
 	(
-		'stop'		=> function ($body) { return $body ? '<b>' . $body . '</b>' : ''; },
+		'stop'		=> function ($body) { return $body ? '<b>' . $body . '</b>' : ''; }
 	),
 	'hr'	=> array
 	(
 		'stop'		=> function ($body) { return '<hr />'; },
 	),
+	'i'		=> array
+	(
+		'stop'		=> function ($body) { return $body ? '<i>' . $body . '</i>' : ''; }
+	),
+	'img'	=> array
+	(
+		'stop'		=> 'ymlDemoImgStop'
+	),
 	'u'		=> array
 	(
-		'stop'		=> function ($body) { return $body ? '<u>' . $body . '</u>' : ''; },
+		'stop'		=> function ($body) { return $body ? '<span style="text-decoration: underline;">' . $body . '</span>' : ''; },
 	)
 );
 
-function	ymlDemoAStop ($body, $arguments)
+function	ymlDemoAStop ($body, $params)
 {
-	$target = isset ($arguments[0]) ? $arguments[0] : $body;
+	$target = isset ($params[0]) ? $params[0] : $body;
 
-	if (preg_match ('@^[0-9A-Za-z]+://@', $target))
-		$href = $target;
-	else if (preg_match ('@^[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+@', $target))
-		$href = 'http://' . $target;
+	if (!preg_match ('@^([0-9A-Za-z]+://)?([-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)@', $target, $matches))
+		return $body;
+
+	return '<a href="' . htmlspecialchars (($matches[1] ? $matches[1] : 'http://') . $matches[2]) . '">' . $body . '</a>';
+}
+
+function	ymlDemoImgStop ($body, $params)
+{
+	if (isset ($params[1]))
+	{
+		$size = round (max (min (intval ($params[0]), 200), 20) * 0.01, 2);
+		$src = $params[1];
+	}
 	else
-		return null;
+	{
+		$size = null;
+		$src = $params[0];
+	}
 
-	return '<a href="' . $href . '">' . $body . '</a>';
+	if (!preg_match ('@^([0-9A-Za-z]+://)?([-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)@', $src, $matches))
+		return $src;
+
+	$src = htmlspecialchars (($matches[1] ? $matches[1] : 'http://') . $matches[2]);
+
+	if ($size !== null)
+		return '<a href="' . $src . '" target="_blank"><img alt="img" src="' . $src . '" onload="this.onload = null; this.width *= ' . $size . ';" /></a>';
+	else
+		return '<img alt="img" src="' . $src . '" />';
 }
 
 ?>

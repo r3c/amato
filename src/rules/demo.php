@@ -9,6 +9,7 @@ $ymlParamsDemo = array
 (
 	'alnum'	=> '+0-9A-Za-z',
 	'any'	=> '+[', // FIXME: should be '-'
+	'int'	=> '+0-9',
 	'url'	=> '+0-9A-Za-z-._~:/?#@!$&\'()*+,;='
 );
 
@@ -42,6 +43,29 @@ $ymlRulesDemo = array
 		(
 			'[b]'	=> YML_ACTION_BEGIN,
 			'[/b]'	=> YML_ACTION_END
+		)
+	),
+	'hr'	=> array
+	(
+		'patterns'	=> array
+		(
+			'[hr]'	=> YML_ACTION_ALONE
+		)
+	),
+	'i'		=> array
+	(
+		'patterns'	=> array
+		(
+			'[i]'	=> YML_ACTION_BEGIN,
+			'[/i]'	=> YML_ACTION_END
+		)
+	),
+	'img'	=> array
+	(
+		'patterns'	=> array
+		(
+			'[img=(int)](url)[/img]'	=> YML_ACTION_ALONE,
+			'[img](url)[/img]'			=> YML_ACTION_ALONE
 		)
 	),
 	'u'		=> array

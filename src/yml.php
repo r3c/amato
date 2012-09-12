@@ -8,16 +8,16 @@ define ('YML_ACTION_BEGIN',		1);
 define ('YML_ACTION_BREAK',		2);
 define ('YML_ACTION_END',		3);
 
-define ('YML_DECODE_CHARACTER',	1);
-define ('YML_DECODE_PARAM',		0);
+define ('YML_DECODE_CHARACTER',	0);
+define ('YML_DECODE_PARAM',		1);
 
 define ('YML_PARAM_BEGIN',		'(');
 define ('YML_PARAM_END',		')');
 define ('YML_PARAM_ESCAPE',		'\\');
 
-define ('YML_TOKEN_PARAM',	',');
 define ('YML_TOKEN_END',		'|');
 define ('YML_TOKEN_ESCAPE',		'\\');
+define ('YML_TOKEN_PARAM',		',');
 define ('YML_TOKEN_SCOPE',		';');
 
 /*
