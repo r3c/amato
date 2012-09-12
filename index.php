@@ -1,7 +1,7 @@
 <?php
 
 /** FIXME **/
-include ('src/yml.php');
+include ('src/formats/html.php');
 include ('src/rules/demo.php');
 
 /*
@@ -34,16 +34,30 @@ function	locate ($string, $from, $to = null)
 	return '<span style="font: normal normal normal 11px courier;"><span style="color: gray;">' . htmlspecialchars ($lhs) . '</span><span style="color: red;">' . ($from < $to ? '[' : '|') . '</span><span style="color: blue;">' . htmlspecialchars ($mid) . '</span><span style="color: red;">' . ($from < $to ? ']' : '') . '</span><span style="color: gray;">' . htmlspecialchars ($rhs) . '</span></span>';
 }
 
-echo htmlspecialchars (ymlRender ('1;0+u;5-u;1*hr;0+b;7+a,mirari.fr;9-a;4-b|debut test : hyperlien fin', $modifiers));
-echo '<br />';
-echo htmlspecialchars (ymlDecode ('1;0+u;5-u;1*hr;0+b;7+a,mirari.fr;9-a;4-b|debut test : hyperlien fin', $rules));
+$parser = ymlCompile ($ymlRulesDemo, $ymlParamsDemo);
 
 if (isset ($_POST['text']))
-{
-	$compiled = ymlCompile ($rules);
+	$plain = $_POST['text'];
+else
+	$plain = '[u]debut[/u] [b]test : [url=mirari.fr]hyperlien[/url] fin[/b]';
 
-	var_dump (ymlEncode ($_POST['text'], $compiled));
-}
+echo "plain:<br />";
+var_dump ($plain);
+
+$token = ymlEncode ($plain, $parser);
+
+echo "token:<br />";
+var_dump ($token);
+
+$render = ymlRender ($token, $ymlFormatsHTML);
+
+echo "render:<br />";
+var_dump ($render);
+
+$plain = ymlDecode ($token, $parser);
+
+echo "plain:<br />";
+var_dump ($plain);
 
 echo '
 <form action="" method="post">

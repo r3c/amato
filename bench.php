@@ -2,7 +2,8 @@
 
 define ('CHARSET',	'utf-8');
 
-require_once ('src/legacy/regexp.php');
+require_once ('src/legacy/inc/regexp.php');
+require_once ('src/formats/html.php');
 require_once ('src/rules/demo.php');
 
 function	bench ($count, $init, $loop, $stop)
@@ -14,7 +15,7 @@ function	bench ($count, $init, $loop, $stop)
 	return (int)((microtime (true) - $time) * 1000);
 }
 
-$compiled = ymlCompile ($rules);
+$parser = ymlCompile ($ymlRulesDemo, $ymlParamsDemo);
 $out = '';
 $i = 1;
 
@@ -66,18 +67,19 @@ foreach ($test as $label => $params)
 {
 	file_exists ($params['file']) or die ('Cannot open input file "' . $params['file'] . '"');
 
-	$str = file_get_contents ($params['file']);
+	$plain = file_get_contents ($params['file']);
+	$token = ymlEncode (htmlspecialchars ($plain, ENT_COMPAT, CHARSET), $parser);
 
-	$time1 = bench ($params['count'], 'global $str; global $compiled, $rules;', 'nl2br (ymlRender (ymlEncode (htmlspecialchars ($str, ENT_COMPAT, CHARSET), $compiled), $rules));', '');
-	$time2 = bench ($params['count'], 'global $str;', 'formatRegexp ($str);', '');
+	$time1 = bench ($params['count'], 'global $token, $ymlFormatsHTML;', 'nl2br (ymlRender ($token, $ymlFormatsHTML));', '');
+	$time2 = bench ($params['count'], 'global $plain;', 'formatRegexp ($plain);', '');
 
 	$out .= '
 		<div class="box">
 			<div class="head">
-				#' . $i++ . ' - <a href="' . htmlspecialchars ($params['file']) . '">' . htmlspecialchars ($label) . '</a> (' . strlen ($str) . ' bytes, ' . $params['count'] . ' loops): yml = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[1]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a>
+				#' . $i++ . ' - <a href="' . htmlspecialchars ($params['file']) . '">' . htmlspecialchars ($label) . '</a> (' . strlen ($plain) . ' bytes, ' . $params['count'] . ' loops): yml = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[1]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a>
 			</div>
 			<div class="body" style="display: none;">
-				' . 'FIXME' . '
+				' . nl2br (ymlRender ($token, $ymlFormatsHTML)) . '
 			</div>
 		</div>';
 }

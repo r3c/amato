@@ -3,61 +3,42 @@
 require_once ('src/yml.php');
 
 /*
-** String modifiers for each available tag, as name => properties
-**   .level:	optional nesting level (a tag can only enclose tags of lower or
-**				equal levels), default is 1
-**   .limit:	optional allowed number of uses of this tag, default is 100
-**   .start:	optional tag begin callback, undefined if none
-**   .step:		optional tag break callback, undefined if none
-**   .stop:		tag end callback
+** String parsing parameters character classes, as name => characters.
 */
-$modifiers = array
+$ymlParamsDemo = array
 (
-	'a'		=> array
-	(
-		'level'		=> 2,
-//		'limit'		=> 100,
-//		'start'		=> 'ymlDemoAStart',
-//		'step'		=> 'ymlDemoAStep',
-		'stop'		=> 'ymlDemoAStop',
-	),
-	'b'		=> array
-	(
-		'stop'		=> function ($body) { return $body ? '<b>' . $body . '</b>' : ''; },
-	),
-	'hr'	=> array
-	(
-		'stop'		=> function ($body) { return '<hr />'; },
-	),
-	'u'		=> array
-	(
-		'stop'		=> function ($body) { return $body ? '<u>' . $body . '</u>' : ''; },
-	)
+	'alnum'	=> '+0-9A-Za-z',
+	'any'	=> '+[', // FIXME: should be '-'
+	'url'	=> '+0-9A-Za-z-._~:/?#@!$&\'()*+,;='
 );
 
 /*
-** Parsing rules for each available tag, as name => properties
+** String parsing rules for each available tag, as name => properties
 **   .decode:	optional tag decoding callback, undefined if none
 **   .encode:	optional tag encoding callback, undefined if none
 **   .tags:		matching tags array, as tag => action
 */
-$rules = array
+$ymlRulesDemo = array
 (
+	'!'		=> array
+	(
+		'patterns'	=> array
+		(
+			'\\\\(any)'	=> YML_ACTION_ALONE // FIXME: should be only one "any"
+		)
+	),
 	'a'		=> array
 	(
-		'decode'	=> 'ymlDemoADecode',
-		'encode'	=> 'ymlDemoAEncode',
-		'tags'		=> array
+		'patterns'	=> array
 		(
-			'[url]'		=> YML_ACTION_BEGIN,
-			'[url='		=> YML_ACTION_BEGIN,
-			'[/url]'	=> YML_ACTION_END
+			'[url]'			=> YML_ACTION_BEGIN,
+			'[url=(url)]'	=> YML_ACTION_BEGIN,
+			'[/url]'		=> YML_ACTION_END
 		)
 	),
 	'b'		=> array
 	(
-		'decode'	=> 'ymlDemoBDecode',
-		'tags'		=> array
+		'patterns'	=> array
 		(
 			'[b]'	=> YML_ACTION_BEGIN,
 			'[/b]'	=> YML_ACTION_END
@@ -65,86 +46,13 @@ $rules = array
 	),
 	'u'		=> array
 	(
-		'decode'	=> 'ymlDemoUDecode',
-		'tags'		=> array
+		'patterns'	=> array
 		(
 			'[u]'	=> YML_ACTION_BEGIN,
 			'[/u]'	=> YML_ACTION_END
 		)
 	)
 );
-
-function	ymlDemoADecode ($action, $arguments)
-{
-	switch ($action)
-	{
-		case YML_ACTION_BEGIN:
-			return isset ($arguments[0]) ? '[url=' . $arguments[0] . ']' : '[url]';
-
-		case YML_ACTION_END:
-			return '[/url]';
-	}
-}
-
-function	ymlDemoAEncode ($tag, $plain, &$i)
-{
-	$arguments = array ();
-
-	if ($tag == '[url=')
-	{
-		$length = strlen ($plain);
-
-		for ($j; $i < $length && $plain[$i] != ']'; )
-			++$i;
-
-		if ($i >= $length)
-			return null;
-
-		$arguments[] = substr ($plain, $j, $i - $j);
-
-		++$i;
-	}
-
-	return $arguments;
-}
-
-function	ymlDemoAStop ($body, $arguments)
-{
-	$target = isset ($arguments[0]) ? $arguments[0] : $body;
-
-	if (preg_match ('@^[0-9A-Za-z]+://@', $target))
-		$href = $target;
-	else if (preg_match ('@^[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+@', $target))
-		$href = 'http://' . $target;
-	else
-		return null;
-
-	return '<a href="' . $href . '">' . $body . '</a>';
-}
-
-function	ymlDemoBDecode ($action, $arguments)
-{
-	switch ($action)
-	{
-		case YML_ACTION_BEGIN:
-			return '[b]';
-
-		case YML_ACTION_END:
-			return '[/b]';
-	}
-}
-
-function	ymlDemoUDecode ($action, $arguments)
-{
-	switch ($action)
-	{
-		case YML_ACTION_BEGIN:
-			return '[u]';
-
-		case YML_ACTION_END:
-			return '[/u]';
-	}
-}
 
 /* DELETE BELOW */
 
