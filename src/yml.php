@@ -76,8 +76,8 @@ function	ymlCompile ($rules, $params)
 
 	// Process rules
 	$actions = array (YML_ACTION_ALONE => '*', YML_ACTION_BEGIN => '+', YML_ACTION_BREAK => '/', YML_ACTION_END => '-');
-	$invalid = false;
 	$parser = array (null, array ());
+	$wrong = false;
 
 	foreach ($rules as $name => $rule)
 	{
@@ -93,7 +93,7 @@ function	ymlCompile ($rules, $params)
 			for ($i = 0; $i < $length; ++$i)
 			{
 				unset ($branch);
-
+if (substr ($tag, 0, 4) == '[box') echo "tag $tag, character $tag[$i]<br />";
 				if ($tag[$i] == YML_PARAM_BEGIN)
 				{
 					for ($j = ++$i; $i < $length && $tag[$i] != YML_PARAM_END; )
@@ -108,7 +108,7 @@ function	ymlCompile ($rules, $params)
 
 					if (!$classes[$class][0])
 					{
-						$target =& $invalid;
+						$target =& $wrong;
 
 						if (isset ($node['']))
 							throw new Exception ('ambiguous default transition of parameter #' . $pos . ' for tag "' . $tag . '" in rule "' . $name . '"');
@@ -137,11 +137,12 @@ function	ymlCompile ($rules, $params)
 					$decode[] = array (YML_DECODE_CHARACTER, $character);
 
 					if (!isset ($node[$character]))
+{
 						$node[$character] = array (null, null, null);
-
+if (substr ($tag, 0, 4) == '[box'){echo "create new branch for char $character<br />"; var_dump($node[$character]);}} else if (substr ($tag, 0, 4) == '[box'){echo "reuse branch for char $character<br />"; var_dump ($node[$character]);}
 					$branch =& $node[$character];
 
-					if ($branch[1] !== null)
+					if ($branch === $wrong || $branch[1] !== null)
 						throw new Exception ('ambiguous character "' . $character . '" at position #' . $i . ' for tag "' . $tag . '" in rule "' . $name . '"');
 
 					$node =& $branch[0];

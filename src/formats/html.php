@@ -93,6 +93,10 @@ $ymlFormatsHTML = array
 	(
 		'stop'	=> 'ymlDemoSimpleStop'
 	),
+	'box'	=> array
+	(
+		'stop'	=> 'ymlDemoBoxStop'
+	),
 	'c'		=> array
 	(
 		'level'	=> 2,
@@ -150,6 +154,11 @@ function	ymlDemoAnchorStop ($name, $params, $body)
 		return $body;
 
 	return '<a href="' . htmlspecialchars (($matches[1] ? $matches[1] : 'http://') . $matches[2]) . '">' . $body . '</a>';
+}
+
+function	ymlDemoBoxStop ($name, $params, $body)
+{
+	return '<div class="box box_1"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_0\') >= 0 ? \'box box_1\' : \'box box_0\';">' . htmlspecialchars ($params[0]) . '</h1><div>' . $body . '</div></div>';
 }
 
 function	ymlDemoColorStop ($name, $params, $body)

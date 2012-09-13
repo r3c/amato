@@ -10,6 +10,7 @@ $ymlParamsDemo = array
 	'alnum'	=> '+0-9A-Za-z',
 	'any'	=> '-',
 	'int'	=> '+0-9',
+	'text'	=> '-]',
 	'url'	=> '+0-9A-Za-z-._~:/?#@!$&\'()*+,;='
 );
 
@@ -24,7 +25,7 @@ $ymlRulesDemo = array
 	(
 		'tags'	=> array
 		(
-			'\\\\(any)'	=> YML_ACTION_ALONE // FIXME: should be only one "any"
+			'\\\\(any)'	=> YML_ACTION_ALONE
 		)
 	),
 	'0'		=> array
@@ -170,6 +171,14 @@ $ymlRulesDemo = array
 		(
 			'[b]'	=> YML_ACTION_BEGIN,
 			'[/b]'	=> YML_ACTION_END
+		)
+	),
+	'box'	=> array
+	(
+		'tags'	=> array
+		(
+			'[box=(text)]'	=> YML_ACTION_BEGIN,
+			'[/box]'		=> YML_ACTION_END
 		)
 	),
 	'c'		=> array
