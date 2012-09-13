@@ -1,0 +1,150 @@
+div.yml blockquote
+{
+	padding:		3px 3px 3px 10px;
+	margin:			0px 30px 0px 50px;
+	background:		white;
+	border-top:		1px dashed #999;
+	border-bottom:	1px dashed #999;
+	border-left:	5px solid #369;
+}
+
+div.yml blockquote blockquote
+{
+	border-left-color:	#3B77B1;
+}
+
+div.yml blockquote blockquote blockquote
+{
+	border-left-color:	#4987C3;
+}
+
+div.yml blockquote blockquote blockquote blockquote
+{
+	border-left-color:	#6197CB;
+}
+
+div.yml blockquote blockquote blockquote blockquote blockquote
+{
+	border-left-color:	#79A7D2;
+}
+
+div.yml blockquote blockquote blockquote blockquote blockquote blockquote
+{
+	border-left-color:	#91B6DA;
+}
+
+div.yml blockquote blockquote blockquote blockquote blockquote blockquote blockquote
+{
+	border-left-color:	#A9C6E3;
+}
+
+div.yml blockquote blockquote blockquote blockquote blockquote blockquote blockquote blockquote
+{
+	border-left-color:	#C1D6EA;
+}
+
+div.yml div.center
+{
+	margin:		auto;
+	text-align:	center;
+}
+
+div.yml div.cmd
+{
+	border:			1px solid #003366;
+	border-right:	0;
+	border-top:		0;
+	border-bottom:	0;
+	margin-left:	10px;
+	padding-left:	5px;
+}
+
+div.yml span.color0
+{
+	color:	#ffffff;
+}
+
+div.yml span.color1
+{
+	color:	#000000;
+}
+
+div.yml span.color2
+{
+	color:	#000066;
+}
+
+div.yml span.color3
+{
+	color:	#009900;
+}
+
+div.yml span.color4
+{
+	color:	#CC3300;
+}
+
+div.yml span.color5
+{
+	color:	#660000;
+}
+
+div.yml span.color6
+{
+	color:	#990099;
+}
+
+div.yml span.color7
+{
+	color:	#FF6600;
+}
+
+div.yml span.color8
+{
+	color:	#FFFF00;
+}
+
+div.yml span.color9
+{
+	color:	#00FF00;
+}
+
+div.yml span.color10
+{
+	color:	#009999;
+}
+
+div.yml span.color11
+{
+	color:	#00FFFF;
+}
+
+div.yml span.color12
+{
+	color:	#0000FF;
+}
+
+div.yml span.color13
+{
+	color:	#FF00FF;
+}
+
+div.yml span.color14
+{
+	color:	#666666;
+}
+
+div.yml span.color15
+{
+	color:	#CCCCCC;
+}
+
+div.yml span.s
+{
+	text-decoration:	line-through;
+}
+
+div.yml span.u
+{
+	text-decoration:	underline;
+}

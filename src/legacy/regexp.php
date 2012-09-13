@@ -1,5 +1,7 @@
 <?php
 
+ini_set('error_reporting', E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+
 function formatRegexp($message,$nick='Zephyr',$limit=100)
 {	
 	global $skinP,$cook_login,$connexion,$_DROITS_cat,$gfx, $debut;

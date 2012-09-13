@@ -2,8 +2,8 @@
 
 define ('CHARSET',	'utf-8');
 
-require_once ('src/legacy/inc/regexp.php');
 require_once ('src/formats/html.php');
+require_once ('src/legacy/regexp.php');
 require_once ('src/rules/demo.php');
 
 function	bench ($count, $init, $loop, $stop)
@@ -78,7 +78,7 @@ foreach ($test as $label => $params)
 			<div class="head">
 				#' . $i++ . ' - <a href="' . htmlspecialchars ($params['file']) . '">' . htmlspecialchars ($label) . '</a> (' . strlen ($plain) . ' bytes, ' . $params['count'] . ' loops): yml = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[1]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a>
 			</div>
-			<div class="body" style="display: none;">
+			<div class="body yml" style="display: none;">
 				' . nl2br (ymlRender ($token, $ymlFormatsHTML)) . '
 			</div>
 		</div>';
@@ -88,6 +88,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<link href="res/style.css" rel="stylesheet" type="text/css" />
+		<link href="res/yml.css" rel="stylesheet" type="text/css" />
 		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . CHARSET . '" />
 		<title>yML Format Test</title>
 	</head>

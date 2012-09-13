@@ -15,40 +15,134 @@ $ymlFormatsHTML = array
 (
 	'!'		=> array
 	(
-		'level'		=> 0,
-		'stop'		=> function ($body, $params) { return $params[0]; }
+		'level'	=> 0,
+//		'limit'	=> 100,
+//		'start'	=> 'ymlDemoAStart',
+//		'step'	=> 'ymlDemoAStep',
+		'stop'	=> function ($name, $params, $body) { return $params[0]; }
+	),
+	'0'		=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'1'		=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'2'		=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'3'		=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'4'		=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'5'		=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'6'		=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'7'		=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'8'		=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'9'		=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'10'	=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'11'	=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'12'	=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'13'	=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'14'	=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
+	),
+	'15'	=> array
+	(
+		'stop'	=> 'ymlDemoColorStop'
 	),
 	'a'		=> array
 	(
-		'level'		=> 2,
-//		'limit'		=> 100,
-//		'start'		=> 'ymlDemoAStart',
-//		'step'		=> 'ymlDemoAStep',
-		'stop'		=> 'ymlDemoAStop',
+		'stop'	=> 'ymlDemoAnchorStop',
 	),
 	'b'		=> array
 	(
-		'stop'		=> function ($body) { return $body ? '<b>' . $body . '</b>' : ''; }
+		'stop'	=> 'ymlDemoSimpleStop'
+	),
+	'c'		=> array
+	(
+		'level'	=> 2,
+		'stop'	=> function ($name, $params, $body) { return $body ? '<div class="center">' . $body . '</div>' : ''; }
+	),
+	'cmd'	=> array
+	(
+		'level'	=> 2,
+		'stop'	=> function ($name, $params, $body) { return $body ? '<div class="cmd">' . $body . '</div>' : ''; }
+	),
+	'em'	=> array
+	(
+		'stop'	=> 'ymlDemoSimpleStop'
 	),
 	'hr'	=> array
 	(
-		'stop'		=> function ($body) { return '<hr />'; },
+		'stop'	=> function ($name, $params, $body) { return '<hr />'; },
 	),
 	'i'		=> array
 	(
-		'stop'		=> function ($body) { return $body ? '<i>' . $body . '</i>' : ''; }
+		'stop'	=> 'ymlDemoSimpleStop'
 	),
 	'img'	=> array
 	(
-		'stop'		=> 'ymlDemoImgStop'
+		'stop'	=> 'ymlDemoImageStop'
+	),
+	'q'		=> array
+	(
+		'limit'	=> 8,
+		'stop'	=> function ($name, $params, $body) { return $body ? '<blockquote>' . $body . '</blockquote>' : ''; }
+	),
+	's'		=> array
+	(
+		'step'	=> 'ymlDemoSpanStop'
+	),
+	'sub'	=> array
+	(
+		'stop'	=> 'ymlDemoSimpleStop'
+	),
+	'sup'	=> array
+	(
+		'stop'	=> 'ymlDemoSimpleStop'
 	),
 	'u'		=> array
 	(
-		'stop'		=> function ($body) { return $body ? '<span style="text-decoration: underline;">' . $body . '</span>' : ''; },
+		'stop'	=> 'ymlDemoSpanStop',
 	)
 );
 
-function	ymlDemoAStop ($body, $params)
+function	ymlDemoAnchorStop ($name, $params, $body)
 {
 	$target = isset ($params[0]) ? $params[0] : $body;
 
@@ -58,7 +152,12 @@ function	ymlDemoAStop ($body, $params)
 	return '<a href="' . htmlspecialchars (($matches[1] ? $matches[1] : 'http://') . $matches[2]) . '">' . $body . '</a>';
 }
 
-function	ymlDemoImgStop ($body, $params)
+function	ymlDemoColorStop ($name, $params, $body)
+{
+	return $body ? '<span class="color' . $name . '">' . $body . '</span>' : '';
+}
+
+function	ymlDemoImageStop ($name, $params, $body)
 {
 	if (isset ($params[1]))
 	{
@@ -81,5 +180,52 @@ function	ymlDemoImgStop ($body, $params)
 	else
 		return '<img alt="img" src="' . $src . '" />';
 }
+
+function	ymlDemoSimpleStop ($name, $params, $body)
+{
+	return $body ? '<' . $name . '>' . $body . '</' . $name . '>' : '';
+}
+
+function	ymlDemoSpanStop ($name, $params, $body)
+{
+	return $body ? '<span class="' . $name . '">' . $body . '</span>' : '';
+}
+
+/*
+** Missing:
+** - media
+** - !slap
+** - ./0
+** - name@domain.com
+** - email
+** - pre
+** - modo
+** - google
+** - tiwiki
+** - smiley
+** - urli
+** - color
+** - serif
+** - box
+** - spoiler
+** - noedit
+** - nosmile
+** - font
+** - table
+** - itable
+** - li
+** - ul
+** - code
+** - left
+** - right
+** - sp
+** - flash
+** - png
+** - sondage
+** - source
+** - http://
+** - www.
+** - unicode
+*/
 
 ?>

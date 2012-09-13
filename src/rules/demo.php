@@ -8,29 +8,156 @@ require_once ('src/yml.php');
 $ymlParamsDemo = array
 (
 	'alnum'	=> '+0-9A-Za-z',
-	'any'	=> '+[', // FIXME: should be '-'
+	'any'	=> '-',
 	'int'	=> '+0-9',
 	'url'	=> '+0-9A-Za-z-._~:/?#@!$&\'()*+,;='
 );
 
 /*
 ** String parsing rules for each available tag, as name => properties
-**   .decode:	optional tag decoding callback, undefined if none
-**   .encode:	optional tag encoding callback, undefined if none
-**   .tags:		matching tags array, as tag => action
+**   .decode:	optional flag to disable tag decoding
+**   .tags:		matching tag patterns, as pattern => action
 */
 $ymlRulesDemo = array
 (
 	'!'		=> array
 	(
-		'patterns'	=> array
+		'tags'	=> array
 		(
 			'\\\\(any)'	=> YML_ACTION_ALONE // FIXME: should be only one "any"
 		)
 	),
+	'0'		=> array
+	(
+		'tags'	=> array
+		(
+			'[0]'	=> YML_ACTION_BEGIN,
+			'[/0]'	=> YML_ACTION_END
+		)
+	),
+	'1'		=> array
+	(
+		'tags'	=> array
+		(
+			'[1]'	=> YML_ACTION_BEGIN,
+			'[/1]'	=> YML_ACTION_END
+		)
+	),
+	'2'		=> array
+	(
+		'tags'	=> array
+		(
+			'[2]'	=> YML_ACTION_BEGIN,
+			'[/2]'	=> YML_ACTION_END
+		)
+	),
+	'3'		=> array
+	(
+		'tags'	=> array
+		(
+			'[3]'	=> YML_ACTION_BEGIN,
+			'[/3]'	=> YML_ACTION_END
+		)
+	),
+	'4'		=> array
+	(
+		'tags'	=> array
+		(
+			'[4]'	=> YML_ACTION_BEGIN,
+			'[/4]'	=> YML_ACTION_END
+		)
+	),
+	'5'		=> array
+	(
+		'tags'	=> array
+		(
+			'[5]'	=> YML_ACTION_BEGIN,
+			'[/5]'	=> YML_ACTION_END
+		)
+	),
+	'6'		=> array
+	(
+		'tags'	=> array
+		(
+			'[6]'	=> YML_ACTION_BEGIN,
+			'[/6]'	=> YML_ACTION_END
+		)
+	),
+	'7'		=> array
+	(
+		'tags'	=> array
+		(
+			'[7]'	=> YML_ACTION_BEGIN,
+			'[/7]'	=> YML_ACTION_END
+		)
+	),
+	'8'		=> array
+	(
+		'tags'	=> array
+		(
+			'[8]'	=> YML_ACTION_BEGIN,
+			'[/8]'	=> YML_ACTION_END
+		)
+	),
+	'9'		=> array
+	(
+		'tags'	=> array
+		(
+			'[9]'	=> YML_ACTION_BEGIN,
+			'[/9]'	=> YML_ACTION_END
+		)
+	),
+	'10'	=> array
+	(
+		'tags'	=> array
+		(
+			'[10]'	=> YML_ACTION_BEGIN,
+			'[/10]'	=> YML_ACTION_END
+		)
+	),
+	'11'	=> array
+	(
+		'tags'	=> array
+		(
+			'[11]'	=> YML_ACTION_BEGIN,
+			'[/11]'	=> YML_ACTION_END
+		)
+	),
+	'12'	=> array
+	(
+		'tags'	=> array
+		(
+			'[12]'	=> YML_ACTION_BEGIN,
+			'[/12]'	=> YML_ACTION_END
+		)
+	),
+	'13'	=> array
+	(
+		'tags'	=> array
+		(
+			'[13]'	=> YML_ACTION_BEGIN,
+			'[/13]'	=> YML_ACTION_END
+		)
+	),
+	'14'	=> array
+	(
+		'tags'	=> array
+		(
+			'[14]'	=> YML_ACTION_BEGIN,
+			'[/14]'	=> YML_ACTION_END
+		)
+	),
+	'15'	=> array
+	(
+		'tags'	=> array
+		(
+			'[15]'	=> YML_ACTION_BEGIN,
+			'[/15]'	=> YML_ACTION_END
+		)
+	),
 	'a'		=> array
 	(
-		'patterns'	=> array
+		'tags'	=> array
 		(
 			'[url]'			=> YML_ACTION_BEGIN,
 			'[url=(url)]'	=> YML_ACTION_BEGIN,
@@ -39,22 +166,47 @@ $ymlRulesDemo = array
 	),
 	'b'		=> array
 	(
-		'patterns'	=> array
+		'tags'	=> array
 		(
 			'[b]'	=> YML_ACTION_BEGIN,
 			'[/b]'	=> YML_ACTION_END
 		)
 	),
+	'c'		=> array
+	(
+		'tags'	=> array
+		(
+			'[center]'	=> YML_ACTION_BEGIN,
+			'[/center]'	=> YML_ACTION_END
+		)
+	),
+	'cmd'	=> array
+	(
+		'decode'	=> false,
+		'tags'		=> array
+		(
+			'[yncMd:159]'	=> YML_ACTION_BEGIN,
+			'[/yncMd:159]'	=> YML_ACTION_END
+		)
+	),
+	'em'	=> array
+	(
+		'tags'	=> array
+		(
+			'[em]'	=> YML_ACTION_BEGIN,
+			'[/em]'	=> YML_ACTION_END
+		)
+	),
 	'hr'	=> array
 	(
-		'patterns'	=> array
+		'tags'	=> array
 		(
 			'[hr]'	=> YML_ACTION_ALONE
 		)
 	),
 	'i'		=> array
 	(
-		'patterns'	=> array
+		'tags'	=> array
 		(
 			'[i]'	=> YML_ACTION_BEGIN,
 			'[/i]'	=> YML_ACTION_END
@@ -62,15 +214,49 @@ $ymlRulesDemo = array
 	),
 	'img'	=> array
 	(
-		'patterns'	=> array
+		'tags'	=> array
 		(
 			'[img=(int)](url)[/img]'	=> YML_ACTION_ALONE,
 			'[img](url)[/img]'			=> YML_ACTION_ALONE
 		)
 	),
+	'q'		=> array
+	(
+		'tags'	=> array
+		(
+			'[cite]'	=> YML_ACTION_BEGIN,
+			'[/cite]'	=> YML_ACTION_END,
+			'[quote]'	=> YML_ACTION_BEGIN,
+			'[/quote]'	=> YML_ACTION_END
+		)
+	),
+	's'		=> array
+	(
+		'tags'	=> array
+		(
+			'[s]'	=> YML_ACTION_BEGIN,
+			'[/s]'	=> YML_ACTION_END
+		)
+	),
+	'sub'	=> array
+	(
+		'tags'	=> array
+		(
+			'[sub]'		=> YML_ACTION_BEGIN,
+			'[/sub]'	=> YML_ACTION_END
+		)
+	),
+	'sup'	=> array
+	(
+		'tags'	=> array
+		(
+			'[sup]'		=> YML_ACTION_BEGIN,
+			'[/sup]'	=> YML_ACTION_END
+		)
+	),
 	'u'		=> array
 	(
-		'patterns'	=> array
+		'tags'	=> array
 		(
 			'[u]'	=> YML_ACTION_BEGIN,
 			'[/u]'	=> YML_ACTION_END

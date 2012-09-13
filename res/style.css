@@ -27,6 +27,11 @@ div.box div.body
 	border		: 1px solid #BBBBFF;
 }
 
+div.box div.body div.code
+{
+	font:	normal normal normal 11px monospace;
+}
+
 div.box div.head
 {
 	padding		: 2px 4px 2px 4px;
