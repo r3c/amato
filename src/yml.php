@@ -8,6 +8,10 @@ define ('YML_ACTION_BEGIN',		1);
 define ('YML_ACTION_BREAK',		2);
 define ('YML_ACTION_END',		3);
 
+define ('YML_BRANCH_EMPTY',		0);
+define ('YML_BRANCH_LOOP',		1);
+define ('YML_BRANCH_NEXT',		2);
+
 define ('YML_DECODE_CHARACTER',	0);
 define ('YML_DECODE_PARAM',		1);
 
@@ -77,7 +81,6 @@ function	ymlCompile ($rules, $params)
 	// Process rules
 	$actions = array (YML_ACTION_ALONE => '*', YML_ACTION_BEGIN => '+', YML_ACTION_BREAK => '/', YML_ACTION_END => '-');
 	$parser = array (null, array ());
-	$wrong = false;
 
 	foreach ($rules as $name => $rule)
 	{
@@ -93,7 +96,7 @@ function	ymlCompile ($rules, $params)
 			for ($i = 0; $i < $length; ++$i)
 			{
 				unset ($branch);
-if (substr ($tag, 0, 4) == '[box') echo "tag $tag, character $tag[$i]<br />";
+
 				if ($tag[$i] == YML_PARAM_BEGIN)
 				{
 					for ($j = ++$i; $i < $length && $tag[$i] != YML_PARAM_END; )
@@ -104,11 +107,11 @@ if (substr ($tag, 0, 4) == '[box') echo "tag $tag, character $tag[$i]<br />";
 					if (!isset ($classes[$class]))
 						throw new Exception ('undefined or invalid character class "' . $class . '"');
 
-					$branch = array (&$node, $pos, null);
+					$branch = array (&$node, YML_BRANCH_LOOP, $pos, null);
 
 					if (!$classes[$class][0])
 					{
-						$target =& $wrong;
+						$target = array (null, YML_BRANCH_EMPTY, null, null);
 
 						if (isset ($node['']))
 							throw new Exception ('ambiguous default transition of parameter #' . $pos . ' for tag "' . $tag . '" in rule "' . $name . '"');
@@ -116,14 +119,14 @@ if (substr ($tag, 0, 4) == '[box') echo "tag $tag, character $tag[$i]<br />";
 						$node[''] =& $branch;
 					}
 					else
-						$target =& $branch;
+						$target = $branch;
 
 					foreach ($classes[$class][1] as $character)
 					{
 						if (isset ($node[$character]))
 							throw new Exception ('ambiguous character "' . $character . '" of parameter #' . $pos . ' for tag "' . $tag . '" in rule "' . $name . '"');
 
-						$node[$character] =& $target;
+						$node[$character] = $target;
 					}
 
 					$decode[] = array (YML_DECODE_PARAM, $pos++);
@@ -137,13 +140,14 @@ if (substr ($tag, 0, 4) == '[box') echo "tag $tag, character $tag[$i]<br />";
 					$decode[] = array (YML_DECODE_CHARACTER, $character);
 
 					if (!isset ($node[$character]))
-{
-						$node[$character] = array (null, null, null);
-if (substr ($tag, 0, 4) == '[box'){echo "create new branch for char $character<br />"; var_dump($node[$character]);}} else if (substr ($tag, 0, 4) == '[box'){echo "reuse branch for char $character<br />"; var_dump ($node[$character]);}
+						$node[$character] = array (null, YML_BRANCH_NEXT, null, null);
+
 					$branch =& $node[$character];
 
-					if ($branch === $wrong || $branch[1] !== null)
+					if ($branch[1] == YML_BRANCH_LOOP)
 						throw new Exception ('ambiguous character "' . $character . '" at position #' . $i . ' for tag "' . $tag . '" in rule "' . $name . '"');
+					else
+						$branch[1] = YML_BRANCH_NEXT;
 
 					$node =& $branch[0];
 				}
@@ -155,10 +159,10 @@ if (substr ($tag, 0, 4) == '[box'){echo "create new branch for char $character<b
 				if (!isset ($actions[$action]))
 					throw new Exception ('undefined action "' . $action . '" for tag "' . $tag . '" in rule "' . $name . '"');
 
-				if ($branch[2] !== null)
+				if ($branch[3] !== null)
 					throw new Exception ('conflict for tag "' . $tag . '" in rule "' . $name . '"');
 
-				$branch[2] = $actions[$action] . $name;
+				$branch[3] = $actions[$action] . $name;
 			}
 
 			// Register decoding array
@@ -281,6 +285,8 @@ function	ymlEncode ($plain, $parser)
 					{
 						if (!isset ($node[$plain[$i]]))
 							$branch =& $node[''];
+						else if ($node[$plain[$i]][1] != YML_BRANCH_EMPTY)
+							$branch =& $node[$plain[$i]];
 						else
 							unset ($branch);
 					}
@@ -300,9 +306,9 @@ function	ymlEncode ($plain, $parser)
 					else
 					{
 						// Capture parameter if we're parsing one
-						if ($branch[1] !== null)
+						if ($branch[2] !== null)
 						{
-							$pos = $branch[1];
+							$pos = $branch[2];
 
 							if (!isset ($cursor[1][$pos]))
 								$cursor[1][$pos] = '';
@@ -311,7 +317,7 @@ function	ymlEncode ($plain, $parser)
 						}
 
 						// Move cursor to non-terminal node
-						if ($branch[2] === null)
+						if ($branch[3] === null)
 							$cursor[0] =& $branch[0];
 
 						// Emit action for terminal node
@@ -324,7 +330,7 @@ function	ymlEncode ($plain, $parser)
 							$token .= YML_TOKEN_SCOPE . ($tagStart - $index);
 							$index = $tagStart;
 
-							foreach (str_split ($branch[2]) as $character)
+							foreach (str_split ($branch[3]) as $character)
 							{
 								if (isset ($escape[$character]))
 									$token .= YML_TOKEN_ESCAPE;

@@ -43,6 +43,48 @@ div.yml blockquote blockquote blockquote blockquote blockquote blockquote blockq
 	border-left-color:	#C1D6EA;
 }
 
+div.yml div.box
+{
+	padding:	3px;
+	margin:		5px;
+	background:	white;
+	border:		1px solid #DDDDDD;
+}
+
+div.yml div.box div
+{
+	padding:	4px 4px 0px 4px;
+}
+
+div.yml div.box_0 div
+{
+	display:	none;
+}
+
+div.yml div.box_1 div
+{
+	display:	block;
+}
+
+div.yml div.box h1
+{
+	padding:		3px 3px 3px 20px;
+	margin:			0px;
+	font-size:		100%;
+	font-weight:	bold;
+	cursor:			pointer;
+}
+
+div.yml div.box_0 h1
+{
+	background:		#EEEEEE url('box_0.png') no-repeat 2px 1px;
+}
+
+div.yml div.box_1 h1
+{
+	background:		#EEEEEE url('box_1.png') no-repeat 2px 1px;
+}
+
 div.yml div.center
 {
 	margin:		auto;

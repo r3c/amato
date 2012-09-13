@@ -158,7 +158,7 @@ function	ymlDemoAnchorStop ($name, $params, $body)
 
 function	ymlDemoBoxStop ($name, $params, $body)
 {
-	return '<div class="box box_1"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_0\') >= 0 ? \'box box_1\' : \'box box_0\';">' . htmlspecialchars ($params[0]) . '</h1><div>' . $body . '</div></div>';
+	return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') >= 0 ? \'box box_0\' : \'box box_1\';">' . htmlspecialchars ($params[0]) . '</h1><div>' . $body . '</div></div>';
 }
 
 function	ymlDemoColorStop ($name, $params, $body)
@@ -215,7 +215,6 @@ function	ymlDemoSpanStop ($name, $params, $body)
 ** - urli
 ** - color
 ** - serif
-** - box
 ** - spoiler
 ** - noedit
 ** - nosmile
