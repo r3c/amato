@@ -217,10 +217,11 @@ function	ymlDecode ($token, $parser)
 		$count = count ($params);
 		$index += $delta;
 
-		// Search for matching type from action
+		// Try to find decoder by reverting action to type
 		if (!isset ($opens[$name]))
 			$opens[$name] = 0;
 
+		$decode = null;
 		$open = count ($opens[$name]) > 0 ? 1 : 0;
 
 		foreach ($ymlConvert as $type => $actions)
@@ -231,44 +232,51 @@ function	ymlDecode ($token, $parser)
 
 				if (isset ($decodes[$key]))
 				{
-					$tag = '';
-
-					foreach ($decodes[$key] as $item)
-					{
-						switch ($item[0])
-						{
-							case YML_DECODE_CHARACTER:
-								$tag .= $item[1];
-
-								break;
-
-							case YML_DECODE_PARAM:
-								$tag .= $item[1] < $count ? $params[$item[1]] : '';
-
-								break;
-						}
-					}
-
-					$clean = substr_replace ($clean, $tag, $index, 0);
-					$index += strlen ($tag);
+					$decode = $decodes[$key];
 
 					break;
 				}
 			}
 		}
 
-		// Update opened tags counter
-		switch ($action)
+		// Use found decoder (if any) to inject tag into clean string
+		if ($decode !== null)
 		{
-			case YML_ACTION_START:
-				++$opens[$name];
+			// Generate decoded tag string from decoder
+			$tag = '';
 
-				break;
+			foreach ($decode as $item)
+			{
+				switch ($item[0])
+				{
+					case YML_DECODE_CHARACTER:
+						$tag .= $item[1];
 
-			case YML_ACTION_STOP:
-				--$opens[$name];
+						break;
 
-				break;
+					case YML_DECODE_PARAM:
+						$tag .= $item[1] < $count ? $params[$item[1]] : '';
+
+						break;
+				}
+			}
+
+			$clean = substr_replace ($clean, $tag, $index, 0);
+			$index += strlen ($tag);
+
+			// Update opened tags counter
+			switch ($action)
+			{
+				case YML_ACTION_START:
+					++$opens[$name];
+
+					break;
+
+				case YML_ACTION_STOP:
+					--$opens[$name];
+
+					break;
+			}
 		}
 	}
 

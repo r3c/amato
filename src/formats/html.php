@@ -200,7 +200,12 @@ function	ymlDemoImageStop ($name, $params, $body)
 	else
 		return '<img alt="img" src="' . $src . '" />';
 }
-
+/*
+function	ymlDemoReferenceStop ($name, $params, $body)
+{
+	return '-FIXME: ref to post ' . $body . '-';
+}
+*/
 function	ymlDemoListStart ($name, &$params)
 {
 	$params = $params + array

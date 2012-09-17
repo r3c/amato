@@ -115,12 +115,12 @@ if ($mode && $text)
 				<div class="code">' . htmlspecialchars ($render, ENT_COMPAT, CHARSET) . '</div>
 			</div>';
 
-		$plain = ymlDecode ($token, $parser);
+		$plain2 = ymlDecode ($token, $parser);
 
 		echo '
 			<div class="body">
 				<b>plain:</b>
-				<div class="code">' . htmlspecialchars ($plain, ENT_COMPAT, CHARSET) . '</div>
+				<div class="code" style="color: ' . ($plain == $plain2 ? 'red' : 'green') . ';">' . htmlspecialchars ($plain2, ENT_COMPAT, CHARSET) . '</div>
 			</div>';
 	}
 	else
