@@ -3,10 +3,10 @@
 /*
 ** Internal constants.
 */
-define ('YML_ACTION_ALONE',		0);
-define ('YML_ACTION_BEGIN',		1);
-define ('YML_ACTION_BREAK',		2);
-define ('YML_ACTION_END',		3);
+define ('YML_ACTION_APPLY',		0);
+define ('YML_ACTION_START',		1);
+define ('YML_ACTION_STEP',		2);
+define ('YML_ACTION_STOP',		3);
 
 define ('YML_BRANCH_EMPTY',		0);
 define ('YML_BRANCH_LOOP',		1);
@@ -15,14 +15,31 @@ define ('YML_BRANCH_NEXT',		2);
 define ('YML_DECODE_CHARACTER',	0);
 define ('YML_DECODE_PARAM',		1);
 
-define ('YML_PARAM_BEGIN',		'(');
-define ('YML_PARAM_END',		')');
-define ('YML_PARAM_ESCAPE',		'\\');
+define ('YML_PATTERN_BEGIN',	'(');
+define ('YML_PATTERN_END',		')');
+define ('YML_PATTERN_ESCAPE',	'\\');
 
-define ('YML_TOKEN_END',		'|');
 define ('YML_TOKEN_ESCAPE',		'\\');
 define ('YML_TOKEN_PARAM',		',');
+define ('YML_TOKEN_PLAIN',		'|');
 define ('YML_TOKEN_SCOPE',		';');
+
+define ('YML_TYPE_BEGIN',		0);
+define ('YML_TYPE_BETWEEN',		1);
+define ('YML_TYPE_END',			2);
+define ('YML_TYPE_RESUME',		3);
+define ('YML_TYPE_SINGLE',		4);
+define ('YML_TYPE_SWITCH',		5);
+
+$ymlConvert = array
+(
+	YML_TYPE_BEGIN		=> array (YML_ACTION_START, YML_ACTION_START),
+	YML_TYPE_BETWEEN	=> array (null, YML_ACTION_STEP),
+	YML_TYPE_END		=> array (null, YML_ACTION_STOP),
+	YML_TYPE_RESUME		=> array (YML_ACTION_START, YML_ACTION_STEP),
+	YML_TYPE_SINGLE		=> array (YML_ACTION_APPLY, YML_ACTION_APPLY),
+	YML_TYPE_SWITCH		=> array (YML_ACTION_START, YML_ACTION_STOP)
+);
 
 /*
 ** Compile tag parsing rules.
@@ -79,114 +96,100 @@ function	ymlCompile ($rules, $params)
 	}
 
 	// Process rules
-	$actions = array (YML_ACTION_ALONE => '*', YML_ACTION_BEGIN => '+', YML_ACTION_BREAK => '/', YML_ACTION_END => '-');
 	$parser = array (null, array ());
 
 	foreach ($rules as $name => $rule)
 	{
 		// Browse defined tag patterns
-		foreach ($rule['tags'] as $tag => $action)
+		foreach ($rule['tags'] as $pattern => $type)
 		{
 			// Build parsing tree and decoding array
 			$decode = array ();
-			$length = strlen ($tag);
+			$length = strlen ($pattern);
 			$node =& $parser[0];
-			$pos = 0;
+			$param = 0;
 
 			for ($i = 0; $i < $length; ++$i)
 			{
 				unset ($branch);
 
-				if ($tag[$i] == YML_PARAM_BEGIN)
+				switch ($pattern[$i])
 				{
-					for ($j = ++$i; $i < $length && $tag[$i] != YML_PARAM_END; )
-						++$i;
+					case YML_PATTERN_BEGIN:
+						for ($j = ++$i; $i < $length && $pattern[$i] != YML_PATTERN_END; )
+							++$i;
 
-					$class = substr ($tag, $j, $i - $j);
+						$class = substr ($pattern, $j, $i - $j);
 
-					if (!isset ($classes[$class]))
-						throw new Exception ('undefined or invalid character class "' . $class . '"');
+						if (!isset ($classes[$class]))
+							throw new Exception ('undefined or invalid character class "' . $class . '"');
 
-					$branch = array (&$node, YML_BRANCH_LOOP, $pos, null);
+						$branch = array (&$node, YML_BRANCH_LOOP, $param, null);
 
-					if (!$classes[$class][0])
-					{
-						$target = array (null, YML_BRANCH_EMPTY, null, null);
+						if (!$classes[$class][0])
+						{
+							$target = array (null, YML_BRANCH_EMPTY, null, null);
 
-						if (isset ($node['']))
-							throw new Exception ('ambiguous default transition of parameter #' . $pos . ' for tag "' . $tag . '" in rule "' . $name . '"');
+							if (isset ($node['']))
+								throw new Exception ('ambiguous default transition of class "' . $class . '" for pattern "' . $pattern . '" in rule "' . $name . '"');
 
-						$node[''] =& $branch;
-					}
-					else
-						$target = $branch;
+							$node[''] =& $branch;
+						}
+						else
+							$target = $branch;
 
-					foreach ($classes[$class][1] as $character)
-					{
-						if (isset ($node[$character]))
-							throw new Exception ('ambiguous character "' . $character . '" of parameter #' . $pos . ' for tag "' . $tag . '" in rule "' . $name . '"');
+						foreach ($classes[$class][1] as $character)
+						{
+							if (isset ($node[$character]))
+								throw new Exception ('ambiguous character "' . $character . '" of class #' . $class . ' for pattern "' . $pattern . '" in rule "' . $name . '"');
 
-						$node[$character] = $target;
-					}
+							$node[$character] = $target;
+						}
 
-					$decode[] = array (YML_DECODE_PARAM, $pos++);
-				}
-				else
-				{
-					if ($tag[$i] == YML_PARAM_ESCAPE && $i + 1 < $length)
-						++$i;
+						$decode[] = array (YML_DECODE_PARAM, $param++);
 
-					$character = $tag[$i];
-					$decode[] = array (YML_DECODE_CHARACTER, $character);
+						break;
 
-					if (!isset ($node[$character]))
-						$node[$character] = array (null, YML_BRANCH_NEXT, null, null);
+					default:
+						if ($pattern[$i] == YML_PATTERN_ESCAPE && $i + 1 < $length)
+							++$i;
 
-					$branch =& $node[$character];
+						$character = $pattern[$i];
+						$decode[] = array (YML_DECODE_CHARACTER, $character);
 
-					if ($branch[1] == YML_BRANCH_LOOP)
-						throw new Exception ('ambiguous character "' . $character . '" at position #' . $i . ' for tag "' . $tag . '" in rule "' . $name . '"');
-					else
-						$branch[1] = YML_BRANCH_NEXT;
+						if (!isset ($node[$character]))
+							$node[$character] = array (null, YML_BRANCH_NEXT, null, null);
 
-					$node =& $branch[0];
+						$branch =& $node[$character];
+
+						if ($branch[1] == YML_BRANCH_LOOP)
+							throw new Exception ('ambiguous character "' . $character . '" at position #' . $i . ' for pattern "' . $pattern . '" in rule "' . $name . '"');
+						else
+							$branch[1] = YML_BRANCH_NEXT;
+
+						$node =& $branch[0];
+
+						break;
 				}
 			}
 
 			// Register terminal node
 			if (isset ($branch))
 			{
-				if (!isset ($actions[$action]))
-					throw new Exception ('undefined action "' . $action . '" for tag "' . $tag . '" in rule "' . $name . '"');
-
 				if ($branch[3] !== null)
-					throw new Exception ('conflict for tag "' . $tag . '" in rule "' . $name . '"');
+					throw new Exception ('conflict for pattern "' . $pattern . '" in rule "' . $name . '"');
 
-				$branch[3] = $actions[$action] . $name;
+				$branch[3] = array ($name, $type/*, $value*/);
 			}
 
 			// Register decoding array
 			if (!isset ($rule['decode']) || !$rule['decode'])
-			{
-				if (!isset ($parser[1][$action]))
-					$parser[1][$action] = array ();
-
-				$decodeAction =& $parser[1][$action];
-
-				if (!isset ($decodeAction[$name]))
-					$decodeAction[$name] = array ();
-
-				$decodeName =& $decodeAction[$name];
-
-				if (!isset ($decodeName[$pos]))
-					$decodeName[$pos] = $decode;
-			}
+				$parser[1][$name . '.' . $type . '.' . $param] = $decode;
 		}
 	}
 
 	return $parser;
 }
-
 /*
 ** Decode tokenized string to plain format.
 ** $token:	tokenized string
@@ -195,6 +198,8 @@ function	ymlCompile ($rules, $params)
 */
 function	ymlDecode ($token, $parser)
 {
+	global	$ymlConvert;
+
 	$parsed = ymlParse ($token);
 
 	if ($parsed === null)
@@ -202,49 +207,69 @@ function	ymlDecode ($token, $parser)
 
 	list ($scopes, $clean) = $parsed;
 
+	$decodes =& $parser[1];
 	$index = 0;
 
 	foreach ($scopes as $scope)
 	{
-		list ($delta, $action, $name, $params) = $scope;
+		list ($delta, $name, $action, $params) = $scope;
 
 		$count = count ($params);
 		$index += $delta;
 
-		if (!isset ($parser[1][$action]))
-			continue;
+		// Search for matching type from action
+		if (!isset ($opens[$name]))
+			$opens[$name] = 0;
 
-		$decodeAction =& $parser[1][$action];
+		$open = count ($opens[$name]) > 0 ? 1 : 0;
 
-		if (!isset ($decodeAction[$name]))
-			continue;
-
-		$decodeName =& $decodeAction[$name];
-
-		if (!isset ($decodeName[$count]))
-			continue;
-
-		$decode =& $decodeName[$count];
-		$tag = '';
-
-		foreach ($decode as $item)
+		foreach ($ymlConvert as $type => $actions)
 		{
-			switch ($item[0])
+			if ($actions[$open] === $action)
 			{
-				case YML_DECODE_CHARACTER:
-					$tag .= $item[1];
+				$key = $name . '.' . $type . '.' . $count;
+
+				if (isset ($decodes[$key]))
+				{
+					$tag = '';
+
+					foreach ($decodes[$key] as $item)
+					{
+						switch ($item[0])
+						{
+							case YML_DECODE_CHARACTER:
+								$tag .= $item[1];
+
+								break;
+
+							case YML_DECODE_PARAM:
+								$tag .= $item[1] < $count ? $params[$item[1]] : '';
+
+								break;
+						}
+					}
+
+					$clean = substr_replace ($clean, $tag, $index, 0);
+					$index += strlen ($tag);
 
 					break;
-
-				case YML_DECODE_PARAM:
-					$tag .= $item[1] < $count ? $params[$item[1]] : '';
-
-					break;
+				}
 			}
 		}
 
-		$clean = substr_replace ($clean, $tag, $index, 0);
-		$index += strlen ($tag);
+		// Update opened tags counter
+		switch ($action)
+		{
+			case YML_ACTION_START:
+				++$opens[$name];
+
+				break;
+
+			case YML_ACTION_STOP:
+				--$opens[$name];
+
+				break;
+		}
 	}
 
 	return $clean;
@@ -258,16 +283,19 @@ function	ymlDecode ($token, $parser)
 */
 function	ymlEncode ($plain, $parser)
 {
-	$cursors = array ();
-	$escape = array (YML_TOKEN_PARAM => true, YML_TOKEN_SCOPE => true, YML_TOKEN_END => true, YML_TOKEN_ESCAPE => true);
-	$index = 0;
-	$length = strlen ($plain);
-	$tree =& $parser[0];
-	$token = '1';
+	global	$ymlConvert; // FIXME
 
-	// Parse entire string
-	if (isset ($tree))
+	$token = '1';
+	$tree =& $parser[0];
+
+	if ($tree !== null)
 	{
+		// Parse plain string
+		$cursors = array ();
+		$length = strlen ($plain);
+		$seal = 0;
+		$tags = array ();
+
 		for ($i = 0; $i < $length; ++$i)
 		{
 			$trail = 0;
@@ -308,12 +336,12 @@ function	ymlEncode ($plain, $parser)
 						// Capture parameter if we're parsing one
 						if ($branch[2] !== null)
 						{
-							$pos = $branch[2];
+							$param = $branch[2];
 
-							if (!isset ($cursor[1][$pos]))
-								$cursor[1][$pos] = '';
+							if (!isset ($cursor[1][$param]))
+								$cursor[1][$param] = '';
 
-							$cursor[1][$pos] .= $plain[$i];
+							$cursor[1][$param] .= $plain[$i];
 						}
 
 						// Move cursor to non-terminal node
@@ -323,41 +351,63 @@ function	ymlEncode ($plain, $parser)
 						// Emit action for terminal node
 						else
 						{
-							// Append tokenized action to string
-							$tagLength = count ($cursors) - $trail;
-							$tagStart = $i - $tagLength + 1;
+							list ($name, $type/*, $value*/) = $branch[3];
 
-							$token .= YML_TOKEN_SCOPE . ($tagStart - $index);
-							$index = $tagStart;
+// <Crappy Code>
+							// Get compatible and unprocessed tags on stack
+							$links = array ();
 
-							foreach (str_split ($branch[3]) as $character)
+							for ($link = count ($tags) - 1; $link >= $seal; --$link)
 							{
-								if (isset ($escape[$character]))
-									$token .= YML_TOKEN_ESCAPE;
-
-								$token .= $character;
+								if ($tags[$link][1] !== null && $tags[$link][2] == $name)
+									$links[] = $link;
 							}
 
-							foreach ($cursor[1] as $param)
-							{
-								$token .= YML_TOKEN_PARAM;
+							// Get action, invalidate cursor if none available
+							$action = $ymlConvert[$type][count ($links) > 0 ? 1 : 0];
 
-								foreach (str_split ($param) as $character)
+							if ($action === null)
+								unset ($cursor[0]);
+
+							// Push new tag to list for action
+							else
+							{
+								$tagLength = count ($cursors) - $trail;
+								$tagStart = $i - $tagLength + 1;
+
+								$tags[] = array ($tagStart, $tagLength, $name, $action, $cursor[1]);
+
+								if ($action == YML_ACTION_APPLY || $action == YML_ACTION_STOP)
 								{
-									if (isset ($escape[$character]))
-										$token .= YML_TOKEN_ESCAPE;
+									array_unshift ($links, count ($tags) - 1);
 
-									$token .= $character;
+									// Remove tags and flag them as processed
+									foreach ($links as $link)
+									{
+										$tagLength = $tags[$link][1];
+										$tagStart = $tags[$link][0];
+
+										for ($after = count ($tags) - 1; $after > $link; --$after)
+											$tags[$after][0] -= $tagLength;
+
+										$length -= $tagLength;
+										$plain = substr_replace ($plain, '', $tagStart, $tagLength);
+										$i -= $tagLength;
+
+										$tags[$link][1] = null;
+									}
+
+									// Seal flagged tags for faster processing
+									while ($seal < count ($tags) && $tags[$seal][1] === null)
+										++$seal;
 								}
+
+								// Reset all cursors
+								$cursors = array ();
+
+								break;
 							}
-
-							// Remove match from string
-							$length -= $tagLength;
-							$plain = substr_replace ($plain, '', $tagStart, $tagLength);
-							$i = $tagStart - 1;
-
-							// Clear cursors array
-							$cursors = array ();
+// </Crappy Code>
 						}
 					}
 				}
@@ -368,9 +418,46 @@ function	ymlEncode ($plain, $parser)
 			while (count ($cursors) > 0 && !isset ($cursors[0][0]))
 				array_shift ($cursors);
 		}
+
+		// Tokenize processed tags into scopes
+		$actions = array (YML_ACTION_APPLY => '/', YML_ACTION_START => '<', YML_ACTION_STEP => '!', YML_ACTION_STOP => '>');
+		$escape = array (YML_TOKEN_ESCAPE => true, YML_TOKEN_PARAM => true, YML_TOKEN_PLAIN => true, YML_TOKEN_SCOPE => true);
+		$shift = 0;
+
+		foreach ($tags as $tag)
+		{
+			list ($start, $length, $name, $action, $params) = $tag;
+
+			if ($length !== null)
+				continue;
+
+			$token .= YML_TOKEN_SCOPE . ($start - $shift) . $actions[$action];
+			$shift = $start;
+
+			foreach (str_split ($name) as $character)
+			{
+				if (isset ($escape[$character]))
+					$token .= YML_TOKEN_ESCAPE;
+
+				$token .= $character;
+			}
+
+			foreach ($params as $param)
+			{
+				$token .= YML_TOKEN_PARAM;
+
+				foreach (str_split ($param) as $character)
+				{
+					if (isset ($escape[$character]))
+						$token .= YML_TOKEN_ESCAPE;
+
+					$token .= $character;
+				}
+			}
+		}
 	}
 
-	return $token . YML_TOKEN_END . $plain;
+	return $token . YML_TOKEN_PLAIN . $plain;
 }
 
 /*
@@ -380,8 +467,8 @@ function	ymlEncode ($plain, $parser)
 */
 function	ymlParse ($token)
 {
-	$actions = array ('*' => YML_ACTION_ALONE, '+' => YML_ACTION_BEGIN, '/' => YML_ACTION_BREAK, '-' => YML_ACTION_END);
-	$escape = array (YML_TOKEN_PARAM => true, YML_TOKEN_SCOPE => true, YML_TOKEN_END => true);
+	$actions = array ('/' => YML_ACTION_APPLY, '<' => YML_ACTION_START, '!' => YML_ACTION_STEP, '>' => YML_ACTION_STOP);
+	$escape = array (YML_TOKEN_PARAM => true, YML_TOKEN_PLAIN => true, YML_TOKEN_SCOPE => true);
 	$length = strlen ($token);
 	$scopes = array ();
 
@@ -439,10 +526,10 @@ function	ymlParse ($token)
 			$params[] = substr ($token, $j, $i - $j);
 		}
 
-		$scopes[] = array ($delta, $action, $name, $params);
+		$scopes[] = array ($delta, $name, $action, $params);
 	}
 
-	if ($i >= $length || $token[$i++] != YML_TOKEN_END)
+	if ($i >= $length || $token[$i++] != YML_TOKEN_PLAIN)
 		return null;
 
 	return array ($scopes, substr ($token, $i));
@@ -471,7 +558,7 @@ function	ymlRender ($token, $modifiers)
 
 	foreach ($scopes as $scope)
 	{
-		list ($delta, $action, $name, $params) = $scope;
+		list ($delta, $name, $action, $params) = $scope;
 
 		$index += $delta;
 
@@ -483,8 +570,8 @@ function	ymlRender ($token, $modifiers)
 		// Initialize action effect
 		switch ($action)
 		{
-			case YML_ACTION_ALONE:
-			case YML_ACTION_BEGIN:
+			case YML_ACTION_APPLY:
+			case YML_ACTION_START:
 				// Get precedence level for this modifier
 				if (isset ($modifier['level']))
 					$level = $modifier['level'];
@@ -507,7 +594,7 @@ function	ymlRender ($token, $modifiers)
 				for ($touch = count ($stack); $touch > 0 && $level > $stack[$touch - 1][3]; )
 					--$touch;
 
-				$close = $action == YML_ACTION_ALONE ? $touch : $touch + 1;
+				$close = $action == YML_ACTION_APPLY ? $touch : $touch + 1;
 
 				// Call initializer and push modifier to stack
 				if (isset ($modifier['start']))
@@ -525,8 +612,8 @@ function	ymlRender ($token, $modifiers)
 
 				break;
 
-			case YML_ACTION_BREAK:
-			case YML_ACTION_END:
+			case YML_ACTION_STEP:
+			case YML_ACTION_STOP:
 				// Search for matching tag in pending stack
 				for ($touch = count ($stack) - 1; $touch >= 0 && $stack[$touch][0] != $name; )
 					--$touch;
@@ -534,7 +621,7 @@ function	ymlRender ($token, $modifiers)
 				if ($touch < 0)
 					continue 2;
 
-				$close = $touch;
+				$close = $action == YML_ACTION_STEP ? $touch + 1 : $touch;
 
 				break;
 
@@ -557,31 +644,37 @@ function	ymlRender ($token, $modifiers)
 			$index = $closed[1] + strlen ($body);
 		}
 
-		// Update modifiers indices
-		for ($i = count ($stack) - 1; $i >= $touch; --$i)
-			$stack[$i][1] = $index;
-
 		// Finalize action effect
 		switch ($action)
 		{
 			// Remove tag from the stack
-			case YML_ACTION_ALONE:
-			case YML_ACTION_END:
+			case YML_ACTION_APPLY:
+			case YML_ACTION_STOP:
 				array_splice ($stack, $touch, 1);
 
 				break;
 
 			// Call step function
-			case YML_ACTION_BREAK:
+			case YML_ACTION_STEP:
 				$broken =& $stack[$touch];
+				$length = $index - $broken[1];
+
+				$body = substr ($clean, $broken[1], $length);
 
 				if (isset ($broken[4]))
-					$broken[4] ($broken[0], $broken[2], substr ($clean, $broken[1], $index - $broken[1]));
+					$body = $broken[4] ($broken[0], $broken[2], $body);
+
+				$clean = substr_replace ($clean, $body, $broken[1], $length);
+				$index = $broken[1] + strlen ($body);
 
 				$broken[1] = $index;
 
 				break;
 		}
+
+		// Update modifiers indices
+		for ($i = count ($stack) - 1; $i >= $touch; --$i)
+			$stack[$i][1] = $index;
 	}
 
 	return $clean;

@@ -21,6 +21,10 @@ $ymlFormatsHTML = array
 //		'step'	=> 'ymlDemoAStep',
 		'stop'	=> function ($name, $params, $body) { return $params[0]; }
 	),
+/*	'.'		=> array
+	(
+		'stop'	=> 'ymlDemoReferenceStop'
+	),*/
 	'0'		=> array
 	(
 		'stop'	=> 'ymlDemoColorStop'
@@ -123,6 +127,13 @@ $ymlFormatsHTML = array
 	(
 		'stop'	=> 'ymlDemoImageStop'
 	),
+	'list'	=> array
+	(
+		'level'	=> 2,
+		'start'	=> 'ymlDemoListStart',
+		'step'	=> 'ymlDemoListStep',
+		'stop'	=> 'ymlDemoListStop'
+	),
 	'q'		=> array
 	(
 		'limit'	=> 8,
@@ -190,6 +201,58 @@ function	ymlDemoImageStop ($name, $params, $body)
 		return '<img alt="img" src="' . $src . '" />';
 }
 
+function	ymlDemoListStart ($name, &$params)
+{
+	$params = $params + array
+	(
+		'level'	=> 0,
+		'next'	=> 0,
+		'out'	=> '',
+		'stack'	=> array (),
+		'tag'	=> ''
+	);
+}
+
+function	ymlDemoListStep ($name, &$params, $body)
+{
+	$body = trim ($body);
+
+	if ($params['tag'] && $body)
+	{
+		for (; $params['level'] > $params['next']; --$params['level'])
+			$params['out'] .= '</li></' . array_pop ($params['stack']) . '>';
+
+		if ($params['level'] == $params['next'])
+			$params['out'] .= '</li><li>';
+
+		for (; $params['level'] < $params['next']; ++$params['level'])
+			$params['out'] .= '<' . ($params['stack'][] = $params['tag']) . '><li>';
+
+		$params['next'] = 1;
+		$params['out'] .=	$body;
+	}
+	else
+		++$params['next'];
+
+	$params['tag'] = ($name == '#' ? 'ol' : 'ul');
+}
+
+function	ymlDemoListStop ($name, &$params, $body)
+{
+	ymlDemoListStep ($name, $params, $body);
+
+	while ($params['level']--)
+		$params['out'] .= '</li></' . array_pop ($params['stack']) . '>';
+
+	return $params['out'];
+}
+
+/*
+function	ymlDemoReferenceStop ($name, $params, $body)
+{
+	return '-FIXME: ref to post ' . $body . '-';
+}
+*/
 function	ymlDemoSimpleStop ($name, $params, $body)
 {
 	return $body ? '<' . $name . '>' . $body . '</' . $name . '>' : '';

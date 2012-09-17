@@ -25,168 +25,175 @@ $ymlRulesDemo = array
 	(
 		'tags'	=> array
 		(
-			'\\\\(any)'	=> YML_ACTION_ALONE
+			'\\\\(any)'	=> YML_TYPE_SINGLE
+		)
+	),
+	'.'		=> array
+	(
+		'tags'	=> array
+		(
+			'./(int)'	=> YML_TYPE_SINGLE
 		)
 	),
 	'0'		=> array
 	(
 		'tags'	=> array
 		(
-			'[0]'	=> YML_ACTION_BEGIN,
-			'[/0]'	=> YML_ACTION_END
+			'[0]'	=> YML_TYPE_BEGIN,
+			'[/0]'	=> YML_TYPE_END
 		)
 	),
 	'1'		=> array
 	(
 		'tags'	=> array
 		(
-			'[1]'	=> YML_ACTION_BEGIN,
-			'[/1]'	=> YML_ACTION_END
+			'[1]'	=> YML_TYPE_BEGIN,
+			'[/1]'	=> YML_TYPE_END
 		)
 	),
 	'2'		=> array
 	(
 		'tags'	=> array
 		(
-			'[2]'	=> YML_ACTION_BEGIN,
-			'[/2]'	=> YML_ACTION_END
+			'[2]'	=> YML_TYPE_BEGIN,
+			'[/2]'	=> YML_TYPE_END
 		)
 	),
 	'3'		=> array
 	(
 		'tags'	=> array
 		(
-			'[3]'	=> YML_ACTION_BEGIN,
-			'[/3]'	=> YML_ACTION_END
+			'[3]'	=> YML_TYPE_BEGIN,
+			'[/3]'	=> YML_TYPE_END
 		)
 	),
 	'4'		=> array
 	(
 		'tags'	=> array
 		(
-			'[4]'	=> YML_ACTION_BEGIN,
-			'[/4]'	=> YML_ACTION_END
+			'[4]'	=> YML_TYPE_BEGIN,
+			'[/4]'	=> YML_TYPE_END
 		)
 	),
 	'5'		=> array
 	(
 		'tags'	=> array
 		(
-			'[5]'	=> YML_ACTION_BEGIN,
-			'[/5]'	=> YML_ACTION_END
+			'[5]'	=> YML_TYPE_BEGIN,
+			'[/5]'	=> YML_TYPE_END
 		)
 	),
 	'6'		=> array
 	(
 		'tags'	=> array
 		(
-			'[6]'	=> YML_ACTION_BEGIN,
-			'[/6]'	=> YML_ACTION_END
+			'[6]'	=> YML_TYPE_BEGIN,
+			'[/6]'	=> YML_TYPE_END
 		)
 	),
 	'7'		=> array
 	(
 		'tags'	=> array
 		(
-			'[7]'	=> YML_ACTION_BEGIN,
-			'[/7]'	=> YML_ACTION_END
+			'[7]'	=> YML_TYPE_BEGIN,
+			'[/7]'	=> YML_TYPE_END
 		)
 	),
 	'8'		=> array
 	(
 		'tags'	=> array
 		(
-			'[8]'	=> YML_ACTION_BEGIN,
-			'[/8]'	=> YML_ACTION_END
+			'[8]'	=> YML_TYPE_BEGIN,
+			'[/8]'	=> YML_TYPE_END
 		)
 	),
 	'9'		=> array
 	(
 		'tags'	=> array
 		(
-			'[9]'	=> YML_ACTION_BEGIN,
-			'[/9]'	=> YML_ACTION_END
+			'[9]'	=> YML_TYPE_BEGIN,
+			'[/9]'	=> YML_TYPE_END
 		)
 	),
 	'10'	=> array
 	(
 		'tags'	=> array
 		(
-			'[10]'	=> YML_ACTION_BEGIN,
-			'[/10]'	=> YML_ACTION_END
+			'[10]'	=> YML_TYPE_BEGIN,
+			'[/10]'	=> YML_TYPE_END
 		)
 	),
 	'11'	=> array
 	(
 		'tags'	=> array
 		(
-			'[11]'	=> YML_ACTION_BEGIN,
-			'[/11]'	=> YML_ACTION_END
+			'[11]'	=> YML_TYPE_BEGIN,
+			'[/11]'	=> YML_TYPE_END
 		)
 	),
 	'12'	=> array
 	(
 		'tags'	=> array
 		(
-			'[12]'	=> YML_ACTION_BEGIN,
-			'[/12]'	=> YML_ACTION_END
+			'[12]'	=> YML_TYPE_BEGIN,
+			'[/12]'	=> YML_TYPE_END
 		)
 	),
 	'13'	=> array
 	(
 		'tags'	=> array
 		(
-			'[13]'	=> YML_ACTION_BEGIN,
-			'[/13]'	=> YML_ACTION_END
+			'[13]'	=> YML_TYPE_BEGIN,
+			'[/13]'	=> YML_TYPE_END
 		)
 	),
 	'14'	=> array
 	(
 		'tags'	=> array
 		(
-			'[14]'	=> YML_ACTION_BEGIN,
-			'[/14]'	=> YML_ACTION_END
+			'[14]'	=> YML_TYPE_BEGIN,
+			'[/14]'	=> YML_TYPE_END
 		)
 	),
 	'15'	=> array
 	(
 		'tags'	=> array
 		(
-			'[15]'	=> YML_ACTION_BEGIN,
-			'[/15]'	=> YML_ACTION_END
+			'[15]'	=> YML_TYPE_BEGIN,
+			'[/15]'	=> YML_TYPE_END
 		)
 	),
 	'a'		=> array
 	(
 		'tags'	=> array
 		(
-			'[url]'			=> YML_ACTION_BEGIN,
-			'[url=(url)]'	=> YML_ACTION_BEGIN,
-			'[/url]'		=> YML_ACTION_END
+			'[url]'			=> YML_TYPE_BEGIN,
+			'[url=(url)]'	=> YML_TYPE_BEGIN,
+			'[/url]'		=> YML_TYPE_END
 		)
 	),
 	'b'		=> array
 	(
 		'tags'	=> array
 		(
-			'[b]'	=> YML_ACTION_BEGIN,
-			'[/b]'	=> YML_ACTION_END
+			'[b]'	=> YML_TYPE_BEGIN,
+			'[/b]'	=> YML_TYPE_END
 		)
 	),
 	'box'	=> array
 	(
 		'tags'	=> array
 		(
-			'[box=(text)]'	=> YML_ACTION_BEGIN,
-			'[/box]'		=> YML_ACTION_END
+			'[box=(text)]'	=> YML_TYPE_BEGIN,
+			'[/box]'		=> YML_TYPE_END
 		)
 	),
 	'c'		=> array
 	(
 		'tags'	=> array
 		(
-			'[center]'	=> YML_ACTION_BEGIN,
-			'[/center]'	=> YML_ACTION_END
+			'[center]'	=> YML_TYPE_BEGIN,
+			'[/center]'	=> YML_TYPE_END
 		)
 	),
 	'cmd'	=> array
@@ -194,81 +201,91 @@ $ymlRulesDemo = array
 		'decode'	=> false,
 		'tags'		=> array
 		(
-			'[yncMd:159]'	=> YML_ACTION_BEGIN,
-			'[/yncMd:159]'	=> YML_ACTION_END
+			'[yncMd:159]'	=> YML_TYPE_BEGIN,
+			'[/yncMd:159]'	=> YML_TYPE_END
 		)
 	),
 	'em'	=> array
 	(
 		'tags'	=> array
 		(
-			'[em]'	=> YML_ACTION_BEGIN,
-			'[/em]'	=> YML_ACTION_END
+			'[em]'	=> YML_TYPE_BEGIN,
+			'[/em]'	=> YML_TYPE_END
 		)
 	),
 	'hr'	=> array
 	(
 		'tags'	=> array
 		(
-			'[hr]'	=> YML_ACTION_ALONE
+			'[hr]'	=> YML_TYPE_SINGLE
 		)
 	),
 	'i'		=> array
 	(
 		'tags'	=> array
 		(
-			'[i]'	=> YML_ACTION_BEGIN,
-			'[/i]'	=> YML_ACTION_END
+			'[i]'	=> YML_TYPE_BEGIN,
+			'[/i]'	=> YML_TYPE_END
 		)
 	),
 	'img'	=> array
 	(
 		'tags'	=> array
 		(
-			'[img=(int)](url)[/img]'	=> YML_ACTION_ALONE,
-			'[img](url)[/img]'			=> YML_ACTION_ALONE
+			'[img=(int)](url)[/img]'	=> YML_TYPE_SINGLE,
+			'[img](url)[/img]'			=> YML_TYPE_SINGLE
+		)
+	),
+	'list'	=> array
+	(
+		'tags'	=> array
+		(
+			'[list]'	=> YML_TYPE_BEGIN,
+			'*'			=> YML_TYPE_BETWEEN,
+			'#'			=> YML_TYPE_BETWEEN,
+			'[/list]'	=> YML_TYPE_END
 		)
 	),
 	'q'		=> array
 	(
 		'tags'	=> array
 		(
-			'[cite]'	=> YML_ACTION_BEGIN,
-			'[/cite]'	=> YML_ACTION_END,
-			'[quote]'	=> YML_ACTION_BEGIN,
-			'[/quote]'	=> YML_ACTION_END
+			'[cite]'	=> YML_TYPE_BEGIN,
+			'[/cite]'	=> YML_TYPE_END,
+			'[quote]'	=> YML_TYPE_BEGIN,
+			'[/quote]'	=> YML_TYPE_END
 		)
 	),
 	's'		=> array
 	(
 		'tags'	=> array
 		(
-			'[s]'	=> YML_ACTION_BEGIN,
-			'[/s]'	=> YML_ACTION_END
+			'[s]'	=> YML_TYPE_BEGIN,
+			'[/s]'	=> YML_TYPE_END
 		)
 	),
 	'sub'	=> array
 	(
 		'tags'	=> array
 		(
-			'[sub]'		=> YML_ACTION_BEGIN,
-			'[/sub]'	=> YML_ACTION_END
+			'[sub]'		=> YML_TYPE_BEGIN,
+			'[/sub]'	=> YML_TYPE_END
 		)
 	),
 	'sup'	=> array
 	(
 		'tags'	=> array
 		(
-			'[sup]'		=> YML_ACTION_BEGIN,
-			'[/sup]'	=> YML_ACTION_END
+			'[sup]'		=> YML_TYPE_BEGIN,
+			'[/sup]'	=> YML_TYPE_END
 		)
 	),
 	'u'		=> array
 	(
 		'tags'	=> array
 		(
-			'[u]'	=> YML_ACTION_BEGIN,
-			'[/u]'	=> YML_ACTION_END
+			'[u]'	=> YML_TYPE_BEGIN,
+			'[/u]'	=> YML_TYPE_END
 		)
 	)
 );
