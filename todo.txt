@@ -1,0 +1,8 @@
+- Implement escape sequence, either by:
+	- Using a special tag "\(any)", requiring 1-character classes
+	- Using a global escape sequence when moving cursors, requiring special
+	  decoding case
+- Make character classes parsing greedy
+	- Move cursor logics to external function, check for terminal nodes when no
+	  move is possible, add a final move(null) call at the end to handle tags
+	  at the end of input stream.
