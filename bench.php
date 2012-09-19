@@ -15,7 +15,7 @@ function	bench ($count, $init, $loop, $stop)
 	return (int)((microtime (true) - $time) * 1000);
 }
 
-$parser = ymlCompile ($ymlRulesDemo, $ymlParamsDemo);
+$parser = yML::compile ($ymlRulesDemo, $ymlClassesDemo);
 $out = '';
 $i = 1;
 
@@ -68,9 +68,9 @@ foreach ($test as $label => $params)
 	file_exists ($params['file']) or die ('Cannot open input file "' . $params['file'] . '"');
 
 	$plain = file_get_contents ($params['file']);
-	$token = ymlEncode (htmlspecialchars ($plain, ENT_COMPAT, CHARSET), $parser);
+	$token = yML::encode (htmlspecialchars ($plain, ENT_COMPAT, CHARSET), $parser);
 
-	$time1 = bench ($params['count'], 'global $token, $ymlFormatsHTML;', 'nl2br (ymlRender ($token, $ymlFormatsHTML));', '');
+	$time1 = bench ($params['count'], 'global $token, $ymlFormatsHTML;', 'nl2br (yML::render ($token, $ymlFormatsHTML));', '');
 	$time2 = bench ($params['count'], 'global $plain;', 'formatRegexp ($plain);', '');
 
 	$out .= '
@@ -79,7 +79,7 @@ foreach ($test as $label => $params)
 				#' . $i++ . ' - <a href="' . htmlspecialchars ($params['file']) . '">' . htmlspecialchars ($label) . '</a> (' . strlen ($plain) . ' bytes, ' . $params['count'] . ' loops): yml = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[1]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a>
 			</div>
 			<div class="body yml" style="display: none;">
-				' . nl2br (ymlRender ($token, $ymlFormatsHTML)) . '
+				' . nl2br (yML::render ($token, $ymlFormatsHTML)) . '
 			</div>
 		</div>';
 }

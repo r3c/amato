@@ -79,7 +79,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 
 if ($mode && $text)
 {
-	$parser = ymlCompile ($ymlRulesDemo, $ymlParamsDemo);
+	$codes = yML::compile ($ymlRulesDemo, $ymlClassesDemo);
 /* FIXME */
 	if ($mode == 'debug')
 	{
@@ -99,7 +99,7 @@ if ($mode && $text)
 				</div>
 			</div>';
 
-		$token = ymlEncode ($plain, $parser);
+		$token = yML::encode ($plain, $codes);
 
 		echo '
 			<div class="body">
@@ -107,7 +107,7 @@ if ($mode && $text)
 				<div class="code">' . htmlspecialchars ($token, ENT_COMPAT, CHARSET) . '</div>
 			</div>';
 
-		$render = ymlRender ($token, $ymlFormatsHTML);
+		$render = yML::render ($token, $ymlFormatsHTML);
 
 		echo '
 			<div class="body">
@@ -115,7 +115,7 @@ if ($mode && $text)
 				<div class="code">' . htmlspecialchars ($render, ENT_COMPAT, CHARSET) . '</div>
 			</div>';
 
-		$plain2 = ymlDecode ($token, $parser);
+		$plain2 = yML::decode ($token, $codes);
 
 		echo '
 			<div class="body">
@@ -126,7 +126,7 @@ if ($mode && $text)
 	else
 	{
 /* FIXME */
-		$result = nl2br (ymlRender (ymlEncode (htmlspecialchars ($text, ENT_COMPAT, CHARSET), $parser), $ymlFormatsHTML));
+		$result = nl2br (yML::render (yML::encode (htmlspecialchars ($text, ENT_COMPAT, CHARSET), $codes), $ymlFormatsHTML));
 
 		if ($mode == 'code')
 			$output = formatHTML ($result);
