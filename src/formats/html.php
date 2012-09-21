@@ -21,10 +21,10 @@ $ymlFormatsHTML = array
 //		'step'	=> 'ymlDemoAStep',
 		'stop'	=> function ($name, $params, $body) { return $params[0]; }
 	),
-/*	'.'		=> array
+	'.'		=> array
 	(
-		'stop'	=> 'ymlDemoReferenceStop'
-	),*/
+		'stop'	=> function ($name, $params, $body) { return '<a href="" onclick="getPost(event, ' . 'FIXME' . ',' . htmlspecialchars ($params[0]) . ');return false;">./' . htmlspecialchars ($params[0]) . '</a>'; }
+	),
 	'0'		=> array
 	(
 		'stop'	=> 'ymlDemoColorStop'
@@ -99,7 +99,7 @@ $ymlFormatsHTML = array
 	),
 	'box'	=> array
 	(
-		'stop'	=> 'ymlDemoBoxStop'
+		'stop'	=> function ($name, $params, $body) { return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') >= 0 ? \'box box_0\' : \'box box_1\';">' . htmlspecialchars ($params[0]) . '</h1><div>' . $body . '</div></div>'; }
 	),
 	'c'		=> array
 	(
@@ -167,11 +167,6 @@ function	ymlDemoAnchorStop ($name, $params, $body)
 	return '<a href="' . htmlspecialchars (($matches[1] ? $matches[1] : 'http://') . $matches[2]) . '">' . $body . '</a>';
 }
 
-function	ymlDemoBoxStop ($name, $params, $body)
-{
-	return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') >= 0 ? \'box box_0\' : \'box box_1\';">' . htmlspecialchars ($params[0]) . '</h1><div>' . $body . '</div></div>';
-}
-
 function	ymlDemoColorStop ($name, $params, $body)
 {
 	return $body ? '<span class="color' . $name . '">' . $body . '</span>' : '';
@@ -200,12 +195,7 @@ function	ymlDemoImageStop ($name, $params, $body)
 	else
 		return '<img alt="img" src="' . $src . '" />';
 }
-/*
-function	ymlDemoReferenceStop ($name, $params, $body)
-{
-	return '-FIXME: ref to post ' . $body . '-';
-}
-*/
+
 function	ymlDemoListStart ($name, &$params)
 {
 	$params = $params + array
@@ -234,7 +224,7 @@ function	ymlDemoListStep ($name, &$params, $body)
 			$params['out'] .= '<' . ($params['stack'][] = $params['tag']) . '><li>';
 
 		$params['next'] = 1;
-		$params['out'] .=	$body;
+		$params['out'] .= $body;
 	}
 	else
 		++$params['next'];
@@ -252,12 +242,6 @@ function	ymlDemoListStop ($name, &$params, $body)
 	return $params['out'];
 }
 
-/*
-function	ymlDemoReferenceStop ($name, $params, $body)
-{
-	return '-FIXME: ref to post ' . $body . '-';
-}
-*/
 function	ymlDemoSimpleStop ($name, $params, $body)
 {
 	return $body ? '<' . $name . '>' . $body . '</' . $name . '>' : '';

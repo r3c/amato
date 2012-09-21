@@ -8,9 +8,9 @@ define ('YML_ACTION_START',		1);
 define ('YML_ACTION_STEP',		2);
 define ('YML_ACTION_STOP',		3);
 
-define ('YML_BRANCH_EMPTY',		0);
-define ('YML_BRANCH_LOOP',		1);
-define ('YML_BRANCH_NEXT',		2);
+define ('YML_BRANCH_INVALID',	0);
+define ('YML_BRANCH_SHARED',	1);
+define ('YML_BRANCH_UNIQUE',	2);
 
 define ('YML_DECODE_CHARACTER',	0);
 define ('YML_DECODE_PARAM',		1);
@@ -132,19 +132,25 @@ class	yML
 								throw new Exception ('undefined or invalid character class "' . $class . '"');
 
 							// Parse loop if specified
-							if ($pattern[$i] == YML_PATTERN_LOOP)
+							switch ($pattern[$i])
 							{
-								$branch = array (&$node, YML_BRANCH_LOOP, $param, null);
+								case YML_PATTERN_LOOP:
+									$branch = array (&$node, YML_BRANCH_SHARED, $param, null);
 
-								++$i;
+									++$i;
+
+									break;
+
+								default:
+									$branch = array (null, YML_BRANCH_SHARED, $param, null);
+
+									break;
 							}
-							else
-								$branch = array (null, YML_BRANCH_NEXT, $param, null);
 
-							// FIXME
+							// Define target branch depending on special mode
 							if (!$specials[$class][0])
 							{
-								$target = array (null, YML_BRANCH_EMPTY, null, null);
+								$target = array (null, YML_BRANCH_INVALID, null, null);
 
 								if (isset ($node['']))
 									throw new Exception ('ambiguous default transition of class "' . $class . '" for pattern "' . $pattern . '" in rule "' . $name . '"');
@@ -152,19 +158,20 @@ class	yML
 								$node[''] =& $branch;
 							}
 							else
-								$target = $branch;
+								$target =& $branch;
 
+							// Assign target branch to each class character
 							foreach ($specials[$class][1] as $character)
 							{
 								if (isset ($node[$character]))
 									throw new Exception ('ambiguous character "' . $character . '" of class #' . $class . ' for pattern "' . $pattern . '" in rule "' . $name . '"');
 
-								$node[$character] = $target;
+								$node[$character] =& $target;
 							}
 
 							$decode[] = array (YML_DECODE_PARAM, $param++);
 
-							if ($branch[1] == YML_BRANCH_NEXT)
+							if ($branch[1] == YML_BRANCH_UNIQUE)
 								$node =& $branch[0];
 
 							break;
@@ -177,15 +184,14 @@ class	yML
 							$decode[] = array (YML_DECODE_CHARACTER, $character);
 
 							if (!isset ($node[$character]))
-								$node[$character] = array (null, YML_BRANCH_NEXT, null, null);
+								$node[$character] = array (null, YML_BRANCH_UNIQUE, null, null);
 
 							$branch =& $node[$character];
 
-							if ($branch[1] == YML_BRANCH_LOOP)
+							if ($branch[1] == YML_BRANCH_SHARED)
 								throw new Exception ('ambiguous character "' . $character . '" at position #' . $i . ' for pattern "' . $pattern . '" in rule "' . $name . '"');
-							else
-								$branch[1] = YML_BRANCH_NEXT;
 
+							$branch[1] = YML_BRANCH_UNIQUE;
 							$node =& $branch[0];
 
 							break;
@@ -341,12 +347,8 @@ class	yML
 					// Process this cursor's last matched tag, if any
 					if (isset ($cursor->match))
 					{
-						// FIXME: remove all cursors after this one having a
-						// match that starts within current one's range
-						// e.g.: \[b]test[/b], [b] must be killed
-
 						list ($name, $type/*, $value*/) = $cursor->match;
-// <Crappy Code>
+
 						// Browse stack for compatible unprocessed tags
 						$links = array ();
 
@@ -361,6 +363,18 @@ class	yML
 
 						if ($action !== null)
 						{
+							// Remove all cursors after this one having a match
+							// that overlaps with current one's
+							for ($after = count ($cursors) - 1; $after > $current; --$after)
+							{
+								if ($cursors[$after]->start < $cursor->start + $cursor->length)
+									array_splice ($cursors, $after, 1);
+							}
+
+							// Remove all cursors before current one
+							array_splice ($cursors, 0, $current);
+
+							// Add current cursor to tags
 							$tags[] = array ($cursor->start, $cursor->length, $name, $action, $cursor->params);
 
 							if ($action == YML_ACTION_APPLY || $action == YML_ACTION_STOP)
@@ -393,11 +407,7 @@ class	yML
 								while ($closed < count ($tags) && $tags[$closed][1] === null)
 									++$closed;
 							}
-
-							// Remove all cursors before current one
-							array_splice ($cursors, 0, $current);
 						}
-// </Crappy Code>
 					}
 
 					// Remove cursor once used
@@ -690,7 +700,7 @@ class	yMLCursor
 		{
 			if (!isset ($this->node[$character]))
 				$branch =& $this->node[''];
-			else if ($this->node[$character][1] != YML_BRANCH_EMPTY)
+			else if ($this->node[$character][1] != YML_BRANCH_INVALID)
 				$branch =& $this->node[$character];
 			else
 				return false;

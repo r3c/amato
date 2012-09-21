@@ -15,7 +15,7 @@ function	bench ($count, $init, $loop, $stop)
 	return (int)((microtime (true) - $time) * 1000);
 }
 
-$parser = yML::compile ($ymlRulesDemo, $ymlClassesDemo);
+$parser = ymlCompile ($ymlRulesDemo, $ymlParamsDemo);
 $out = '';
 $i = 1;
 
@@ -29,9 +29,9 @@ while (($row = mysql_fetch_assoc ($q)))
 	$count = 50;
 
 	$plain = $row['post'];
-	$token = yML::encode (htmlspecialchars ($plain, ENT_COMPAT, CHARSET), $parser);
+	$token = ymlEncode (htmlspecialchars ($plain, ENT_COMPAT, CHARSET), $parser);
 
-	$time1 = bench ($count, 'global $token, $ymlFormatsHTML;', 'nl2br (yML::render ($token, $ymlFormatsHTML));', '');
+	$time1 = bench ($count, 'global $token, $ymlFormatsHTML;', 'nl2br (ymlRender ($token, $ymlFormatsHTML));', '');
 	$time2 = bench ($count, 'global $plain;', 'formatRegexp ($plain);', '');
 
 	$out .= '
@@ -40,9 +40,7 @@ while (($row = mysql_fetch_assoc ($q)))
 				#' . $i++ . ' - Post (' . strlen ($plain) . ' bytes, ' . $count . ' loops): yml = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[1]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a>
 			</div>
 			<div class="body yml" style="display: none;">
-				' . nl2br (htmlspecialchars ($plain, ENT_COMPAT, CHARSET)) . '
-				<hr />
-				' . nl2br (yML::render ($token, $ymlFormatsHTML)) . '
+				' . nl2br (ymlRender ($token, $ymlFormatsHTML)) . '
 			</div>
 		</div>';
 }
