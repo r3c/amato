@@ -118,6 +118,7 @@ class	yML
 				for ($i = 0; $i < $length; ++$i)
 				{
 					unset ($branch);
+					unset ($target);
 
 					switch ($pattern[$i])
 					{

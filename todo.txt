@@ -6,7 +6,7 @@ X Make character classes parsing greedy
 	X Move cursor logics to external function, check for terminal nodes when no
 	  move is possible, add a final move(null) call at the end to handle tags
 	  at the end of input stream.
-- Fix bug of sample text file
+X Fix bug of sample text file
 - Differenciate # from * while decoding list tags
 - Implement missing yAronet tags
 - Clean up code by removing magic arrays for branches, nodes, maybe tags?
