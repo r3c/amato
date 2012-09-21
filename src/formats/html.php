@@ -141,7 +141,11 @@ $ymlFormatsHTML = array
 	),
 	's'		=> array
 	(
-		'step'	=> 'ymlDemoSpanStop'
+		'stop'	=> 'ymlDemoSpanStop'
+	),
+	'src'	=> array
+	(
+		'stop'	=> 'ymlDemoSourceStop',
 	),
 	'sub'	=> array
 	(
@@ -164,7 +168,9 @@ function	ymlDemoAnchorStop ($name, $params, $body)
 	if (!preg_match ('@^([0-9A-Za-z]+://)?([-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)@', $target, $matches))
 		return $body;
 
-	return '<a href="' . htmlspecialchars (($matches[1] ? $matches[1] : 'http://') . $matches[2]) . '">' . $body . '</a>';
+	$href = ($matches[1] ? $matches[1] : 'http://') . $matches[2];
+
+	return '<a href="' . htmlspecialchars ($href) . '">' . ($body ? $body : htmlspecialchars ($href)) . '</a>';
 }
 
 function	ymlDemoColorStop ($name, $params, $body)
@@ -252,11 +258,22 @@ function	ymlDemoSpanStop ($name, $params, $body)
 	return $body ? '<span class="' . $name . '">' . $body . '</span>' : '';
 }
 
+function	ymlDemoSourceStop ($name, $params, $body)
+{
+	global	$db;
+
+	$source = $db->getFirst ('SELECT code FROM sources WHERE id = ?', $params, null);
+
+	if ($source !== null)
+		return '<pre>' . stripslashes (gzuncompress ($source['code'])) . '</pre>';
+
+	return '<center><b>' . $GLOBALS['_LANG_num_src'] . $params[0] . ' N/A</b></center>';
+}
+
 /*
 ** Missing:
 ** - media
 ** - !slap
-** - ./0
 ** - name@domain.com
 ** - email
 ** - pre
@@ -282,8 +299,6 @@ function	ymlDemoSpanStop ($name, $params, $body)
 ** - flash
 ** - png
 ** - sondage
-** - source
-** - http://
 ** - www.
 ** - unicode
 */

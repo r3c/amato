@@ -167,6 +167,7 @@ $ymlRulesDemo = array
 	(
 		'tags'	=> array
 		(
+//			'http://(url*)'	=> YML_TYPE_SINGLE,
 			'[url]'			=> YML_TYPE_BEGIN,
 			'[url=(url*)]'	=> YML_TYPE_BEGIN,
 			'[/url]'		=> YML_TYPE_END
@@ -262,6 +263,13 @@ $ymlRulesDemo = array
 		(
 			'[s]'	=> YML_TYPE_BEGIN,
 			'[/s]'	=> YML_TYPE_END
+		)
+	),
+	'src'	=> array
+	(
+		'tags'	=> array
+		(
+			'[source=(int*)]'	=> YML_TYPE_SINGLE
 		)
 	),
 	'sub'	=> array

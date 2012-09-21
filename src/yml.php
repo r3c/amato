@@ -363,16 +363,16 @@ class	yML
 
 						if ($action !== null)
 						{
+							// Remove all cursors before current one
+							array_splice ($cursors, 0, $current);
+
 							// Remove all cursors after this one having a match
 							// that overlaps with current one's
-							for ($after = count ($cursors) - 1; $after > $current; --$after)
+							for ($after = count ($cursors) - 1; $after > 0; --$after)
 							{
 								if ($cursors[$after]->start < $cursor->start + $cursor->length)
 									array_splice ($cursors, $after, 1);
 							}
-
-							// Remove all cursors before current one
-							array_splice ($cursors, 0, $current);
 
 							// Add current cursor to tags
 							$tags[] = array ($cursor->start, $cursor->length, $name, $action, $cursor->params);
@@ -388,7 +388,7 @@ class	yML
 									$tagStart = $tags[$link][0];
 
 									// Shift cursors after current one
-									for ($after = $current + 1; $after < count ($cursors); ++$after)
+									for ($after = count ($cursors) - 1; $after > 0; --$after)
 										$cursors[$after]->start -= $tagLength;
 
 									// Shift tags after current one
@@ -407,6 +407,9 @@ class	yML
 								while ($closed < count ($tags) && $tags[$closed][1] === null)
 									++$closed;
 							}
+
+							// Current cursor is now first one
+							$current = 0;
 						}
 					}
 
