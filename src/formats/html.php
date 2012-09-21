@@ -19,11 +19,11 @@ $ymlFormatsHTML = array
 //		'limit'	=> 100,
 //		'start'	=> 'ymlDemoAStart',
 //		'step'	=> 'ymlDemoAStep',
-		'stop'	=> function ($name, $params, $body) { return $params[0]; }
+		'stop'	=> function ($name, $value, $params, $body) { return $params[0]; }
 	),
 	'.'		=> array
 	(
-		'stop'	=> function ($name, $params, $body) { return '<a href="" onclick="getPost(event, ' . 'FIXME' . ',' . htmlspecialchars ($params[0]) . ');return false;">./' . htmlspecialchars ($params[0]) . '</a>'; }
+		'stop'	=> function ($name, $value, $params, $body) { return '<a href="" onclick="getPost(event, ' . 'FIXME' . ',' . htmlspecialchars ($params[0]) . ');return false;">./' . htmlspecialchars ($params[0]) . '</a>'; }
 	),
 	'0'		=> array
 	(
@@ -99,17 +99,17 @@ $ymlFormatsHTML = array
 	),
 	'box'	=> array
 	(
-		'stop'	=> function ($name, $params, $body) { return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') >= 0 ? \'box box_0\' : \'box box_1\';">' . htmlspecialchars ($params[0]) . '</h1><div>' . $body . '</div></div>'; }
+		'stop'	=> function ($name, $value, $params, $body) { return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') >= 0 ? \'box box_0\' : \'box box_1\';">' . htmlspecialchars ($params[0]) . '</h1><div>' . $body . '</div></div>'; }
 	),
 	'c'		=> array
 	(
 		'level'	=> 2,
-		'stop'	=> function ($name, $params, $body) { return $body ? '<div class="center">' . $body . '</div>' : ''; }
+		'stop'	=> function ($name, $value, $params, $body) { return $body ? '<div class="center">' . $body . '</div>' : ''; }
 	),
 	'cmd'	=> array
 	(
 		'level'	=> 2,
-		'stop'	=> function ($name, $params, $body) { return $body ? '<div class="cmd">' . $body . '</div>' : ''; }
+		'stop'	=> function ($name, $value, $params, $body) { return $body ? '<div class="cmd">' . $body . '</div>' : ''; }
 	),
 	'em'	=> array
 	(
@@ -117,7 +117,7 @@ $ymlFormatsHTML = array
 	),
 	'hr'	=> array
 	(
-		'stop'	=> function ($name, $params, $body) { return '<hr />'; },
+		'stop'	=> function ($name, $value, $params, $body) { return '<hr />'; },
 	),
 	'i'		=> array
 	(
@@ -137,7 +137,7 @@ $ymlFormatsHTML = array
 	'q'		=> array
 	(
 		'limit'	=> 8,
-		'stop'	=> function ($name, $params, $body) { return $body ? '<blockquote>' . $body . '</blockquote>' : ''; }
+		'stop'	=> function ($name, $value, $params, $body) { return $body ? '<blockquote>' . $body . '</blockquote>' : ''; }
 	),
 	's'		=> array
 	(
@@ -161,7 +161,7 @@ $ymlFormatsHTML = array
 	)
 );
 
-function	ymlDemoAnchorStop ($name, $params, $body)
+function	ymlDemoAnchorStop ($name, $value, $params, $body)
 {
 	$target = isset ($params[0]) ? $params[0] : $body;
 
@@ -173,12 +173,12 @@ function	ymlDemoAnchorStop ($name, $params, $body)
 	return '<a href="' . htmlspecialchars ($href) . '">' . ($body ? $body : htmlspecialchars ($href)) . '</a>';
 }
 
-function	ymlDemoColorStop ($name, $params, $body)
+function	ymlDemoColorStop ($name, $value, $params, $body)
 {
 	return $body ? '<span class="color' . $name . '">' . $body . '</span>' : '';
 }
 
-function	ymlDemoImageStop ($name, $params, $body)
+function	ymlDemoImageStop ($name, $value, $params, $body)
 {
 	if (isset ($params[1]))
 	{
@@ -202,7 +202,7 @@ function	ymlDemoImageStop ($name, $params, $body)
 		return '<img alt="img" src="' . $src . '" />';
 }
 
-function	ymlDemoListStart ($name, &$params)
+function	ymlDemoListStart ($name, $value, &$params)
 {
 	$params = $params + array
 	(
@@ -214,7 +214,7 @@ function	ymlDemoListStart ($name, &$params)
 	);
 }
 
-function	ymlDemoListStep ($name, &$params, $body)
+function	ymlDemoListStep ($name, $value, &$params, $body)
 {
 	$body = trim ($body);
 
@@ -235,12 +235,12 @@ function	ymlDemoListStep ($name, &$params, $body)
 	else
 		++$params['next'];
 
-	$params['tag'] = ($name == '#' ? 'ol' : 'ul');
+	$params['tag'] = $value . 'l';
 }
 
-function	ymlDemoListStop ($name, &$params, $body)
+function	ymlDemoListStop ($name, $value, &$params, $body)
 {
-	ymlDemoListStep ($name, $params, $body);
+	ymlDemoListStep ($name, $value, $params, $body);
 
 	while ($params['level']--)
 		$params['out'] .= '</li></' . array_pop ($params['stack']) . '>';
@@ -248,17 +248,17 @@ function	ymlDemoListStop ($name, &$params, $body)
 	return $params['out'];
 }
 
-function	ymlDemoSimpleStop ($name, $params, $body)
+function	ymlDemoSimpleStop ($name, $value, $params, $body)
 {
 	return $body ? '<' . $name . '>' . $body . '</' . $name . '>' : '';
 }
 
-function	ymlDemoSpanStop ($name, $params, $body)
+function	ymlDemoSpanStop ($name, $value, $params, $body)
 {
 	return $body ? '<span class="' . $name . '">' . $body . '</span>' : '';
 }
 
-function	ymlDemoSourceStop ($name, $params, $body)
+function	ymlDemoSourceStop ($name, $value, $params, $body)
 {
 	global	$db;
 

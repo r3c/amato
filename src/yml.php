@@ -24,6 +24,7 @@ define ('YML_TOKEN_ESCAPE',		'\\');
 define ('YML_TOKEN_PARAM',		',');
 define ('YML_TOKEN_PLAIN',		'|');
 define ('YML_TOKEN_SCOPE',		';');
+define ('YML_TOKEN_VALUE',		'=');
 
 define ('YML_TYPE_BEGIN',		0);
 define ('YML_TYPE_BETWEEN',		1);
@@ -107,13 +108,15 @@ class	yML
 		foreach ($rules as $name => $rule)
 		{
 			// Browse defined tag patterns
-			foreach ($rule['tags'] as $pattern => $type)
+			foreach ($rule['tags'] as $pattern => $behavior)
 			{
 				// Build parsing tree and decoding array
+				$count = 0;
 				$decode = array ();
 				$length = strlen ($pattern);
 				$node =& $tree;
-				$param = 0;
+				$type = $behavior[0];
+				$value = isset ($behavior[1]) ? $behavior[1] : '';
 
 				for ($i = 0; $i < $length; ++$i)
 				{
@@ -136,14 +139,14 @@ class	yML
 							switch ($pattern[$i])
 							{
 								case YML_PATTERN_LOOP:
-									$branch = array (&$node, YML_BRANCH_SHARED, $param, null);
+									$branch = array (&$node, YML_BRANCH_SHARED, $count, null);
 
 									++$i;
 
 									break;
 
 								default:
-									$branch = array (null, YML_BRANCH_SHARED, $param, null);
+									$branch = array (null, YML_BRANCH_SHARED, $count, null);
 
 									break;
 							}
@@ -170,7 +173,7 @@ class	yML
 								$node[$character] =& $target;
 							}
 
-							$decode[] = array (YML_DECODE_PARAM, $param++);
+							$decode[] = array (YML_DECODE_PARAM, $count++);
 
 							if ($branch[1] == YML_BRANCH_UNIQUE)
 								$node =& $branch[0];
@@ -205,12 +208,12 @@ class	yML
 					if ($branch[3] !== null)
 						throw new Exception ('conflict for pattern "' . $pattern . '" in rule "' . $name . '"');
 
-					$branch[3] = array ($name, $type/*, $value*/);
+					$branch[3] = array ($name, $type, $value);
 				}
 
 				// Register decoding array
 				if (!isset ($rule['decode']) || !$rule['decode'])
-					$decodes[$name . '.' . $type . '.' . $param] = $decode;
+					$decodes[$name . '.' . $type . '.' . $count . '.' . $value] = $decode;
 			}
 		}
 
@@ -239,7 +242,7 @@ class	yML
 
 		foreach ($scopes as $scope)
 		{
-			list ($delta, $name, $action, $params) = $scope;
+			list ($delta, $name, $action, $value, $params) = $scope;
 
 			$count = count ($params);
 			$index += $delta;
@@ -255,7 +258,7 @@ class	yML
 			{
 				if ($actions[$open] === $action)
 				{
-					$key = $name . '.' . $type . '.' . $count;
+					$key = $name . '.' . $type . '.' . $count . '.' . $value;
 
 					if (isset ($decodes[$key]))
 					{
@@ -348,7 +351,7 @@ class	yML
 					// Process this cursor's last matched tag, if any
 					if (isset ($cursor->match))
 					{
-						list ($name, $type/*, $value*/) = $cursor->match;
+						list ($name, $type, $value) = $cursor->match;
 
 						// Browse stack for compatible unprocessed tags
 						$links = array ();
@@ -376,7 +379,7 @@ class	yML
 							}
 
 							// Add current cursor to tags
-							$tags[] = array ($cursor->start, $cursor->length, $name, $action, $cursor->params);
+							$tags[] = array ($cursor->start, $cursor->length, $name, $action, $value, $cursor->params);
 
 							if ($action == YML_ACTION_APPLY || $action == YML_ACTION_STOP)
 							{
@@ -421,19 +424,21 @@ class	yML
 
 			// Tokenize processed tags into scopes
 			$actions = array (YML_ACTION_APPLY => '/', YML_ACTION_START => '<', YML_ACTION_STEP => '!', YML_ACTION_STOP => '>');
-			$escape = array (YML_TOKEN_ESCAPE => true, YML_TOKEN_PARAM => true, YML_TOKEN_PLAIN => true, YML_TOKEN_SCOPE => true);
+			$escape = array (YML_TOKEN_ESCAPE => true, YML_TOKEN_PARAM => true, YML_TOKEN_PLAIN => true, YML_TOKEN_SCOPE => true, YML_TOKEN_VALUE => true);
 			$shift = 0;
 
 			foreach ($tags as $tag)
 			{
-				list ($start, $length, $name, $action, $params) = $tag;
+				list ($start, $length, $name, $action, $value, $params) = $tag;
 
 				if ($length !== null)
 					continue;
 
+				// Write delta offset and action
 				$token .= YML_TOKEN_SCOPE . ($start - $shift) . $actions[$action];
 				$shift = $start;
 
+				// Write tag name
 				foreach (str_split ($name) as $character)
 				{
 					if (isset ($escape[$character]))
@@ -442,6 +447,21 @@ class	yML
 					$token .= $character;
 				}
 
+				// Write tag value
+				if ($value)
+				{
+					$token .= YML_TOKEN_VALUE;
+
+					foreach (str_split ($value) as $character)
+					{
+						if (isset ($escape[$character]))
+							$token .= YML_TOKEN_ESCAPE;
+
+						$token .= $character;
+					}
+				}
+
+				// Write tag parameters
 				foreach ($params as $param)
 				{
 					$token .= YML_TOKEN_PARAM;
@@ -483,7 +503,7 @@ class	yML
 
 		foreach ($scopes as $scope)
 		{
-			list ($delta, $name, $action, $params) = $scope;
+			list ($delta, $name, $action, $value, $params) = $scope;
 
 			$index += $delta;
 
@@ -516,21 +536,22 @@ class	yML
 					}
 
 					// Browse pending tags with lower precedence
-					for ($touch = count ($stack); $touch > 0 && $level > $stack[$touch - 1][3]; )
+					for ($touch = count ($stack); $touch > 0 && $level > $stack[$touch - 1][0]; )
 						--$touch;
 
 					$close = $action == YML_ACTION_APPLY ? $touch : $touch + 1;
 
 					// Call initializer and push modifier to stack
 					if (isset ($modifier['start']))
-						$modifier['start'] ($name, $params);
+						$modifier['start'] ($name, $value, $params);
 
 					array_splice ($stack, $touch, 0, array (array
 					(
-						$name,
-						$index,
-						$params,
 						$level,
+						$index,
+						$name,
+						$value,
+						$params,
 						isset ($modifier['step']) ? $modifier['step'] : null,
 						isset ($modifier['stop']) ? $modifier['stop'] : null
 					)));
@@ -539,14 +560,22 @@ class	yML
 
 				case YML_ACTION_STEP:
 				case YML_ACTION_STOP:
-					// Search for matching tag in pending stack
-					for ($touch = count ($stack) - 1; $touch >= 0 && $stack[$touch][0] != $name; )
+					// Search for matching tag in pending stack, cancel if none
+					for ($touch = count ($stack) - 1; $touch >= 0 && $stack[$touch][2] != $name; )
 						--$touch;
 
 					if ($touch < 0)
 						continue 2;
 
 					$close = $action == YML_ACTION_STEP ? $touch + 1 : $touch;
+
+					// Update tag value and parameters
+					$broken =& $stack[$touch];
+
+					foreach ($params as $key => $value)
+						$broken[4][$key] = $value;
+
+					$broken[3] = $value;
 
 					break;
 
@@ -562,8 +591,8 @@ class	yML
 
 				$body = substr ($clean, $closed[1], $length);
 
-				if (isset ($closed[5]))
-					$body = $closed[5] ($closed[0], $closed[2], $body);
+				if (isset ($closed[6]))
+					$body = $closed[6] ($closed[2], $closed[3], $closed[4], $body);
 
 				$clean = substr_replace ($clean, $body, $closed[1], $length);
 				$index = $closed[1] + strlen ($body);
@@ -586,8 +615,8 @@ class	yML
 
 					$body = substr ($clean, $broken[1], $length);
 
-					if (isset ($broken[4]))
-						$body = $broken[4] ($broken[0], $broken[2], $body);
+					if (isset ($broken[5]))
+						$body = $broken[5] ($broken[2], $broken[3], $broken[4], $body);
 
 					$clean = substr_replace ($clean, $body, $broken[1], $length);
 					$index = $broken[1] + strlen ($body);
@@ -613,7 +642,7 @@ class	yML
 	private static function	parse ($token)
 	{
 		$actions = array ('/' => YML_ACTION_APPLY, '<' => YML_ACTION_START, '!' => YML_ACTION_STEP, '>' => YML_ACTION_STOP);
-		$escape = array (YML_TOKEN_PARAM => true, YML_TOKEN_PLAIN => true, YML_TOKEN_SCOPE => true);
+		$escape = array (YML_TOKEN_PARAM => true, YML_TOKEN_PLAIN => true, YML_TOKEN_SCOPE => true, YML_TOKEN_VALUE => true);
 		$length = strlen ($token);
 		$scopes = array ();
 
@@ -647,16 +676,29 @@ class	yML
 				continue;
 
 			// Parse name
+			$name = '';
+
 			for ($j = $i; $i < $length && !isset ($escape[$token[$i]]); ++$i)
 			{
 				if ($token[$i] == YML_TOKEN_ESCAPE && $i + 1 < $length)
 					++$i;
+
+				$name .= $token[$i];
 			}
 
-			if ($i > $j)
-				$name = substr ($token, $j, $i - $j);
-			else
-				continue;
+			// Parse value
+			$value = '';
+
+			if ($i < $length && $token[$i] == YML_TOKEN_VALUE)
+			{
+				for (++$i; $i < $length && !isset ($escape[$token[$i]]); ++$i)
+				{
+					if ($token[$i] == YML_TOKEN_ESCAPE && $i + 1 < $length)
+						++$i;
+
+					$value .= $token[$i];
+				}
+			}
 
 			// Parse params
 			for ($params = array (); $i < $length && $token[$i] == YML_TOKEN_PARAM; )
@@ -674,7 +716,7 @@ class	yML
 				$params[] = substr ($token, $j, $i - $j);
 			}
 
-			$scopes[] = array ($delta, $name, $action, $params);
+			$scopes[] = array ($delta, $name, $action, $value, $params);
 		}
 
 		if ($i >= $length || $token[$i++] != YML_TOKEN_PLAIN)
