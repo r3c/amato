@@ -3,6 +3,7 @@
 define ('CHARSET',	'utf-8');
 
 include ('src/formats/html.php');
+require_once ('src/legacy/debug.php');
 include ('src/rules/demo.php');
 
 function	formatHTML ($str)
@@ -153,6 +154,8 @@ if ($mode && $text)
 	}
 /* FIXME */
 }
+
+profile (null);
 
 echo '
 	</body>

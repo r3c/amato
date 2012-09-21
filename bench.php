@@ -3,6 +3,7 @@
 define ('CHARSET',	'utf-8');
 
 require_once ('src/formats/html.php');
+require_once ('src/legacy/debug.php');
 require_once ('src/legacy/regexp.php');
 require_once ('src/rules/demo.php');
 
@@ -83,6 +84,8 @@ foreach ($test as $label => $params)
 			</div>
 		</div>';
 }
+
+profile (null);
 
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">

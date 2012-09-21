@@ -48,6 +48,14 @@ $ymlConvert = array
 class	yML
 {
 	/*
+	** Constant encoding/decoding hashes.
+	*/
+	private static	$actionsDecode = array ('/' => YML_ACTION_APPLY, '<' => YML_ACTION_START, '!' => YML_ACTION_STEP, '>' => YML_ACTION_STOP);
+	private static	$actionsEncode = array (YML_ACTION_APPLY => '/', YML_ACTION_START => '<', YML_ACTION_STEP => '!', YML_ACTION_STOP => '>');
+	private static	$escapesDecode = array (YML_TOKEN_PARAM => true, YML_TOKEN_PLAIN => true, YML_TOKEN_SCOPE => true, YML_TOKEN_VALUE => true);
+	private static	$escapesEncode = array (YML_TOKEN_ESCAPE => true, YML_TOKEN_PARAM => true, YML_TOKEN_PLAIN => true, YML_TOKEN_SCOPE => true, YML_TOKEN_VALUE => true);
+
+	/*
 	** Compile tag parsing rules.
 	** $rules:		parsing rules
 	** $classes:	character classes
@@ -84,7 +92,7 @@ class	yML
 
 			for ($j = 1; $j < $length; ++$j)
 			{
-				if ($j + 2 < $length && $expression[$j + 1] == '-')
+				if ($j + 2 < $length && $expression[$j + 1] === '-')
 				{
 					$lower = ord ($expression[$j]);
 					$upper = ord ($expression[$j + 2]);
@@ -127,7 +135,7 @@ class	yML
 					{
 						case YML_PATTERN_BEGIN:
 							// Parse class name
-							for ($j = ++$i; $i < $length && $pattern[$i] != YML_PATTERN_LOOP && $pattern[$i] != YML_PATTERN_END; )
+							for ($j = ++$i; $i < $length && $pattern[$i] !== YML_PATTERN_LOOP && $pattern[$i] !== YML_PATTERN_END; )
 								++$i;
 
 							$class = substr ($pattern, $j, $i - $j);
@@ -175,13 +183,13 @@ class	yML
 
 							$decode[] = array (YML_DECODE_PARAM, $count++);
 
-							if ($branch[1] == YML_BRANCH_UNIQUE)
+							if ($branch[1] === YML_BRANCH_UNIQUE)
 								$node =& $branch[0];
 
 							break;
 
 						default:
-							if ($pattern[$i] == YML_PATTERN_ESCAPE && $i + 1 < $length)
+							if ($pattern[$i] === YML_PATTERN_ESCAPE && $i + 1 < $length)
 								++$i;
 
 							$character = $pattern[$i];
@@ -192,7 +200,7 @@ class	yML
 
 							$branch =& $node[$character];
 
-							if ($branch[1] == YML_BRANCH_SHARED)
+							if ($branch[1] === YML_BRANCH_SHARED)
 								throw new Exception ('ambiguous character "' . $character . '" at position #' . $i . ' for pattern "' . $pattern . '" in rule "' . $name . '"');
 
 							$branch[1] = YML_BRANCH_UNIQUE;
@@ -381,7 +389,7 @@ class	yML
 							// Add current cursor to tags
 							$tags[] = array ($cursor->start, $cursor->length, $name, $action, $value, $cursor->params);
 
-							if ($action == YML_ACTION_APPLY || $action == YML_ACTION_STOP)
+							if ($action === YML_ACTION_APPLY || $action === YML_ACTION_STOP)
 							{
 								array_unshift ($links, count ($tags) - 1);
 
@@ -423,8 +431,6 @@ class	yML
 			}
 
 			// Tokenize processed tags into scopes
-			$actions = array (YML_ACTION_APPLY => '/', YML_ACTION_START => '<', YML_ACTION_STEP => '!', YML_ACTION_STOP => '>');
-			$escape = array (YML_TOKEN_ESCAPE => true, YML_TOKEN_PARAM => true, YML_TOKEN_PLAIN => true, YML_TOKEN_SCOPE => true, YML_TOKEN_VALUE => true);
 			$shift = 0;
 
 			foreach ($tags as $tag)
@@ -435,13 +441,13 @@ class	yML
 					continue;
 
 				// Write delta offset and action
-				$token .= YML_TOKEN_SCOPE . ($start - $shift) . $actions[$action];
+				$token .= YML_TOKEN_SCOPE . ($start - $shift) . self::$actionsEncode[$action];
 				$shift = $start;
 
 				// Write tag name
 				foreach (str_split ($name) as $character)
 				{
-					if (isset ($escape[$character]))
+					if (isset (self::$escapesEncode[$character]))
 						$token .= YML_TOKEN_ESCAPE;
 
 					$token .= $character;
@@ -454,7 +460,7 @@ class	yML
 
 					foreach (str_split ($value) as $character)
 					{
-						if (isset ($escape[$character]))
+						if (isset (self::$escapesEncode[$character]))
 							$token .= YML_TOKEN_ESCAPE;
 
 						$token .= $character;
@@ -468,7 +474,7 @@ class	yML
 
 					foreach (str_split ($param) as $character)
 					{
-						if (isset ($escape[$character]))
+						if (isset (self::$escapesEncode[$character]))
 							$token .= YML_TOKEN_ESCAPE;
 
 						$token .= $character;
@@ -488,12 +494,13 @@ class	yML
 	*/
 	public static function	render ($token, $modifiers)
 	{
+
 		// Parse tokenized string
 		$parsed = self::parse ($token);
 
 		if ($parsed === null)
 			return null;
-
+profile ('r');
 		list ($scopes, $clean) = $parsed;
 
 		// Apply scopes on plain text
@@ -539,7 +546,7 @@ class	yML
 					for ($touch = count ($stack); $touch > 0 && $level > $stack[$touch - 1][0]; )
 						--$touch;
 
-					$close = $action == YML_ACTION_APPLY ? $touch : $touch + 1;
+					$close = $action === YML_ACTION_APPLY ? $touch : $touch + 1;
 
 					// Call initializer and push modifier to stack
 					if (isset ($modifier['start']))
@@ -567,7 +574,7 @@ class	yML
 					if ($touch < 0)
 						continue 2;
 
-					$close = $action == YML_ACTION_STEP ? $touch + 1 : $touch;
+					$close = $action === YML_ACTION_STEP ? $touch + 1 : $touch;
 
 					// Update tag value and parameters
 					$broken =& $stack[$touch];
@@ -630,7 +637,7 @@ class	yML
 			for ($i = count ($stack) - 1; $i >= $touch; --$i)
 				$stack[$i][1] = $index;
 		}
-
+profile ('r');
 		return $clean;
 	}
 
@@ -641,8 +648,7 @@ class	yML
 	*/
 	private static function	parse ($token)
 	{
-		$actions = array ('/' => YML_ACTION_APPLY, '<' => YML_ACTION_START, '!' => YML_ACTION_STEP, '>' => YML_ACTION_STOP);
-		$escape = array (YML_TOKEN_PARAM => true, YML_TOKEN_PLAIN => true, YML_TOKEN_SCOPE => true, YML_TOKEN_VALUE => true);
+profile ('p');
 		$length = strlen ($token);
 		$scopes = array ();
 
@@ -652,11 +658,11 @@ class	yML
 
 		$version = (int)substr ($token, 0, $i);
 
-		if ($version != YML_VERSION)
+		if ($version !== YML_VERSION)
 			return null;
 
 		// Parse header
-		while ($i < $length && $token[$i] == YML_TOKEN_SCOPE)
+		while ($i < $length && $token[$i] === YML_TOKEN_SCOPE)
 		{
 			++$i;
 
@@ -670,17 +676,17 @@ class	yML
 				continue;
 
 			// Parse action
-			if ($i < $length && isset ($actions[$token[$i]]))
-				$action = $actions[$token[$i++]];
+			if ($i < $length && isset (self::$actionsDecode[$token[$i]]))
+				$action = self::$actionsDecode[$token[$i++]];
 			else
 				continue;
 
 			// Parse name
 			$name = '';
 
-			for ($j = $i; $i < $length && !isset ($escape[$token[$i]]); ++$i)
+			for ($i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
 			{
-				if ($token[$i] == YML_TOKEN_ESCAPE && $i + 1 < $length)
+				if ($token[$i] === YML_TOKEN_ESCAPE && $i + 1 < $length)
 					++$i;
 
 				$name .= $token[$i];
@@ -689,11 +695,11 @@ class	yML
 			// Parse value
 			$value = '';
 
-			if ($i < $length && $token[$i] == YML_TOKEN_VALUE)
+			if ($i < $length && $token[$i] === YML_TOKEN_VALUE)
 			{
-				for (++$i; $i < $length && !isset ($escape[$token[$i]]); ++$i)
+				for (++$i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
 				{
-					if ($token[$i] == YML_TOKEN_ESCAPE && $i + 1 < $length)
+					if ($token[$i] === YML_TOKEN_ESCAPE && $i + 1 < $length)
 						++$i;
 
 					$value .= $token[$i];
@@ -701,27 +707,27 @@ class	yML
 			}
 
 			// Parse params
-			for ($params = array (); $i < $length && $token[$i] == YML_TOKEN_PARAM; )
+			for ($params = array (); $i < $length && $token[$i] === YML_TOKEN_PARAM; )
 			{
 				$param = '';
 
-				for ($j = ++$i; $i < $length && !isset ($escape[$token[$i]]); ++$i)
+				for (++$i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
 				{
-					if ($token[$i] == YML_TOKEN_ESCAPE && $i + 1 < $length)
+					if ($token[$i] === YML_TOKEN_ESCAPE && $i + 1 < $length)
 						++$i;
 
 					$param .= $token[$i];
 				}
 
-				$params[] = substr ($token, $j, $i - $j);
+				$params[] = $param;
 			}
 
 			$scopes[] = array ($delta, $name, $action, $value, $params);
 		}
 
-		if ($i >= $length || $token[$i++] != YML_TOKEN_PLAIN)
+		if ($i >= $length || $token[$i++] !== YML_TOKEN_PLAIN)
 			return null;
-
+profile ('p');
 		return array ($scopes, substr ($token, $i));
 	}
 }
@@ -746,7 +752,7 @@ class	yMLCursor
 		{
 			if (!isset ($this->node[$character]))
 				$branch =& $this->node[''];
-			else if ($this->node[$character][1] != YML_BRANCH_INVALID)
+			else if ($this->node[$character][1] !== YML_BRANCH_INVALID)
 				$branch =& $this->node[$character];
 			else
 				return false;
