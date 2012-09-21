@@ -3,37 +3,36 @@
 /*
 ** Internal constants.
 */
-define ('YML_ACTION_APPLY',			0);
-define ('YML_ACTION_START',			1);
-define ('YML_ACTION_STEP',			2);
-define ('YML_ACTION_STOP',			3);
+define ('YML_ACTION_APPLY',		0);
+define ('YML_ACTION_START',		1);
+define ('YML_ACTION_STEP',		2);
+define ('YML_ACTION_STOP',		3);
 
-define ('YML_BRANCH_EMPTY',			0);
-define ('YML_BRANCH_LOOP',			1);
-define ('YML_BRANCH_NEXT',			2);
+define ('YML_BRANCH_EMPTY',		0);
+define ('YML_BRANCH_LOOP',		1);
+define ('YML_BRANCH_NEXT',		2);
 
-define ('YML_DECODE_CHARACTER',		0);
-define ('YML_DECODE_PARAM',			1);
+define ('YML_DECODE_CHARACTER',	0);
+define ('YML_DECODE_PARAM',		1);
 
-define ('YML_PATTERN_ESCAPE',		'\\');
-define ('YML_PATTERN_LOOP_BEGIN',	'{');
-define ('YML_PATTERN_LOOP_END',		'}');
-define ('YML_PATTERN_ONE_BEGIN',	'(');
-define ('YML_PATTERN_ONE_END',		')');
+define ('YML_PATTERN_BEGIN',	'(');
+define ('YML_PATTERN_END',		')');
+define ('YML_PATTERN_ESCAPE',	'\\');
+define ('YML_PATTERN_LOOP',		'*');
 
-define ('YML_TOKEN_ESCAPE',			'\\');
-define ('YML_TOKEN_PARAM',			',');
-define ('YML_TOKEN_PLAIN',			'|');
-define ('YML_TOKEN_SCOPE',			';');
+define ('YML_TOKEN_ESCAPE',		'\\');
+define ('YML_TOKEN_PARAM',		',');
+define ('YML_TOKEN_PLAIN',		'|');
+define ('YML_TOKEN_SCOPE',		';');
 
-define ('YML_TYPE_BEGIN',			0);
-define ('YML_TYPE_BETWEEN',			1);
-define ('YML_TYPE_END',				2);
-define ('YML_TYPE_RESUME',			3);
-define ('YML_TYPE_SINGLE',			4);
-define ('YML_TYPE_SWITCH',			5);
+define ('YML_TYPE_BEGIN',		0);
+define ('YML_TYPE_BETWEEN',		1);
+define ('YML_TYPE_END',			2);
+define ('YML_TYPE_RESUME',		3);
+define ('YML_TYPE_SINGLE',		4);
+define ('YML_TYPE_SWITCH',		5);
 
-define ('YML_VERSION',				1);
+define ('YML_VERSION',			1);
 
 $ymlConvert = array
 (
@@ -122,8 +121,9 @@ class	yML
 
 					switch ($pattern[$i])
 					{
-						case YML_PATTERN_LOOP_BEGIN:
-							for ($j = ++$i; $i < $length && $pattern[$i] != YML_PATTERN_LOOP_END; )
+						case YML_PATTERN_BEGIN:
+							// Parse class name
+							for ($j = ++$i; $i < $length && $pattern[$i] != YML_PATTERN_LOOP && $pattern[$i] != YML_PATTERN_END; )
 								++$i;
 
 							$class = substr ($pattern, $j, $i - $j);
@@ -131,8 +131,17 @@ class	yML
 							if (!isset ($specials[$class]))
 								throw new Exception ('undefined or invalid character class "' . $class . '"');
 
-							$branch = array (&$node, YML_BRANCH_LOOP, $param, null);
+							// Parse loop if specified
+							if ($pattern[$i] == YML_PATTERN_LOOP)
+							{
+								$branch = array (&$node, YML_BRANCH_LOOP, $param, null);
 
+								++$i;
+							}
+							else
+								$branch = array (null, YML_BRANCH_NEXT, $param, null);
+
+							// FIXME
 							if (!$specials[$class][0])
 							{
 								$target = array (null, YML_BRANCH_EMPTY, null, null);
@@ -154,6 +163,9 @@ class	yML
 							}
 
 							$decode[] = array (YML_DECODE_PARAM, $param++);
+
+							if ($branch[1] == YML_BRANCH_NEXT)
+								$node =& $branch[0];
 
 							break;
 
@@ -304,135 +316,93 @@ class	yML
 		$token = YML_VERSION;
 		$tree =& $codes[0];
 
+		// Parse plain string if a parsing tree is available
 		if ($tree !== null)
 		{
-			// Parse plain string
+			$closed = 0;
 			$cursors = array ();
 			$length = strlen ($plain);
-			$seal = 0;
 			$tags = array ();
 
-			for ($i = 0; $i < $length; ++$i)
+			for ($i = 0; $i <= $length; ++$i)
 			{
-				$trail = 0;
+				$character = $i < $length ? $plain[$i] : null;
 
-				array_push ($cursors, array (&$tree, array ()));
+				array_push ($cursors, new yMLCursor ($tree, $i));
 
-				foreach ($cursors as &$cursor)
+				for ($current = count ($cursors) - 1; $current >= 0; --$current)
 				{
-					if (isset ($cursor[0]))
+					$cursor =& $cursors[$current];
+
+					// Nothing to do until cursor can't be moved to next node
+					if ($cursor->move ($character, $i + 1))
+						continue;
+
+					// Process this cursor's last matched tag, if any
+					if (isset ($cursor->match))
 					{
-						$node =& $cursor[0];
+						// FIXME: remove all cursors after this one having a
+						// match that starts within current one's range
+						// e.g.: \[b]test[/b], [b] must be killed
 
-						// Find next branch depending on matching mode
-						if (isset ($node['']))
-						{
-							if (!isset ($node[$plain[$i]]))
-								$branch =& $node[''];
-							else if ($node[$plain[$i]][1] != YML_BRANCH_EMPTY)
-								$branch =& $node[$plain[$i]];
-							else
-								unset ($branch);
-						}
-						else
-						{
-							if (isset ($node[$plain[$i]]))
-								$branch =& $node[$plain[$i]];
-							else
-								unset ($branch);
-						}
-
-						// Invalidate cursor on missing branch
-						if (!isset ($branch))
-							unset ($cursor[0]);
-
-						// Follow branch to next node
-						else
-						{
-							// Capture parameter if we're parsing one
-							if ($branch[2] !== null)
-							{
-								$param = $branch[2];
-
-								if (!isset ($cursor[1][$param]))
-									$cursor[1][$param] = '';
-
-								$cursor[1][$param] .= $plain[$i];
-							}
-
-							// Move cursor to non-terminal node
-							if ($branch[3] === null)
-								$cursor[0] =& $branch[0];
-
-							// Emit action for terminal node
-							else
-							{
-								list ($name, $type/*, $value*/) = $branch[3];
-
+						list ($name, $type/*, $value*/) = $cursor->match;
 // <Crappy Code>
-								// Get compatible and unprocessed tags on stack
-								$links = array ();
+						// Browse stack for compatible unprocessed tags
+						$links = array ();
 
-								for ($link = count ($tags) - 1; $link >= $seal; --$link)
-								{
-									if ($tags[$link][1] !== null && $tags[$link][2] == $name)
-										$links[] = $link;
-								}
-
-								// Get action, invalidate cursor if none available
-								$action = $ymlConvert[$type][count ($links) > 0 ? 1 : 0];
-
-								if ($action === null)
-									unset ($cursor[0]);
-
-								// Push new tag to list for action
-								else
-								{
-									$tagLength = count ($cursors) - $trail;
-									$tagStart = $i - $tagLength + 1;
-
-									$tags[] = array ($tagStart, $tagLength, $name, $action, $cursor[1]);
-
-									if ($action == YML_ACTION_APPLY || $action == YML_ACTION_STOP)
-									{
-										array_unshift ($links, count ($tags) - 1);
-
-										// Remove tags and flag them as processed
-										foreach ($links as $link)
-										{
-											$tagLength = $tags[$link][1];
-											$tagStart = $tags[$link][0];
-
-											for ($after = count ($tags) - 1; $after > $link; --$after)
-												$tags[$after][0] -= $tagLength;
-
-											$length -= $tagLength;
-											$plain = substr_replace ($plain, '', $tagStart, $tagLength);
-											$i -= $tagLength;
-
-											$tags[$link][1] = null;
-										}
-
-										// Seal flagged tags for faster processing
-										while ($seal < count ($tags) && $tags[$seal][1] === null)
-											++$seal;
-									}
-
-									// Reset all cursors
-									$cursors = array ();
-
-									break;
-								}
-// </Crappy Code>
-							}
+						for ($link = count ($tags) - 1; $link >= $closed; --$link)
+						{
+							if ($tags[$link][1] !== null && $tags[$link][2] == $name)
+								$links[] = $link;
 						}
+
+						// Deduce action from tag type and links
+						$action = $ymlConvert[$type][count ($links) > 0 ? 1 : 0];
+
+						if ($action !== null)
+						{
+							$tags[] = array ($cursor->start, $cursor->length, $name, $action, $cursor->params);
+
+							if ($action == YML_ACTION_APPLY || $action == YML_ACTION_STOP)
+							{
+								array_unshift ($links, count ($tags) - 1);
+
+								// Remove tags and flag them as processed
+								foreach ($links as $link)
+								{
+									$tagLength = $tags[$link][1];
+									$tagStart = $tags[$link][0];
+
+									// Shift cursors after current one
+									for ($after = $current + 1; $after < count ($cursors); ++$after)
+										$cursors[$after]->start -= $tagLength;
+
+									// Shift tags after current one
+									for ($after = count ($tags) - 1; $after > $link; --$after)
+										$tags[$after][0] -= $tagLength;
+
+									// Remove tag from string
+									$length -= $tagLength;
+									$plain = substr_replace ($plain, '', $tagStart, $tagLength);
+									$i -= $tagLength;
+
+									$tags[$link][1] = null;
+								}
+
+								// Close resolved tags for faster processing
+								while ($closed < count ($tags) && $tags[$closed][1] === null)
+									++$closed;
+							}
+
+							// Remove all cursors before current one
+							array_splice ($cursors, 0, $current);
+						}
+// </Crappy Code>
 					}
 
-					++$trail;
+					// Remove cursor once used
+					array_splice ($cursors, $current, 1);
 				}
-
-				while (count ($cursors) > 0 && !isset ($cursors[0][0]))
-					array_shift ($cursors);
 			}
 
 			// Tokenize processed tags into scopes
@@ -697,6 +667,61 @@ class	yML
 			return null;
 
 		return array ($scopes, substr ($token, $i));
+	}
+}
+
+class	yMLCursor
+{
+	public function	__construct (&$tree, $start)
+	{
+		$this->length = 0;
+		$this->match = null;
+		$this->node =& $tree;
+		$this->params = array ();
+		$this->start = $start;
+	}
+
+	public function	move ($character, $index)
+	{
+		// Find and follow branch to next node
+		if (!isset ($this->node) || $character === null)
+			return false;
+		else if (isset ($this->node['']))
+		{
+			if (!isset ($this->node[$character]))
+				$branch =& $this->node[''];
+			else if ($this->node[$character][1] != YML_BRANCH_EMPTY)
+				$branch =& $this->node[$character];
+			else
+				return false;
+		}
+		else
+		{
+			if (isset ($this->node[$character]))
+				$branch =& $this->node[$character];
+			else
+				return false;
+		}
+
+		$this->node =& $branch[0];
+
+		// Append character to parameters if requested
+		if ($branch[2] !== null)
+		{
+			if (!isset ($this->params[$branch[2]]))
+				$this->params[$branch[2]] = '';
+
+			$this->params[$branch[2]] .= $character;
+		}
+
+		// Store matching information on terminal node
+		if ($branch[3] !== null)
+		{
+			$this->length = $index - $this->start;
+			$this->match =& $branch[3];
+		}
+
+		return true;
 	}
 }
 

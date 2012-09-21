@@ -120,7 +120,7 @@ if ($mode && $text)
 		echo '
 			<div class="body">
 				<b>plain:</b>
-				<div class="code" style="color: ' . ($plain == $plain2 ? 'red' : 'green') . ';">' . htmlspecialchars ($plain2, ENT_COMPAT, CHARSET) . '</div>
+				<div class="code" style="color: ' . ($plain == $plain2 ? 'green' : 'red') . ';">' . htmlspecialchars ($plain2, ENT_COMPAT, CHARSET) . '</div>
 			</div>';
 	}
 	else

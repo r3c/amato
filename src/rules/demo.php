@@ -25,14 +25,14 @@ $ymlRulesDemo = array
 	(
 		'tags'	=> array
 		(
-			'\\\\{any}'	=> YML_TYPE_SINGLE
+			'\\\\(any)'	=> YML_TYPE_SINGLE
 		)
 	),
 	'.'		=> array
 	(
 		'tags'	=> array
 		(
-			'./{int}'	=> YML_TYPE_SINGLE
+			'./(int*)'	=> YML_TYPE_SINGLE
 		)
 	),
 	'0'		=> array
@@ -168,7 +168,7 @@ $ymlRulesDemo = array
 		'tags'	=> array
 		(
 			'[url]'			=> YML_TYPE_BEGIN,
-			'[url={url}]'	=> YML_TYPE_BEGIN,
+			'[url=(url*)]'	=> YML_TYPE_BEGIN,
 			'[/url]'		=> YML_TYPE_END
 		)
 	),
@@ -184,7 +184,7 @@ $ymlRulesDemo = array
 	(
 		'tags'	=> array
 		(
-			'[box={text}]'	=> YML_TYPE_BEGIN,
+			'[box=(text*)]'	=> YML_TYPE_BEGIN,
 			'[/box]'		=> YML_TYPE_END
 		)
 	),
@@ -232,8 +232,8 @@ $ymlRulesDemo = array
 	(
 		'tags'	=> array
 		(
-			'[img={int}]{url}[/img]'	=> YML_TYPE_SINGLE,
-			'[img]{url}[/img]'			=> YML_TYPE_SINGLE
+			'[img=(int*)](url*)[/img]'	=> YML_TYPE_SINGLE,
+			'[img](url*)[/img]'			=> YML_TYPE_SINGLE
 		)
 	),
 	'list'	=> array
