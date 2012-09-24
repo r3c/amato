@@ -117,6 +117,7 @@ $ymlFormatsHTML = array
 	),
 	'hr'	=> array
 	(
+		'level'	=> 2,
 		'stop'	=> function ($name, $value, $params, $body) { return '<hr />'; },
 	),
 	'i'		=> array

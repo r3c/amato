@@ -17,6 +17,7 @@ $ymlClassesDemo = array
 /*
 ** String parsing rules for each available tag, as name => properties
 **   .decode:	optional flag to disable tag decoding
+**   .literal:	optional flag to allow only literal bodies for this tag
 **   .tags:		matching tag patterns, as pattern => behavior
 **     .0:	tag type
 **     .1:	optional custom identifier

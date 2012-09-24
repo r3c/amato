@@ -216,7 +216,7 @@ class	yML
 					if ($branch[3] !== null)
 						throw new Exception ('conflict for pattern "' . $pattern . '" in rule "' . $name . '"');
 
-					$branch[3] = array ($name, $type, $value);
+					$branch[3] = array ($name, $type, $value, isset ($rule['literal']) && $rule['literal']);
 				}
 
 				// Register decoding array
@@ -277,44 +277,43 @@ class	yML
 				}
 			}
 
-			// Use found decoder (if any) to inject tag into clean string
-			if ($decode !== null)
+			if ($decode === null)
+				continue;
+
+			// Generate decoded tag string from decoder
+			$tag = '';
+
+			foreach ($decode as $item)
 			{
-				// Generate decoded tag string from decoder
-				$tag = '';
-
-				foreach ($decode as $item)
+				switch ($item[0])
 				{
-					switch ($item[0])
-					{
-						case YML_DECODE_CHARACTER:
-							$tag .= $item[1];
-
-							break;
-
-						case YML_DECODE_PARAM:
-							$tag .= $item[1] < $count ? $params[$item[1]] : '';
-
-							break;
-					}
-				}
-
-				$clean = substr_replace ($clean, $tag, $index, 0);
-				$index += strlen ($tag);
-
-				// Update opened tags counter
-				switch ($action)
-				{
-					case YML_ACTION_START:
-						++$opens[$name];
+					case YML_DECODE_CHARACTER:
+						$tag .= $item[1];
 
 						break;
 
-					case YML_ACTION_STOP:
-						--$opens[$name];
+					case YML_DECODE_PARAM:
+						$tag .= $item[1] < $count ? $params[$item[1]] : '';
 
 						break;
 				}
+			}
+
+			$clean = substr_replace ($clean, $tag, $index, 0);
+			$index += strlen ($tag);
+
+			// Update opened tags counter
+			switch ($action)
+			{
+				case YML_ACTION_START:
+					++$opens[$name];
+
+					break;
+
+				case YML_ACTION_STOP:
+					--$opens[$name];
+
+					break;
 			}
 		}
 
@@ -350,7 +349,7 @@ class	yML
 
 				for ($current = count ($cursors) - 1; $current >= 0; --$current)
 				{
-					$cursor =& $cursors[$current];
+					$cursor = $cursors[$current];
 
 					// Nothing to do until cursor can't be moved to next node
 					if ($cursor->move ($character, $i + 1))
@@ -359,24 +358,27 @@ class	yML
 					// Process this cursor's last matched tag, if any
 					if (isset ($cursor->match))
 					{
-						list ($name, $type, $value) = $cursor->match;
-
 						// Browse stack for compatible unprocessed tags
 						$links = array ();
+						$name = $cursor->match[0];
+
+						// FIXME: unused $cursor->match[3] ($literal)
 
 						for ($link = count ($tags) - 1; $link >= $closed; --$link)
 						{
-							if ($tags[$link][1] !== null && $tags[$link][2] == $name)
+							if ($tags[$link][0] && $tags[$link][1]->match[0] === $name)
 								$links[] = $link;
 						}
 
 						// Deduce action from tag type and links
-						$action = $ymlConvert[$type][count ($links) > 0 ? 1 : 0];
+						$action = $ymlConvert[$cursor->match[1]][count ($links) > 0 ? 1 : 0];
 
 						if ($action !== null)
 						{
 							// Remove all cursors before current one
 							array_splice ($cursors, 0, $current);
+
+							$current = 0;
 
 							// Remove all cursors after this one having a match
 							// that overlaps with current one's
@@ -386,8 +388,8 @@ class	yML
 									array_splice ($cursors, $after, 1);
 							}
 
-							// Add current cursor to tags
-							$tags[] = array ($cursor->start, $cursor->length, $name, $action, $value, $cursor->params);
+							// Add current unresolved cursor and action to tags
+							$tags[] = array (true, $cursor, $action);
 
 							if ($action === YML_ACTION_APPLY || $action === YML_ACTION_STOP)
 							{
@@ -396,32 +398,33 @@ class	yML
 								// Remove tags and flag them as processed
 								foreach ($links as $link)
 								{
-									$tagLength = $tags[$link][1];
-									$tagStart = $tags[$link][0];
+									$cursor = $tags[$link][1];
 
 									// Shift cursors after current one
 									for ($after = count ($cursors) - 1; $after > 0; --$after)
-										$cursors[$after]->start -= $tagLength;
+										$cursors[$after]->start -= $cursor->length;
 
 									// Shift tags after current one
 									for ($after = count ($tags) - 1; $after > $link; --$after)
-										$tags[$after][0] -= $tagLength;
+										$tags[$after][1]->start -= $cursor->length;
 
 									// Remove tag from string
-									$length -= $tagLength;
-									$plain = substr_replace ($plain, '', $tagStart, $tagLength);
-									$i -= $tagLength;
+									$length -= $cursor->length;
+									$plain = substr_replace ($plain, '', $cursor->start, $cursor->length);
+									$i -= $cursor->length;
 
-									$tags[$link][1] = null;
+									// Flag as resolved
+									$tags[$link][0] = false;
+
+									// Stop on tag start (hack to handle [u][u]sth[/u][/u])
+									if ($tags[$link][2] == YML_ACTION_APPLY || $tags[$link][2] == YML_ACTION_START)
+										break;
 								}
 
 								// Close resolved tags for faster processing
-								while ($closed < count ($tags) && $tags[$closed][1] === null)
+								while ($closed < count ($tags) && !$tags[$closed][0])
 									++$closed;
 							}
-
-							// Current cursor is now first one
-							$current = 0;
 						}
 					}
 
@@ -435,17 +438,17 @@ class	yML
 
 			foreach ($tags as $tag)
 			{
-				list ($start, $length, $name, $action, $value, $params) = $tag;
+				list ($pending, $cursor, $action) = $tag;
 
-				if ($length !== null)
+				if ($pending)
 					continue;
 
 				// Write delta offset and action
-				$token .= YML_TOKEN_SCOPE . ($start - $shift) . self::$actionsEncode[$action];
-				$shift = $start;
+				$token .= YML_TOKEN_SCOPE . ($cursor->start - $shift) . self::$actionsEncode[$action];
+				$shift = $cursor->start;
 
 				// Write tag name
-				foreach (str_split ($name) as $character)
+				foreach (str_split ($cursor->match[0]) as $character)
 				{
 					if (isset (self::$escapesEncode[$character]))
 						$token .= YML_TOKEN_ESCAPE;
@@ -454,11 +457,11 @@ class	yML
 				}
 
 				// Write tag value
-				if ($value)
+				if ($cursor->match[2])
 				{
 					$token .= YML_TOKEN_VALUE;
 
-					foreach (str_split ($value) as $character)
+					foreach (str_split ($cursor->match[2]) as $character)
 					{
 						if (isset (self::$escapesEncode[$character]))
 							$token .= YML_TOKEN_ESCAPE;
@@ -468,7 +471,7 @@ class	yML
 				}
 
 				// Write tag parameters
-				foreach ($params as $param)
+				foreach ($cursor->params as $param)
 				{
 					$token .= YML_TOKEN_PARAM;
 
@@ -482,7 +485,7 @@ class	yML
 				}
 			}
 		}
-
+var_dump ($token);
 		return $token . YML_TOKEN_PLAIN . $plain;
 	}
 
@@ -543,16 +546,16 @@ profile ('r');
 					}
 
 					// Browse pending tags with lower precedence
-					for ($touch = count ($stack); $touch > 0 && $level > $stack[$touch - 1][0]; )
-						--$touch;
+					for ($last = count ($stack); $last > 0 && $level > $stack[$last - 1][0]; )
+						--$last;
 
-					$close = $action === YML_ACTION_APPLY ? $touch : $touch + 1;
+					$close = $action === YML_ACTION_APPLY ? $last : $last + 1;
 
 					// Call initializer and push modifier to stack
 					if (isset ($modifier['start']))
 						$modifier['start'] ($name, $value, $params);
 
-					array_splice ($stack, $touch, 0, array (array
+					array_splice ($stack, $last, 0, array (array
 					(
 						$level,
 						$index,
@@ -562,22 +565,23 @@ profile ('r');
 						isset ($modifier['step']) ? $modifier['step'] : null,
 						isset ($modifier['stop']) ? $modifier['stop'] : null
 					)));
-
+echo "apply/start $name @ $index, $level: " . locate ($clean, $index) . "<br />";
 					break;
 
 				case YML_ACTION_STEP:
 				case YML_ACTION_STOP:
+echo "step/stop $name @ $index: " . locate ($clean, $index) . "<br />";
 					// Search for matching tag in pending stack, cancel if none
-					for ($touch = count ($stack) - 1; $touch >= 0 && $stack[$touch][2] != $name; )
-						--$touch;
+					for ($last = count ($stack) - 1; $last >= 0 && $stack[$last][2] != $name; )
+						--$last;
 
-					if ($touch < 0)
+					if ($last < 0)
 						continue 2;
 
-					$close = $action === YML_ACTION_STEP ? $touch + 1 : $touch;
+					$close = $action === YML_ACTION_STEP ? $last + 1 : $last;
 
 					// Update tag value and parameters
-					$broken =& $stack[$touch];
+					$broken =& $stack[$last];
 
 					foreach ($params as $key => $value)
 						$broken[4][$key] = $value;
@@ -595,7 +599,9 @@ profile ('r');
 			{
 				$closed =& $stack[$i];
 				$length = $index - $closed[1];
-
+//if ($closed[2] == 'hr') { $closed[1] = $index; $length = 0; } // FIXME: hack
+echo "cross $closed[2] @ $closed[1], length = $length<br />";
+echo locate ($clean, $closed[1], $closed[1] + $length) . "<br />";
 				$body = substr ($clean, $closed[1], $length);
 
 				if (isset ($closed[6]))
@@ -603,6 +609,7 @@ profile ('r');
 
 				$clean = substr_replace ($clean, $body, $closed[1], $length);
 				$index = $closed[1] + strlen ($body);
+echo locate ($clean, $index) . "<br />";
 			}
 
 			// Finalize action effect
@@ -611,13 +618,13 @@ profile ('r');
 				// Remove tag from the stack
 				case YML_ACTION_APPLY:
 				case YML_ACTION_STOP:
-					array_splice ($stack, $touch, 1);
+					array_splice ($stack, $last, 1);
 
 					break;
 
 				// Call step function
 				case YML_ACTION_STEP:
-					$broken =& $stack[$touch];
+					$broken =& $stack[$last];
 					$length = $index - $broken[1];
 
 					$body = substr ($clean, $broken[1], $length);
@@ -634,7 +641,7 @@ profile ('r');
 			}
 
 			// Update modifiers indices
-			for ($i = count ($stack) - 1; $i >= $touch; --$i)
+			for ($i = count ($stack) - 1; $i >= $last; --$i)
 				$stack[$i][1] = $index;
 		}
 profile ('r');
@@ -745,7 +752,7 @@ class	yMLCursor
 
 	public function	move ($character, $index)
 	{
-		// Find and follow branch to next node
+		// Find and follow branch to next node if possible
 		if (!isset ($this->node) || $character === null)
 			return false;
 		else if (isset ($this->node['']))
