@@ -17,13 +17,14 @@ $ymlFormatsHTML = array
 	(
 		'level'	=> 0,
 //		'limit'	=> 100,
+		'apply'	=> function ($name, $value, $params) { return $params[0]; }
 //		'start'	=> 'ymlDemoAStart',
 //		'step'	=> 'ymlDemoAStep',
-		'stop'	=> function ($name, $value, $params, $body) { return $params[0]; }
+//		'stop'	=> 'ymlDemoAStop'
 	),
 	'.'		=> array
 	(
-		'stop'	=> function ($name, $value, $params, $body) { return '<a href="" onclick="getPost(event, ' . 'FIXME' . ',' . htmlspecialchars ($params[0]) . ');return false;">./' . htmlspecialchars ($params[0]) . '</a>'; }
+		'apply'	=> function ($name, $value, $params) { return '<a href="" onclick="getPost(event, ' . 'FIXME' . ',' . htmlspecialchars ($params[0]) . ');return false;">./' . htmlspecialchars ($params[0]) . '</a>'; }
 	),
 	'0'		=> array
 	(
@@ -91,6 +92,7 @@ $ymlFormatsHTML = array
 	),
 	'a'		=> array
 	(
+		'apply'	=> 'ymlDemoAnchorApply',
 		'stop'	=> 'ymlDemoAnchorStop',
 	),
 	'b'		=> array
@@ -118,7 +120,7 @@ $ymlFormatsHTML = array
 	'hr'	=> array
 	(
 		'level'	=> 2,
-		'stop'	=> function ($name, $value, $params, $body) { return '<hr />'; },
+		'apply'	=> function ($name, $value, $params) { return '<hr />'; },
 	),
 	'i'		=> array
 	(
@@ -126,7 +128,7 @@ $ymlFormatsHTML = array
 	),
 	'img'	=> array
 	(
-		'stop'	=> 'ymlDemoImageStop'
+		'apply'	=> 'ymlDemoImageApply'
 	),
 	'list'	=> array
 	(
@@ -146,7 +148,7 @@ $ymlFormatsHTML = array
 	),
 	'src'	=> array
 	(
-		'stop'	=> 'ymlDemoSourceStop',
+		'apply'	=> 'ymlDemoSourceApply',
 	),
 	'sub'	=> array
 	(
@@ -162,16 +164,19 @@ $ymlFormatsHTML = array
 	)
 );
 
+function	ymlDemoAnchorApply ($name, $value, $params)
+{
+	return ymlDemoAnchorStop ($name, $value, $params, $params[0]);
+}
+
 function	ymlDemoAnchorStop ($name, $value, $params, $body)
 {
-	$target = isset ($params[0]) ? $params[0] : $body;
-
-	if (!preg_match ('@^([0-9A-Za-z]+://)?([-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)@', $target, $matches))
+	if (!preg_match ('#^([0-9A-Za-z]+://)?(([^:@]+(:[^@]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $params[0], $matches))
 		return $body;
 
 	$href = ($matches[1] ? $matches[1] : 'http://') . $matches[2];
 
-	return '<a href="' . htmlspecialchars ($href) . '">' . ($body ? $body : htmlspecialchars ($href)) . '</a>';
+	return '<a href="' . htmlspecialchars ($href) . '">' . $body . '</a>';
 }
 
 function	ymlDemoColorStop ($name, $value, $params, $body)
@@ -179,7 +184,7 @@ function	ymlDemoColorStop ($name, $value, $params, $body)
 	return $body ? '<span class="color' . $name . '">' . $body . '</span>' : '';
 }
 
-function	ymlDemoImageStop ($name, $value, $params, $body)
+function	ymlDemoImageApply ($name, $value, $params)
 {
 	if (isset ($params[1]))
 	{
@@ -192,7 +197,7 @@ function	ymlDemoImageStop ($name, $value, $params, $body)
 		$src = $params[0];
 	}
 
-	if (!preg_match ('@^([0-9A-Za-z]+://)?([-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)@', $src, $matches))
+	if (!preg_match ('#^([0-9A-Za-z]+://)?([-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $src, $matches))
 		return $src;
 
 	$src = htmlspecialchars (($matches[1] ? $matches[1] : 'http://') . $matches[2]);
@@ -259,7 +264,7 @@ function	ymlDemoSpanStop ($name, $value, $params, $body)
 	return $body ? '<span class="' . $name . '">' . $body . '</span>' : '';
 }
 
-function	ymlDemoSourceStop ($name, $value, $params, $body)
+function	ymlDemoSourceApply ($name, $value, $params)
 {
 	global	$db;
 

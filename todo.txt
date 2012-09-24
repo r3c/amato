@@ -8,9 +8,9 @@ X Make character classes parsing greedy
 	  at the end of input stream.
 X Fix bug of sample text file
 X Differenciate # from * while decoding list tags
+X Fix bug: [b]aa[hr]bb[/b]
 - Implement missing yAronet tags (see format.yn.php)
 - Clean up code by removing magic arrays for branches, nodes, maybe tags?
 - Make first started tag match instead of first ended
 - Handle special case for <pre> tag in encoder
-- Fix bug: [b]aa[hr]bb[/b]
 - Order tags by name, remove when resolved and push to scopes array

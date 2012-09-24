@@ -485,7 +485,7 @@ class	yML
 				}
 			}
 		}
-var_dump ($token);
+
 		return $token . YML_TOKEN_PLAIN . $plain;
 	}
 
@@ -549,28 +549,32 @@ profile ('r');
 					for ($last = count ($stack); $last > 0 && $level > $stack[$last - 1][0]; )
 						--$last;
 
-					$close = $action === YML_ACTION_APPLY ? $last : $last + 1;
+					// Action "apply": close all crossed tags
+					if ($action === YML_ACTION_APPLY)
+						$close = $last;
 
-					// Call initializer and push modifier to stack
-					if (isset ($modifier['start']))
-						$modifier['start'] ($name, $value, $params);
+					// Action "start": call initializer and insert modifier
+					else
+					{
+						$close = $last + 1;
 
-					array_splice ($stack, $last, 0, array (array
-					(
-						$level,
-						$index,
-						$name,
-						$value,
-						$params,
-						isset ($modifier['step']) ? $modifier['step'] : null,
-						isset ($modifier['stop']) ? $modifier['stop'] : null
-					)));
-echo "apply/start $name @ $index, $level: " . locate ($clean, $index) . "<br />";
+						if (isset ($modifier['start']))
+							$modifier['start'] ($name, $value, $params);
+
+						array_splice ($stack, $last, 0, array (array
+						(
+							$level,
+							$index,
+							$name,
+							$value,
+							$params
+						)));
+					}
+
 					break;
 
 				case YML_ACTION_STEP:
 				case YML_ACTION_STOP:
-echo "step/stop $name @ $index: " . locate ($clean, $index) . "<br />";
 					// Search for matching tag in pending stack, cancel if none
 					for ($last = count ($stack) - 1; $last >= 0 && $stack[$last][2] != $name; )
 						--$last;
@@ -578,15 +582,21 @@ echo "step/stop $name @ $index: " . locate ($clean, $index) . "<br />";
 					if ($last < 0)
 						continue 2;
 
-					$close = $action === YML_ACTION_STEP ? $last + 1 : $last;
-
 					// Update tag value and parameters
 					$broken =& $stack[$last];
 
-					foreach ($params as $key => $value)
+					foreach ($params as $key => $value) // FIXME: hack to save params modifications
 						$broken[4][$key] = $value;
 
 					$broken[3] = $value;
+
+					// Action "step": close all tags before this one, excluded
+					if ($action === YML_ACTION_STEP)
+						$close = $last + 1;
+
+					// Action "stop": close all tags before this one, included
+					else
+						$close = $last;
 
 					break;
 
@@ -597,26 +607,35 @@ echo "step/stop $name @ $index: " . locate ($clean, $index) . "<br />";
 			// Close crossed modifiers
 			for ($i = count ($stack) - 1; $i >= $close; --$i)
 			{
-				$closed =& $stack[$i];
-				$length = $index - $closed[1];
-//if ($closed[2] == 'hr') { $closed[1] = $index; $length = 0; } // FIXME: hack
-echo "cross $closed[2] @ $closed[1], length = $length<br />";
-echo locate ($clean, $closed[1], $closed[1] + $length) . "<br />";
-				$body = substr ($clean, $closed[1], $length);
+				list ($level, $start, $name, $value, $params) = $stack[$i];
 
-				if (isset ($closed[6]))
-					$body = $closed[6] ($closed[2], $closed[3], $closed[4], $body);
+				if (isset ($modifiers[$name]['stop']))
+				{
+					$length = $index - $start;
+					$result = $modifiers[$name]['stop'] ($name, $value, $params, substr ($clean, $start, $length));
 
-				$clean = substr_replace ($clean, $body, $closed[1], $length);
-				$index = $closed[1] + strlen ($body);
-echo locate ($clean, $index) . "<br />";
+					$clean = substr_replace ($clean, $result, $start, $length);
+					$index = $start + strlen ($result);
+				}
 			}
 
-			// Finalize action effect
+			// Execute action effect
 			switch ($action)
 			{
-				// Remove tag from the stack
+				// Generate body and insert to string
 				case YML_ACTION_APPLY:
+					// Use "apply" callback to generate tag body if available
+					if (isset ($modifier['apply']))
+					{
+						$result = $modifier['apply'] ($name, $value, $params);
+
+						$clean = substr_replace ($clean, $result, $index, 0);
+						$index += strlen ($result);
+					}
+
+					break;
+
+				// Remove closed tag from the stack
 				case YML_ACTION_STOP:
 					array_splice ($stack, $last, 1);
 
@@ -624,18 +643,19 @@ echo locate ($clean, $index) . "<br />";
 
 				// Call step function
 				case YML_ACTION_STEP:
-					$broken =& $stack[$last];
-					$length = $index - $broken[1];
+					list ($level, $start, $name, $value, $params) = $stack[$last];
 
-					$body = substr ($clean, $broken[1], $length);
+					// Use "step" callback to replace tag body if available
+					if (isset ($modifiers[$name]['step']))
+					{
+						$length = $index - $start;
+						$result = $modifiers[$name]['step'] ($name, $value, $params, substr ($clean, $start, $length));
 
-					if (isset ($broken[5]))
-						$body = $broken[5] ($broken[2], $broken[3], $broken[4], $body);
+						$clean = substr_replace ($clean, $result, $start, $length);
+						$index = $start + strlen ($result);
 
-					$clean = substr_replace ($clean, $body, $broken[1], $length);
-					$index = $broken[1] + strlen ($body);
-
-					$broken[1] = $index;
+						$stack[$last][4] = $params; // FIXME: hack to save params modifications
+					}
 
 					break;
 			}

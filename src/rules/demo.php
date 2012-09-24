@@ -170,10 +170,10 @@ $ymlRulesDemo = array
 	(
 		'tags'	=> array
 		(
-//			'http://(url*)'	=> array (YML_TYPE_SINGLE),
-			'[url]'			=> array (YML_TYPE_BEGIN),
-			'[url=(url*)]'	=> array (YML_TYPE_BEGIN),
-			'[/url]'		=> array (YML_TYPE_END)
+//			'http://(url*)'		=> array (YML_TYPE_SINGLE),
+			'[url](url*)[/url]'	=> array (YML_TYPE_SINGLE),
+			'[url=(url*)]'		=> array (YML_TYPE_BEGIN),
+			'[/url]'			=> array (YML_TYPE_END)
 		)
 	),
 	'b'		=> array
