@@ -176,7 +176,7 @@ $mapaRulesDemo = array
 			'[/url]'			=> array (MAPA_TYPE_END)
 		)
 	),
-	'b'		=> array
+	'bold'	=> array
 	(
 		'tags'	=> array
 		(
@@ -250,7 +250,25 @@ $mapaRulesDemo = array
 			'[/list]'	=> array (MAPA_TYPE_END)
 		)
 	),
-	'q'		=> array
+	'lit'	=> array
+	(
+		'literal'	=> true,
+		'tags'		=> array
+		(
+			'[literal]'		=> array (MAPA_TYPE_BEGIN),
+			'[/literal]'	=> array (MAPA_TYPE_END)
+		)
+	),
+	'pre'	=> array
+	(
+		'literal'	=> true,
+		'tags'		=> array
+		(
+			'[pre]'		=> array (MAPA_TYPE_BEGIN),
+			'[/pre]'	=> array (MAPA_TYPE_END)
+		)
+	),
+	'quote'	=> array
 	(
 		'tags'	=> array
 		(

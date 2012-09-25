@@ -362,16 +362,25 @@ class	MaPa
 						$links = array ();
 						$name = $cursor->match[0];
 
-						// FIXME: unused $cursor->match[3] ($literal)
-
 						for ($link = count ($tags) - 1; $link >= $closed; --$link)
 						{
-							if ($tags[$link][0] && $tags[$link][1]->match[0] === $name)
-								$links[] = $link;
+							if ($tags[$link][0])
+							{
+								$other = $tags[$link][1];
+
+								if ($other->match[0] === $name)
+									$links[] = $link;
+								else if ($other->match[3]) // FIXME: hack for literal tags
+								{
+									$links = null;
+
+									break;
+								}
+							}
 						}
 
 						// Deduce action from tag type and links
-						$action = $mapaConvert[$cursor->match[1]][count ($links) > 0 ? 1 : 0];
+						$action = $links !== null ? $mapaConvert[$cursor->match[1]][count ($links) > 0 ? 1 : 0] : null;
 
 						if ($action !== null)
 						{
@@ -416,7 +425,7 @@ class	MaPa
 									// Flag as resolved
 									$tags[$link][0] = false;
 
-									// Stop on tag start (hack to handle [u][u]sth[/u][/u])
+									// Stop on tag start (FIXME: hack to handle [u][u]sth[/u][/u])
 									if ($tags[$link][2] == MAPA_ACTION_APPLY || $tags[$link][2] == MAPA_ACTION_START)
 										break;
 								}

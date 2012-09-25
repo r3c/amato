@@ -95,7 +95,7 @@ $mapaFormatsHTML = array
 		'apply'	=> 'mapaDemoAnchorApply',
 		'stop'	=> 'mapaDemoAnchorStop',
 	),
-	'b'		=> array
+	'bold'	=> array
 	(
 		'stop'	=> 'mapaDemoSimpleStop'
 	),
@@ -137,8 +137,18 @@ $mapaFormatsHTML = array
 		'step'	=> 'mapaDemoListStep',
 		'stop'	=> 'mapaDemoListStop'
 	),
-	'q'		=> array
+	'lit'	=> array
 	(
+		'stop'	=> function ($name, $value, $params, $body) { return $body; }
+	),
+	'pre'	=> array
+	(
+		'level'	=> 2,
+		'stop'	=> function ($name, $value, $params, $body) { return $body ? '<pre>' . str_replace (array ("\r\n", "\r", "\n"), '<br />', $body) . '</pre>' : ''; }
+	),
+	'quote'	=> array
+	(
+		'level'	=> 2,
 		'limit'	=> 8,
 		'stop'	=> function ($name, $value, $params, $body) { return $body ? '<blockquote>' . $body . '</blockquote>' : ''; }
 	),
