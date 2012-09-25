@@ -15,16 +15,16 @@ $mapaFormatsHTML = array
 (
 	'!'		=> array
 	(
-		'level'	=> 0,
-//		'limit'	=> 100,
-		'apply'	=> function ($name, $value, $params) { return $params[0]; }
-//		'start'	=> 'mapaDemoAStart',
-//		'step'	=> 'mapaDemoAStep',
-//		'stop'	=> 'mapaDemoAStop'
+		'level'		=> 0,
+//		'limit'		=> 100,
+		'single'	=> function ($name, $value, $params) { return $params[0]; }
+//		'start'		=> 'mapaDemoAStart',
+//		'step'		=> 'mapaDemoAStep',
+//		'stop'		=> 'mapaDemoAStop'
 	),
 	'.'		=> array
 	(
-		'apply'	=> function ($name, $value, $params) { return '<a href="" onclick="getPost(event, ' . 'FIXME' . ',' . htmlspecialchars ($params[0]) . ');return false;">./' . htmlspecialchars ($params[0]) . '</a>'; }
+		'single'	=> function ($name, $value, $params) { return '<a href="" onclick="getPost(event, ' . 'FIXME' . ',' . $params[0] . ');return false;">./' . $params[0] . '</a>'; }
 	),
 	'0'		=> array
 	(
@@ -92,16 +92,16 @@ $mapaFormatsHTML = array
 	),
 	'a'		=> array
 	(
-		'apply'	=> 'mapaDemoAnchorApply',
-		'stop'	=> 'mapaDemoAnchorStop',
+		'single'	=> 'mapaDemoAnchorSingle',
+		'stop'		=> 'mapaDemoAnchorStop',
 	),
 	'bold'	=> array
 	(
-		'stop'	=> 'mapaDemoSimpleStop'
+		'stop'	=> 'mapaDemoTagStop'
 	),
 	'box'	=> array
 	(
-		'stop'	=> function ($name, $value, $params, $body) { return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') >= 0 ? \'box box_0\' : \'box box_1\';">' . htmlspecialchars ($params[0]) . '</h1><div>' . $body . '</div></div>'; }
+		'stop'	=> function ($name, $value, $params, $body) { return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') >= 0 ? \'box box_0\' : \'box box_1\';">' . $params[0] . '</h1><div>' . $body . '</div></div>'; }
 	),
 	'c'		=> array
 	(
@@ -115,20 +115,20 @@ $mapaFormatsHTML = array
 	),
 	'em'	=> array
 	(
-		'stop'	=> 'mapaDemoSimpleStop'
+		'stop'	=> 'mapaDemoTagStop'
 	),
 	'hr'	=> array
 	(
-		'level'	=> 2,
-		'apply'	=> function ($name, $value, $params) { return '<hr />'; },
+		'level'		=> 2,
+		'single'	=> function ($name, $value, $params) { return '<hr />'; },
 	),
 	'i'		=> array
 	(
-		'stop'	=> 'mapaDemoSimpleStop'
+		'stop'	=> 'mapaDemoTagStop'
 	),
 	'img'	=> array
 	(
-		'apply'	=> 'mapaDemoImageApply'
+		'single'	=> 'mapaDemoImageSingle'
 	),
 	'list'	=> array
 	(
@@ -136,10 +136,6 @@ $mapaFormatsHTML = array
 		'start'	=> 'mapaDemoListStart',
 		'step'	=> 'mapaDemoListStep',
 		'stop'	=> 'mapaDemoListStop'
-	),
-	'lit'	=> array
-	(
-		'stop'	=> function ($name, $value, $params, $body) { return $body; }
 	),
 	'pre'	=> array
 	(
@@ -158,15 +154,15 @@ $mapaFormatsHTML = array
 	),
 	'src'	=> array
 	(
-		'apply'	=> 'mapaDemoSourceApply',
+		'single'	=> 'mapaDemoSourceSingle',
 	),
 	'sub'	=> array
 	(
-		'stop'	=> 'mapaDemoSimpleStop'
+		'stop'	=> 'mapaDemoTagStop'
 	),
 	'sup'	=> array
 	(
-		'stop'	=> 'mapaDemoSimpleStop'
+		'stop'	=> 'mapaDemoTagStop'
 	),
 	'u'		=> array
 	(
@@ -174,7 +170,7 @@ $mapaFormatsHTML = array
 	)
 );
 
-function	mapaDemoAnchorApply ($name, $value, $params)
+function	mapaDemoAnchorSingle ($name, $value, $params)
 {
 	return mapaDemoAnchorStop ($name, $value, $params, $params[0]);
 }
@@ -186,7 +182,7 @@ function	mapaDemoAnchorStop ($name, $value, $params, $body)
 
 	$href = ($matches[1] ? $matches[1] : 'http://') . $matches[2];
 
-	return '<a href="' . htmlspecialchars ($href) . '">' . $body . '</a>';
+	return '<a href="' . $href . '">' . $body . '</a>';
 }
 
 function	mapaDemoColorStop ($name, $value, $params, $body)
@@ -194,7 +190,7 @@ function	mapaDemoColorStop ($name, $value, $params, $body)
 	return $body ? '<span class="color' . $name . '">' . $body . '</span>' : '';
 }
 
-function	mapaDemoImageApply ($name, $value, $params)
+function	mapaDemoImageSingle ($name, $value, $params)
 {
 	if (isset ($params[1]))
 	{
@@ -210,7 +206,7 @@ function	mapaDemoImageApply ($name, $value, $params)
 	if (!preg_match ('#^([0-9A-Za-z]+://)?([-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $src, $matches))
 		return $src;
 
-	$src = htmlspecialchars (($matches[1] ? $matches[1] : 'http://') . $matches[2]);
+	$src = ($matches[1] ? $matches[1] : 'http://') . $matches[2];
 
 	if ($size !== null)
 		return '<a href="' . $src . '" target="_blank"><img alt="img" src="' . $src . '" onload="this.onload = null; this.width *= ' . $size . ';" /></a>';
@@ -264,17 +260,7 @@ function	mapaDemoListStop ($name, $value, &$params, $body)
 	return $params['out'];
 }
 
-function	mapaDemoSimpleStop ($name, $value, $params, $body)
-{
-	return $body ? '<' . $name . '>' . $body . '</' . $name . '>' : '';
-}
-
-function	mapaDemoSpanStop ($name, $value, $params, $body)
-{
-	return $body ? '<span class="' . $name . '">' . $body . '</span>' : '';
-}
-
-function	mapaDemoSourceApply ($name, $value, $params)
+function	mapaDemoSourceSingle ($name, $value, $params)
 {
 	global	$db;
 
@@ -284,6 +270,16 @@ function	mapaDemoSourceApply ($name, $value, $params)
 		return '<pre>' . stripslashes (gzuncompress ($source['code'])) . '</pre>';
 
 	return '<center><b>' . $GLOBALS['_LANG_num_src'] . $params[0] . ' N/A</b></center>';
+}
+
+function	mapaDemoSpanStop ($name, $value, $params, $body)
+{
+	return $body ? '<span class="' . $name . '">' . $body . '</span>' : '';
+}
+
+function	mapaDemoTagStop ($name, $value, $params, $body)
+{
+	return $body ? '<' . $name . '>' . $body . '</' . $name . '>' : '';
 }
 
 /*

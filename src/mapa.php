@@ -3,7 +3,7 @@
 /*
 ** Internal constants.
 */
-define ('MAPA_ACTION_APPLY',	0);
+define ('MAPA_ACTION_SINGLE',	0);
 define ('MAPA_ACTION_START',	1);
 define ('MAPA_ACTION_STEP',		2);
 define ('MAPA_ACTION_STOP',		3);
@@ -41,7 +41,7 @@ $mapaConvert = array
 	MAPA_TYPE_BETWEEN	=> array (null, MAPA_ACTION_STEP),
 	MAPA_TYPE_END		=> array (null, MAPA_ACTION_STOP),
 	MAPA_TYPE_RESUME	=> array (MAPA_ACTION_START, MAPA_ACTION_STEP),
-	MAPA_TYPE_SINGLE	=> array (MAPA_ACTION_APPLY, MAPA_ACTION_APPLY),
+	MAPA_TYPE_SINGLE	=> array (MAPA_ACTION_SINGLE, MAPA_ACTION_SINGLE),
 	MAPA_TYPE_SWITCH	=> array (MAPA_ACTION_START, MAPA_ACTION_STOP)
 );
 
@@ -50,8 +50,8 @@ class	MaPa
 	/*
 	** Constant encoding/decoding hashes.
 	*/
-	private static	$actionsDecode = array ('/' => MAPA_ACTION_APPLY, '<' => MAPA_ACTION_START, '!' => MAPA_ACTION_STEP, '>' => MAPA_ACTION_STOP);
-	private static	$actionsEncode = array (MAPA_ACTION_APPLY => '/', MAPA_ACTION_START => '<', MAPA_ACTION_STEP => '!', MAPA_ACTION_STOP => '>');
+	private static	$actionsDecode = array ('/' => MAPA_ACTION_SINGLE, '<' => MAPA_ACTION_START, '!' => MAPA_ACTION_STEP, '>' => MAPA_ACTION_STOP);
+	private static	$actionsEncode = array (MAPA_ACTION_SINGLE => '/', MAPA_ACTION_START => '<', MAPA_ACTION_STEP => '!', MAPA_ACTION_STOP => '>');
 	private static	$escapesDecode = array (MAPA_TOKEN_PARAM => true, MAPA_TOKEN_PLAIN => true, MAPA_TOKEN_SCOPE => true, MAPA_TOKEN_VALUE => true);
 	private static	$escapesEncode = array (MAPA_TOKEN_ESCAPE => true, MAPA_TOKEN_PARAM => true, MAPA_TOKEN_PLAIN => true, MAPA_TOKEN_SCOPE => true, MAPA_TOKEN_VALUE => true);
 
@@ -358,6 +358,13 @@ class	MaPa
 					// Process this cursor's last matched tag, if any
 					if (isset ($cursor->match))
 					{
+						// FIXME: don't remove tags as soon as they're resolved
+						// but wait for the entire string to be parsed. This
+						// should allow unresolved tags of a given name to be
+						// kept in their own array for faster searches. A new
+						// "level" property can also be used to prevent tags
+						// from being nested within higher-level ones.
+
 						// Browse stack for compatible unprocessed tags
 						$links = array ();
 						$name = $cursor->match[0];
@@ -400,7 +407,7 @@ class	MaPa
 							// Add current unresolved cursor and action to tags
 							$tags[] = array (true, $cursor, $action);
 
-							if ($action === MAPA_ACTION_APPLY || $action === MAPA_ACTION_STOP)
+							if ($action === MAPA_ACTION_SINGLE || $action === MAPA_ACTION_STOP)
 							{
 								array_unshift ($links, count ($tags) - 1);
 
@@ -426,7 +433,7 @@ class	MaPa
 									$tags[$link][0] = false;
 
 									// Stop on tag start (FIXME: hack to handle [u][u]sth[/u][/u])
-									if ($tags[$link][2] == MAPA_ACTION_APPLY || $tags[$link][2] == MAPA_ACTION_START)
+									if ($tags[$link][2] == MAPA_ACTION_SINGLE || $tags[$link][2] == MAPA_ACTION_START)
 										break;
 								}
 
@@ -534,7 +541,7 @@ profile ('r');
 			// Initialize action effect
 			switch ($action)
 			{
-				case MAPA_ACTION_APPLY:
+				case MAPA_ACTION_SINGLE:
 				case MAPA_ACTION_START:
 					// Get precedence level for this modifier
 					if (isset ($modifier['level']))
@@ -558,8 +565,8 @@ profile ('r');
 					for ($last = count ($stack); $last > 0 && $level > $stack[$last - 1][0]; )
 						--$last;
 
-					// Action "apply": close all crossed tags
-					if ($action === MAPA_ACTION_APPLY)
+					// Action "single": close all crossed tags
+					if ($action === MAPA_ACTION_SINGLE)
 						$close = $last;
 
 					// Action "start": call initializer and insert modifier
@@ -632,11 +639,11 @@ profile ('r');
 			switch ($action)
 			{
 				// Generate body and insert to string
-				case MAPA_ACTION_APPLY:
-					// Use "apply" callback to generate tag body if available
-					if (isset ($modifier['apply']))
+				case MAPA_ACTION_SINGLE:
+					// Use "single" callback to generate tag body if available
+					if (isset ($modifier['single']))
 					{
-						$result = $modifier['apply'] ($name, $value, $params);
+						$result = $modifier['single'] ($name, $value, $params);
 
 						$clean = substr_replace ($clean, $result, $index, 0);
 						$index += strlen ($result);
