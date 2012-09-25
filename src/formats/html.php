@@ -1,6 +1,6 @@
 <?php
 
-require_once ('src/yml.php');
+require_once ('src/mapa.php');
 
 /*
 ** String format modifiers for each available tag, as name => properties
@@ -11,16 +11,16 @@ require_once ('src/yml.php');
 **   .step:		optional tag break callback, undefined if none
 **   .stop:		tag end callback
 */
-$ymlFormatsHTML = array
+$mapaFormatsHTML = array
 (
 	'!'		=> array
 	(
 		'level'	=> 0,
 //		'limit'	=> 100,
 		'apply'	=> function ($name, $value, $params) { return $params[0]; }
-//		'start'	=> 'ymlDemoAStart',
-//		'step'	=> 'ymlDemoAStep',
-//		'stop'	=> 'ymlDemoAStop'
+//		'start'	=> 'mapaDemoAStart',
+//		'step'	=> 'mapaDemoAStep',
+//		'stop'	=> 'mapaDemoAStop'
 	),
 	'.'		=> array
 	(
@@ -28,76 +28,76 @@ $ymlFormatsHTML = array
 	),
 	'0'		=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'1'		=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'2'		=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'3'		=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'4'		=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'5'		=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'6'		=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'7'		=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'8'		=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'9'		=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'10'	=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'11'	=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'12'	=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'13'	=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'14'	=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'15'	=> array
 	(
-		'stop'	=> 'ymlDemoColorStop'
+		'stop'	=> 'mapaDemoColorStop'
 	),
 	'a'		=> array
 	(
-		'apply'	=> 'ymlDemoAnchorApply',
-		'stop'	=> 'ymlDemoAnchorStop',
+		'apply'	=> 'mapaDemoAnchorApply',
+		'stop'	=> 'mapaDemoAnchorStop',
 	),
 	'b'		=> array
 	(
-		'stop'	=> 'ymlDemoSimpleStop'
+		'stop'	=> 'mapaDemoSimpleStop'
 	),
 	'box'	=> array
 	(
@@ -115,7 +115,7 @@ $ymlFormatsHTML = array
 	),
 	'em'	=> array
 	(
-		'stop'	=> 'ymlDemoSimpleStop'
+		'stop'	=> 'mapaDemoSimpleStop'
 	),
 	'hr'	=> array
 	(
@@ -124,18 +124,18 @@ $ymlFormatsHTML = array
 	),
 	'i'		=> array
 	(
-		'stop'	=> 'ymlDemoSimpleStop'
+		'stop'	=> 'mapaDemoSimpleStop'
 	),
 	'img'	=> array
 	(
-		'apply'	=> 'ymlDemoImageApply'
+		'apply'	=> 'mapaDemoImageApply'
 	),
 	'list'	=> array
 	(
 		'level'	=> 2,
-		'start'	=> 'ymlDemoListStart',
-		'step'	=> 'ymlDemoListStep',
-		'stop'	=> 'ymlDemoListStop'
+		'start'	=> 'mapaDemoListStart',
+		'step'	=> 'mapaDemoListStep',
+		'stop'	=> 'mapaDemoListStop'
 	),
 	'q'		=> array
 	(
@@ -144,32 +144,32 @@ $ymlFormatsHTML = array
 	),
 	's'		=> array
 	(
-		'stop'	=> 'ymlDemoSpanStop'
+		'stop'	=> 'mapaDemoSpanStop'
 	),
 	'src'	=> array
 	(
-		'apply'	=> 'ymlDemoSourceApply',
+		'apply'	=> 'mapaDemoSourceApply',
 	),
 	'sub'	=> array
 	(
-		'stop'	=> 'ymlDemoSimpleStop'
+		'stop'	=> 'mapaDemoSimpleStop'
 	),
 	'sup'	=> array
 	(
-		'stop'	=> 'ymlDemoSimpleStop'
+		'stop'	=> 'mapaDemoSimpleStop'
 	),
 	'u'		=> array
 	(
-		'stop'	=> 'ymlDemoSpanStop',
+		'stop'	=> 'mapaDemoSpanStop',
 	)
 );
 
-function	ymlDemoAnchorApply ($name, $value, $params)
+function	mapaDemoAnchorApply ($name, $value, $params)
 {
-	return ymlDemoAnchorStop ($name, $value, $params, $params[0]);
+	return mapaDemoAnchorStop ($name, $value, $params, $params[0]);
 }
 
-function	ymlDemoAnchorStop ($name, $value, $params, $body)
+function	mapaDemoAnchorStop ($name, $value, $params, $body)
 {
 	if (!preg_match ('#^([0-9A-Za-z]+://)?(([^:@]+(:[^@]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $params[0], $matches))
 		return $body;
@@ -179,12 +179,12 @@ function	ymlDemoAnchorStop ($name, $value, $params, $body)
 	return '<a href="' . htmlspecialchars ($href) . '">' . $body . '</a>';
 }
 
-function	ymlDemoColorStop ($name, $value, $params, $body)
+function	mapaDemoColorStop ($name, $value, $params, $body)
 {
 	return $body ? '<span class="color' . $name . '">' . $body . '</span>' : '';
 }
 
-function	ymlDemoImageApply ($name, $value, $params)
+function	mapaDemoImageApply ($name, $value, $params)
 {
 	if (isset ($params[1]))
 	{
@@ -208,7 +208,7 @@ function	ymlDemoImageApply ($name, $value, $params)
 		return '<img alt="img" src="' . $src . '" />';
 }
 
-function	ymlDemoListStart ($name, $value, &$params)
+function	mapaDemoListStart ($name, $value, &$params)
 {
 	$params = $params + array
 	(
@@ -220,7 +220,7 @@ function	ymlDemoListStart ($name, $value, &$params)
 	);
 }
 
-function	ymlDemoListStep ($name, $value, &$params, $body)
+function	mapaDemoListStep ($name, $value, &$params, $body)
 {
 	$body = trim ($body);
 
@@ -244,9 +244,9 @@ function	ymlDemoListStep ($name, $value, &$params, $body)
 	$params['tag'] = $value . 'l';
 }
 
-function	ymlDemoListStop ($name, $value, &$params, $body)
+function	mapaDemoListStop ($name, $value, &$params, $body)
 {
-	ymlDemoListStep ($name, $value, $params, $body);
+	mapaDemoListStep ($name, $value, $params, $body);
 
 	while ($params['level']--)
 		$params['out'] .= '</li></' . array_pop ($params['stack']) . '>';
@@ -254,17 +254,17 @@ function	ymlDemoListStop ($name, $value, &$params, $body)
 	return $params['out'];
 }
 
-function	ymlDemoSimpleStop ($name, $value, $params, $body)
+function	mapaDemoSimpleStop ($name, $value, $params, $body)
 {
 	return $body ? '<' . $name . '>' . $body . '</' . $name . '>' : '';
 }
 
-function	ymlDemoSpanStop ($name, $value, $params, $body)
+function	mapaDemoSpanStop ($name, $value, $params, $body)
 {
 	return $body ? '<span class="' . $name . '">' . $body . '</span>' : '';
 }
 
-function	ymlDemoSourceApply ($name, $value, $params)
+function	mapaDemoSourceApply ($name, $value, $params)
 {
 	global	$db;
 

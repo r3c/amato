@@ -1,4 +1,4 @@
-div.yml blockquote
+div.mapa blockquote
 {
 	padding:		3px 3px 3px 10px;
 	margin:			0px 30px 0px 50px;
@@ -8,42 +8,42 @@ div.yml blockquote
 	border-left:	5px solid #369;
 }
 
-div.yml blockquote blockquote
+div.mapa blockquote blockquote
 {
 	border-left-color:	#3B77B1;
 }
 
-div.yml blockquote blockquote blockquote
+div.mapa blockquote blockquote blockquote
 {
 	border-left-color:	#4987C3;
 }
 
-div.yml blockquote blockquote blockquote blockquote
+div.mapa blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#6197CB;
 }
 
-div.yml blockquote blockquote blockquote blockquote blockquote
+div.mapa blockquote blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#79A7D2;
 }
 
-div.yml blockquote blockquote blockquote blockquote blockquote blockquote
+div.mapa blockquote blockquote blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#91B6DA;
 }
 
-div.yml blockquote blockquote blockquote blockquote blockquote blockquote blockquote
+div.mapa blockquote blockquote blockquote blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#A9C6E3;
 }
 
-div.yml blockquote blockquote blockquote blockquote blockquote blockquote blockquote blockquote
+div.mapa blockquote blockquote blockquote blockquote blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#C1D6EA;
 }
 
-div.yml div.box
+div.mapa div.box
 {
 	padding:	3px;
 	margin:		5px;
@@ -51,22 +51,22 @@ div.yml div.box
 	border:		1px solid #DDDDDD;
 }
 
-div.yml div.box div
+div.mapa div.box div
 {
 	padding:	4px 4px 0px 4px;
 }
 
-div.yml div.box_0 div
+div.mapa div.box_0 div
 {
 	display:	none;
 }
 
-div.yml div.box_1 div
+div.mapa div.box_1 div
 {
 	display:	block;
 }
 
-div.yml div.box h1
+div.mapa div.box h1
 {
 	padding:		3px 3px 3px 20px;
 	margin:			0px;
@@ -75,23 +75,23 @@ div.yml div.box h1
 	cursor:			pointer;
 }
 
-div.yml div.box_0 h1
+div.mapa div.box_0 h1
 {
 	background:		#EEEEEE url('box_0.png') no-repeat 2px 1px;
 }
 
-div.yml div.box_1 h1
+div.mapa div.box_1 h1
 {
 	background:		#EEEEEE url('box_1.png') no-repeat 2px 1px;
 }
 
-div.yml div.center
+div.mapa div.center
 {
 	margin:		auto;
 	text-align:	center;
 }
 
-div.yml div.cmd
+div.mapa div.cmd
 {
 	border:			1px solid #003366;
 	border-right:	0;
@@ -101,92 +101,92 @@ div.yml div.cmd
 	padding-left:	5px;
 }
 
-div.yml span.color0
+div.mapa span.color0
 {
 	color:	#ffffff;
 }
 
-div.yml span.color1
+div.mapa span.color1
 {
 	color:	#000000;
 }
 
-div.yml span.color2
+div.mapa span.color2
 {
 	color:	#000066;
 }
 
-div.yml span.color3
+div.mapa span.color3
 {
 	color:	#009900;
 }
 
-div.yml span.color4
+div.mapa span.color4
 {
 	color:	#CC3300;
 }
 
-div.yml span.color5
+div.mapa span.color5
 {
 	color:	#660000;
 }
 
-div.yml span.color6
+div.mapa span.color6
 {
 	color:	#990099;
 }
 
-div.yml span.color7
+div.mapa span.color7
 {
 	color:	#FF6600;
 }
 
-div.yml span.color8
+div.mapa span.color8
 {
 	color:	#FFFF00;
 }
 
-div.yml span.color9
+div.mapa span.color9
 {
 	color:	#00FF00;
 }
 
-div.yml span.color10
+div.mapa span.color10
 {
 	color:	#009999;
 }
 
-div.yml span.color11
+div.mapa span.color11
 {
 	color:	#00FFFF;
 }
 
-div.yml span.color12
+div.mapa span.color12
 {
 	color:	#0000FF;
 }
 
-div.yml span.color13
+div.mapa span.color13
 {
 	color:	#FF00FF;
 }
 
-div.yml span.color14
+div.mapa span.color14
 {
 	color:	#666666;
 }
 
-div.yml span.color15
+div.mapa span.color15
 {
 	color:	#CCCCCC;
 }
 
-div.yml span.s
+div.mapa span.s
 {
 	text-decoration:	line-through;
 }
 
-div.yml span.u
+div.mapa span.u
 {
 	text-decoration:	underline;
 }

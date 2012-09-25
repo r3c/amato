@@ -3,57 +3,57 @@
 /*
 ** Internal constants.
 */
-define ('YML_ACTION_APPLY',		0);
-define ('YML_ACTION_START',		1);
-define ('YML_ACTION_STEP',		2);
-define ('YML_ACTION_STOP',		3);
+define ('MAPA_ACTION_APPLY',	0);
+define ('MAPA_ACTION_START',	1);
+define ('MAPA_ACTION_STEP',		2);
+define ('MAPA_ACTION_STOP',		3);
 
-define ('YML_BRANCH_INVALID',	0);
-define ('YML_BRANCH_SHARED',	1);
-define ('YML_BRANCH_UNIQUE',	2);
+define ('MAPA_BRANCH_INVALID',	0);
+define ('MAPA_BRANCH_SHARED',	1);
+define ('MAPA_BRANCH_UNIQUE',	2);
 
-define ('YML_DECODE_CHARACTER',	0);
-define ('YML_DECODE_PARAM',		1);
+define ('MAPA_DECODE_PARAM',	0);
+define ('MAPA_DECODE_PLAIN',	1);
 
-define ('YML_PATTERN_BEGIN',	'(');
-define ('YML_PATTERN_END',		')');
-define ('YML_PATTERN_ESCAPE',	'\\');
-define ('YML_PATTERN_LOOP',		'*');
+define ('MAPA_PATTERN_BEGIN',	'(');
+define ('MAPA_PATTERN_END',		')');
+define ('MAPA_PATTERN_ESCAPE',	'\\');
+define ('MAPA_PATTERN_LOOP',	'*');
 
-define ('YML_TOKEN_ESCAPE',		'\\');
-define ('YML_TOKEN_PARAM',		',');
-define ('YML_TOKEN_PLAIN',		'|');
-define ('YML_TOKEN_SCOPE',		';');
-define ('YML_TOKEN_VALUE',		'=');
+define ('MAPA_TOKEN_ESCAPE',	'\\');
+define ('MAPA_TOKEN_PARAM',		',');
+define ('MAPA_TOKEN_PLAIN',		'|');
+define ('MAPA_TOKEN_SCOPE',		';');
+define ('MAPA_TOKEN_VALUE',		'=');
 
-define ('YML_TYPE_BEGIN',		0);
-define ('YML_TYPE_BETWEEN',		1);
-define ('YML_TYPE_END',			2);
-define ('YML_TYPE_RESUME',		3);
-define ('YML_TYPE_SINGLE',		4);
-define ('YML_TYPE_SWITCH',		5);
+define ('MAPA_TYPE_BEGIN',		0);
+define ('MAPA_TYPE_BETWEEN',	1);
+define ('MAPA_TYPE_END',		2);
+define ('MAPA_TYPE_RESUME',		3);
+define ('MAPA_TYPE_SINGLE',		4);
+define ('MAPA_TYPE_SWITCH',		5);
 
-define ('YML_VERSION',			1);
+define ('MAPA_VERSION',			1);
 
-$ymlConvert = array
+$mapaConvert = array
 (
-	YML_TYPE_BEGIN		=> array (YML_ACTION_START, YML_ACTION_START),
-	YML_TYPE_BETWEEN	=> array (null, YML_ACTION_STEP),
-	YML_TYPE_END		=> array (null, YML_ACTION_STOP),
-	YML_TYPE_RESUME		=> array (YML_ACTION_START, YML_ACTION_STEP),
-	YML_TYPE_SINGLE		=> array (YML_ACTION_APPLY, YML_ACTION_APPLY),
-	YML_TYPE_SWITCH		=> array (YML_ACTION_START, YML_ACTION_STOP)
+	MAPA_TYPE_BEGIN		=> array (MAPA_ACTION_START, MAPA_ACTION_START),
+	MAPA_TYPE_BETWEEN	=> array (null, MAPA_ACTION_STEP),
+	MAPA_TYPE_END		=> array (null, MAPA_ACTION_STOP),
+	MAPA_TYPE_RESUME	=> array (MAPA_ACTION_START, MAPA_ACTION_STEP),
+	MAPA_TYPE_SINGLE	=> array (MAPA_ACTION_APPLY, MAPA_ACTION_APPLY),
+	MAPA_TYPE_SWITCH	=> array (MAPA_ACTION_START, MAPA_ACTION_STOP)
 );
 
-class	yML
+class	MaPa
 {
 	/*
 	** Constant encoding/decoding hashes.
 	*/
-	private static	$actionsDecode = array ('/' => YML_ACTION_APPLY, '<' => YML_ACTION_START, '!' => YML_ACTION_STEP, '>' => YML_ACTION_STOP);
-	private static	$actionsEncode = array (YML_ACTION_APPLY => '/', YML_ACTION_START => '<', YML_ACTION_STEP => '!', YML_ACTION_STOP => '>');
-	private static	$escapesDecode = array (YML_TOKEN_PARAM => true, YML_TOKEN_PLAIN => true, YML_TOKEN_SCOPE => true, YML_TOKEN_VALUE => true);
-	private static	$escapesEncode = array (YML_TOKEN_ESCAPE => true, YML_TOKEN_PARAM => true, YML_TOKEN_PLAIN => true, YML_TOKEN_SCOPE => true, YML_TOKEN_VALUE => true);
+	private static	$actionsDecode = array ('/' => MAPA_ACTION_APPLY, '<' => MAPA_ACTION_START, '!' => MAPA_ACTION_STEP, '>' => MAPA_ACTION_STOP);
+	private static	$actionsEncode = array (MAPA_ACTION_APPLY => '/', MAPA_ACTION_START => '<', MAPA_ACTION_STEP => '!', MAPA_ACTION_STOP => '>');
+	private static	$escapesDecode = array (MAPA_TOKEN_PARAM => true, MAPA_TOKEN_PLAIN => true, MAPA_TOKEN_SCOPE => true, MAPA_TOKEN_VALUE => true);
+	private static	$escapesEncode = array (MAPA_TOKEN_ESCAPE => true, MAPA_TOKEN_PARAM => true, MAPA_TOKEN_PLAIN => true, MAPA_TOKEN_SCOPE => true, MAPA_TOKEN_VALUE => true);
 
 	/*
 	** Compile tag parsing rules.
@@ -133,9 +133,9 @@ class	yML
 
 					switch ($pattern[$i])
 					{
-						case YML_PATTERN_BEGIN:
+						case MAPA_PATTERN_BEGIN:
 							// Parse class name
-							for ($j = ++$i; $i < $length && $pattern[$i] !== YML_PATTERN_LOOP && $pattern[$i] !== YML_PATTERN_END; )
+							for ($j = ++$i; $i < $length && $pattern[$i] !== MAPA_PATTERN_LOOP && $pattern[$i] !== MAPA_PATTERN_END; )
 								++$i;
 
 							$class = substr ($pattern, $j, $i - $j);
@@ -146,15 +146,15 @@ class	yML
 							// Parse loop if specified
 							switch ($pattern[$i])
 							{
-								case YML_PATTERN_LOOP:
-									$branch = array (&$node, YML_BRANCH_SHARED, $count, null);
+								case MAPA_PATTERN_LOOP:
+									$branch = array (&$node, MAPA_BRANCH_SHARED, $count, null);
 
 									++$i;
 
 									break;
 
 								default:
-									$branch = array (null, YML_BRANCH_SHARED, $count, null);
+									$branch = array (null, MAPA_BRANCH_SHARED, $count, null);
 
 									break;
 							}
@@ -162,7 +162,7 @@ class	yML
 							// Define target branch depending on special mode
 							if (!$specials[$class][0])
 							{
-								$target = array (null, YML_BRANCH_INVALID, null, null);
+								$target = array (null, MAPA_BRANCH_INVALID, null, null);
 
 								if (isset ($node['']))
 									throw new Exception ('ambiguous default transition of class "' . $class . '" for pattern "' . $pattern . '" in rule "' . $name . '"');
@@ -181,29 +181,29 @@ class	yML
 								$node[$character] =& $target;
 							}
 
-							$decode[] = array (YML_DECODE_PARAM, $count++);
+							$decode[] = array (MAPA_DECODE_PARAM, $count++);
 
-							if ($branch[1] === YML_BRANCH_UNIQUE)
+							if ($branch[1] === MAPA_BRANCH_UNIQUE)
 								$node =& $branch[0];
 
 							break;
 
 						default:
-							if ($pattern[$i] === YML_PATTERN_ESCAPE && $i + 1 < $length)
+							if ($pattern[$i] === MAPA_PATTERN_ESCAPE && $i + 1 < $length)
 								++$i;
 
 							$character = $pattern[$i];
-							$decode[] = array (YML_DECODE_CHARACTER, $character);
+							$decode[] = array (MAPA_DECODE_PLAIN, $character);
 
 							if (!isset ($node[$character]))
-								$node[$character] = array (null, YML_BRANCH_UNIQUE, null, null);
+								$node[$character] = array (null, MAPA_BRANCH_UNIQUE, null, null);
 
 							$branch =& $node[$character];
 
-							if ($branch[1] === YML_BRANCH_SHARED)
+							if ($branch[1] === MAPA_BRANCH_SHARED)
 								throw new Exception ('ambiguous character "' . $character . '" at position #' . $i . ' for pattern "' . $pattern . '" in rule "' . $name . '"');
 
-							$branch[1] = YML_BRANCH_UNIQUE;
+							$branch[1] = MAPA_BRANCH_UNIQUE;
 							$node =& $branch[0];
 
 							break;
@@ -236,7 +236,7 @@ class	yML
 	*/
 	public static function	decode ($token, $codes)
 	{
-		global	$ymlConvert;
+		global	$mapaConvert;
 
 		$parsed = self::parse ($token);
 
@@ -262,7 +262,7 @@ class	yML
 			$decode = null;
 			$open = count ($opens[$name]) > 0 ? 1 : 0;
 
-			foreach ($ymlConvert as $type => $actions)
+			foreach ($mapaConvert as $type => $actions)
 			{
 				if ($actions[$open] === $action)
 				{
@@ -287,13 +287,13 @@ class	yML
 			{
 				switch ($item[0])
 				{
-					case YML_DECODE_CHARACTER:
-						$tag .= $item[1];
+					case MAPA_DECODE_PARAM:
+						$tag .= $item[1] < $count ? $params[$item[1]] : '';
 
 						break;
 
-					case YML_DECODE_PARAM:
-						$tag .= $item[1] < $count ? $params[$item[1]] : '';
+					case MAPA_DECODE_PLAIN:
+						$tag .= $item[1];
 
 						break;
 				}
@@ -305,12 +305,12 @@ class	yML
 			// Update opened tags counter
 			switch ($action)
 			{
-				case YML_ACTION_START:
+				case MAPA_ACTION_START:
 					++$opens[$name];
 
 					break;
 
-				case YML_ACTION_STOP:
+				case MAPA_ACTION_STOP:
 					--$opens[$name];
 
 					break;
@@ -328,9 +328,9 @@ class	yML
 	*/
 	public static function	encode ($plain, $codes)
 	{
-		global	$ymlConvert; // FIXME
+		global	$mapaConvert; // FIXME
 
-		$token = YML_VERSION;
+		$token = MAPA_VERSION;
 		$tree =& $codes[0];
 
 		// Parse plain string if a parsing tree is available
@@ -345,7 +345,7 @@ class	yML
 			{
 				$character = $i < $length ? $plain[$i] : null;
 
-				array_push ($cursors, new yMLCursor ($tree, $i));
+				array_push ($cursors, new MaPaCursor ($tree, $i));
 
 				for ($current = count ($cursors) - 1; $current >= 0; --$current)
 				{
@@ -371,7 +371,7 @@ class	yML
 						}
 
 						// Deduce action from tag type and links
-						$action = $ymlConvert[$cursor->match[1]][count ($links) > 0 ? 1 : 0];
+						$action = $mapaConvert[$cursor->match[1]][count ($links) > 0 ? 1 : 0];
 
 						if ($action !== null)
 						{
@@ -391,7 +391,7 @@ class	yML
 							// Add current unresolved cursor and action to tags
 							$tags[] = array (true, $cursor, $action);
 
-							if ($action === YML_ACTION_APPLY || $action === YML_ACTION_STOP)
+							if ($action === MAPA_ACTION_APPLY || $action === MAPA_ACTION_STOP)
 							{
 								array_unshift ($links, count ($tags) - 1);
 
@@ -417,7 +417,7 @@ class	yML
 									$tags[$link][0] = false;
 
 									// Stop on tag start (hack to handle [u][u]sth[/u][/u])
-									if ($tags[$link][2] == YML_ACTION_APPLY || $tags[$link][2] == YML_ACTION_START)
+									if ($tags[$link][2] == MAPA_ACTION_APPLY || $tags[$link][2] == MAPA_ACTION_START)
 										break;
 								}
 
@@ -444,14 +444,14 @@ class	yML
 					continue;
 
 				// Write delta offset and action
-				$token .= YML_TOKEN_SCOPE . ($cursor->start - $shift) . self::$actionsEncode[$action];
+				$token .= MAPA_TOKEN_SCOPE . ($cursor->start - $shift) . self::$actionsEncode[$action];
 				$shift = $cursor->start;
 
 				// Write tag name
 				foreach (str_split ($cursor->match[0]) as $character)
 				{
 					if (isset (self::$escapesEncode[$character]))
-						$token .= YML_TOKEN_ESCAPE;
+						$token .= MAPA_TOKEN_ESCAPE;
 
 					$token .= $character;
 				}
@@ -459,12 +459,12 @@ class	yML
 				// Write tag value
 				if ($cursor->match[2])
 				{
-					$token .= YML_TOKEN_VALUE;
+					$token .= MAPA_TOKEN_VALUE;
 
 					foreach (str_split ($cursor->match[2]) as $character)
 					{
 						if (isset (self::$escapesEncode[$character]))
-							$token .= YML_TOKEN_ESCAPE;
+							$token .= MAPA_TOKEN_ESCAPE;
 
 						$token .= $character;
 					}
@@ -473,12 +473,12 @@ class	yML
 				// Write tag parameters
 				foreach ($cursor->params as $param)
 				{
-					$token .= YML_TOKEN_PARAM;
+					$token .= MAPA_TOKEN_PARAM;
 
 					foreach (str_split ($param) as $character)
 					{
 						if (isset (self::$escapesEncode[$character]))
-							$token .= YML_TOKEN_ESCAPE;
+							$token .= MAPA_TOKEN_ESCAPE;
 
 						$token .= $character;
 					}
@@ -486,7 +486,7 @@ class	yML
 			}
 		}
 
-		return $token . YML_TOKEN_PLAIN . $plain;
+		return $token . MAPA_TOKEN_PLAIN . $plain;
 	}
 
 	/*
@@ -525,8 +525,8 @@ profile ('r');
 			// Initialize action effect
 			switch ($action)
 			{
-				case YML_ACTION_APPLY:
-				case YML_ACTION_START:
+				case MAPA_ACTION_APPLY:
+				case MAPA_ACTION_START:
 					// Get precedence level for this modifier
 					if (isset ($modifier['level']))
 						$level = $modifier['level'];
@@ -550,7 +550,7 @@ profile ('r');
 						--$last;
 
 					// Action "apply": close all crossed tags
-					if ($action === YML_ACTION_APPLY)
+					if ($action === MAPA_ACTION_APPLY)
 						$close = $last;
 
 					// Action "start": call initializer and insert modifier
@@ -573,8 +573,8 @@ profile ('r');
 
 					break;
 
-				case YML_ACTION_STEP:
-				case YML_ACTION_STOP:
+				case MAPA_ACTION_STEP:
+				case MAPA_ACTION_STOP:
 					// Search for matching tag in pending stack, cancel if none
 					for ($last = count ($stack) - 1; $last >= 0 && $stack[$last][2] != $name; )
 						--$last;
@@ -591,7 +591,7 @@ profile ('r');
 					$broken[3] = $value;
 
 					// Action "step": close all tags before this one, excluded
-					if ($action === YML_ACTION_STEP)
+					if ($action === MAPA_ACTION_STEP)
 						$close = $last + 1;
 
 					// Action "stop": close all tags before this one, included
@@ -623,7 +623,7 @@ profile ('r');
 			switch ($action)
 			{
 				// Generate body and insert to string
-				case YML_ACTION_APPLY:
+				case MAPA_ACTION_APPLY:
 					// Use "apply" callback to generate tag body if available
 					if (isset ($modifier['apply']))
 					{
@@ -636,13 +636,13 @@ profile ('r');
 					break;
 
 				// Remove closed tag from the stack
-				case YML_ACTION_STOP:
+				case MAPA_ACTION_STOP:
 					array_splice ($stack, $last, 1);
 
 					break;
 
 				// Call step function
-				case YML_ACTION_STEP:
+				case MAPA_ACTION_STEP:
 					list ($level, $start, $name, $value, $params) = $stack[$last];
 
 					// Use "step" callback to replace tag body if available
@@ -685,11 +685,11 @@ profile ('p');
 
 		$version = (int)substr ($token, 0, $i);
 
-		if ($version !== YML_VERSION)
+		if ($version !== MAPA_VERSION)
 			return null;
 
 		// Parse header
-		while ($i < $length && $token[$i] === YML_TOKEN_SCOPE)
+		while ($i < $length && $token[$i] === MAPA_TOKEN_SCOPE)
 		{
 			++$i;
 
@@ -713,7 +713,7 @@ profile ('p');
 
 			for ($i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
 			{
-				if ($token[$i] === YML_TOKEN_ESCAPE && $i + 1 < $length)
+				if ($token[$i] === MAPA_TOKEN_ESCAPE && $i + 1 < $length)
 					++$i;
 
 				$name .= $token[$i];
@@ -722,11 +722,11 @@ profile ('p');
 			// Parse value
 			$value = '';
 
-			if ($i < $length && $token[$i] === YML_TOKEN_VALUE)
+			if ($i < $length && $token[$i] === MAPA_TOKEN_VALUE)
 			{
 				for (++$i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
 				{
-					if ($token[$i] === YML_TOKEN_ESCAPE && $i + 1 < $length)
+					if ($token[$i] === MAPA_TOKEN_ESCAPE && $i + 1 < $length)
 						++$i;
 
 					$value .= $token[$i];
@@ -734,13 +734,13 @@ profile ('p');
 			}
 
 			// Parse params
-			for ($params = array (); $i < $length && $token[$i] === YML_TOKEN_PARAM; )
+			for ($params = array (); $i < $length && $token[$i] === MAPA_TOKEN_PARAM; )
 			{
 				$param = '';
 
 				for (++$i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
 				{
-					if ($token[$i] === YML_TOKEN_ESCAPE && $i + 1 < $length)
+					if ($token[$i] === MAPA_TOKEN_ESCAPE && $i + 1 < $length)
 						++$i;
 
 					$param .= $token[$i];
@@ -752,14 +752,14 @@ profile ('p');
 			$scopes[] = array ($delta, $name, $action, $value, $params);
 		}
 
-		if ($i >= $length || $token[$i++] !== YML_TOKEN_PLAIN)
+		if ($i >= $length || $token[$i++] !== MAPA_TOKEN_PLAIN)
 			return null;
 profile ('p');
 		return array ($scopes, substr ($token, $i));
 	}
 }
 
-class	yMLCursor
+class	MaPaCursor
 {
 	public function	__construct (&$tree, $start)
 	{
@@ -779,7 +779,7 @@ class	yMLCursor
 		{
 			if (!isset ($this->node[$character]))
 				$branch =& $this->node[''];
-			else if ($this->node[$character][1] !== YML_BRANCH_INVALID)
+			else if ($this->node[$character][1] !== MAPA_BRANCH_INVALID)
 				$branch =& $this->node[$character];
 			else
 				return false;

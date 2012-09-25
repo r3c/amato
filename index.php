@@ -56,9 +56,9 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<link href="res/style.css" rel="stylesheet" type="text/css" />
-		<link href="res/yml.css" rel="stylesheet" type="text/css" />
+		<link href="res/mapa.css" rel="stylesheet" type="text/css" />
 		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . CHARSET . '" />
-		<title>yML Parser Test Page</title>
+		<title>MaPa Test Page</title>
 	</head>
 	<body>
 		<div class="box">
@@ -69,7 +69,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 				<form action="" method="POST">
 					<textarea name="text" rows="10" style="box-sizing: border-box; width: 100%;">' . htmlspecialchars ($text) . '</textarea>
 					<select name="mode">
-						<option' . (isset ($mode) && $mode != 'code' && $mode != 'debug' ? ' selected="selected"' : '') . ' value="yml">Render as HTML</option>
+						<option' . (isset ($mode) && $mode != 'code' && $mode != 'debug' ? ' selected="selected"' : '') . ' value="mapa">Render as HTML</option>
 						<option' . (isset ($mode) && $mode == 'code' ? ' selected="selected"' : '') . ' value="code">Render as tree</option>
 '/* FIXME */.'			<option' . (isset ($mode) && $mode == 'debug' ? ' selected="selected"' : '') . ' value="debug">Debug mode</option>
 					</select>
@@ -80,7 +80,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 
 if ($mode && $text)
 {
-	$codes = yML::compile ($ymlRulesDemo, $ymlClassesDemo);
+	$codes = MaPa::compile ($mapaRulesDemo, $mapaClassesDemo);
 /* FIXME */
 	if ($mode == 'debug')
 	{
@@ -100,7 +100,7 @@ if ($mode && $text)
 				</div>
 			</div>';
 
-		$token = yML::encode ($plain, $codes);
+		$token = MaPa::encode ($plain, $codes);
 
 		echo '
 			<div class="body">
@@ -108,7 +108,7 @@ if ($mode && $text)
 				<div class="code">' . htmlspecialchars ($token, ENT_COMPAT, CHARSET) . '</div>
 			</div>';
 
-		$render = yML::render ($token, $ymlFormatsHTML);
+		$render = MaPa::render ($token, $mapaFormatsHTML);
 
 		echo '
 			<div class="body">
@@ -116,7 +116,7 @@ if ($mode && $text)
 				<div class="code">' . htmlspecialchars ($render, ENT_COMPAT, CHARSET) . '</div>
 			</div>';
 
-		$plain2 = yML::decode ($token, $codes);
+		$plain2 = MaPa::decode ($token, $codes);
 
 		echo '
 			<div class="body">
@@ -127,7 +127,7 @@ if ($mode && $text)
 	else
 	{
 /* FIXME */
-		$result = nl2br (yML::render (yML::encode (htmlspecialchars ($text, ENT_COMPAT, CHARSET), $codes), $ymlFormatsHTML));
+		$result = nl2br (MaPa::render (MaPa::encode (htmlspecialchars ($text, ENT_COMPAT, CHARSET), $codes), $mapaFormatsHTML));
 
 		if ($mode == 'code')
 			$output = formatHTML ($result);

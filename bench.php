@@ -16,7 +16,7 @@ function	bench ($count, $init, $loop, $stop)
 	return (int)((microtime (true) - $time) * 1000);
 }
 
-$parser = yML::compile ($ymlRulesDemo, $ymlClassesDemo);
+$parser = MaPa::compile ($mapaRulesDemo, $mapaClassesDemo);
 $out = '';
 $i = 1;
 
@@ -69,18 +69,18 @@ foreach ($test as $label => $params)
 	file_exists ($params['file']) or die ('Cannot open input file "' . $params['file'] . '"');
 
 	$plain = file_get_contents ($params['file']);
-	$token = yML::encode (htmlspecialchars ($plain, ENT_COMPAT, CHARSET), $parser);
+	$token = MaPa::encode (htmlspecialchars ($plain, ENT_COMPAT, CHARSET), $parser);
 
-	$time1 = bench ($params['count'], 'global $token, $ymlFormatsHTML;', 'nl2br (yML::render ($token, $ymlFormatsHTML));', '');
+	$time1 = bench ($params['count'], 'global $token, $mapaFormatsHTML;', 'nl2br (MaPa::render ($token, $mapaFormatsHTML));', '');
 	$time2 = bench ($params['count'], 'global $plain;', 'formatRegexp ($plain);', '');
 
 	$out .= '
 		<div class="box">
 			<div class="head">
-				#' . $i++ . ' - <a href="' . htmlspecialchars ($params['file']) . '">' . htmlspecialchars ($label) . '</a> (' . strlen ($plain) . ' bytes, ' . $params['count'] . ' loops): yml = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[1]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a>
+				#' . $i++ . ' - <a href="' . htmlspecialchars ($params['file']) . '">' . htmlspecialchars ($label) . '</a> (' . strlen ($plain) . ' bytes, ' . $params['count'] . ' loops): mapa = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[1]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a>
 			</div>
-			<div class="body yml" style="display: none;">
-				' . nl2br (yML::render ($token, $ymlFormatsHTML)) . '
+			<div class="body mapa" style="display: none;">
+				' . nl2br (MaPa::render ($token, $mapaFormatsHTML)) . '
 			</div>
 		</div>';
 }
@@ -91,9 +91,9 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<link href="res/style.css" rel="stylesheet" type="text/css" />
-		<link href="res/yml.css" rel="stylesheet" type="text/css" />
+		<link href="res/mapa.css" rel="stylesheet" type="text/css" />
 		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . CHARSET . '" />
-		<title>yML Format Test</title>
+		<title>MaPa Format Test</title>
 	</head>
 	<body>' . $out . '
 	</body>
