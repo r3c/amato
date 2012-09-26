@@ -236,7 +236,7 @@ class	MaPa
 	*/
 	public static function	decode ($token, $codes)
 	{
-		global	$mapaConvert;
+		global	$mapaConvert; // FIXME
 
 		$parsed = self::parse ($token);
 
@@ -358,7 +358,7 @@ class	MaPa
 					// Process this cursor's last matched tag, if any
 					if (isset ($cursor->match))
 					{
-						list ($name, $type, $value/*, $literal*/) = $cursor->match;
+						list ($name, $type, $value/*, $literal*/) = $cursor->match; // FIXME: unused literal
 
 						if (!isset ($chains[$name]))
 							$chains[$name] = array ();

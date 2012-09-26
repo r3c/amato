@@ -1,6 +1,6 @@
 [4\][4]Rouge[/4] \[3][3]Vert[/3] [\2][2]Bleu[/2]
 
-[i[i]]Italique[/i[/i]]
+[[i]i]Italique[/i[/i]] [i][\i]Italique[/\i][/i]
 
 [list]
 * Liste:[b]
@@ -10,6 +10,6 @@
 
 [s]Strike[hr]Strike[/s]
 
-[u]Start [u]over[/u] same tag[/u]
+[u]Start [u]over[/u] same tag[/u], [b]Cross-[i]over[/b] tags[/i], [5]Mixed [b]overlapping [s]random [i]tags[/b] jam[/5] nightmare[/s]![/i]
 
 [url=http://www.mirari.fr]mirari.fr[/url] - [url]http://www.mirari.fr[/url]

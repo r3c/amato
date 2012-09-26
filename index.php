@@ -70,8 +70,8 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 					<textarea name="text" rows="10" style="box-sizing: border-box; width: 100%;">' . htmlspecialchars ($text) . '</textarea>
 					<select name="mode">
 						<option' . (isset ($mode) && $mode != 'code' && $mode != 'debug' ? ' selected="selected"' : '') . ' value="mapa">Render as HTML</option>
-						<option' . (isset ($mode) && $mode == 'code' ? ' selected="selected"' : '') . ' value="code">Render as tree</option>
-'/* FIXME */.'			<option' . (isset ($mode) && $mode == 'debug' ? ' selected="selected"' : '') . ' value="debug">Debug mode</option>
+						<option' . (isset ($mode) && $mode == 'code' ? ' selected="selected"' : '') . ' value="code">View render tree</option>
+'/* FIXME */.'			<option' . (isset ($mode) && $mode == 'debug' ? ' selected="selected"' : '') . ' value="debug">Debug processing</option>
 					</select>
 					<input type="submit" value="Format" />
 				</form>
