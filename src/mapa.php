@@ -336,10 +336,9 @@ class	MaPa
 		// Parse plain string if a parsing tree is available
 		if ($tree !== null)
 		{
-			$closed = 0;
+			$chains = array ();
 			$cursors = array ();
 			$length = strlen ($plain);
-/**/		$links = array ();
 			$tags = array ();
 
 			for ($i = 0; $i <= $length; ++$i)
@@ -359,171 +358,87 @@ class	MaPa
 					// Process this cursor's last matched tag, if any
 					if (isset ($cursor->match))
 					{
-// >>>>>>>>>
-						// FIXME: don't remove tags as soon as they're resolved
-						// but wait for the entire string to be parsed. This
-						// should allow unresolved tags of a given name to be
-						// kept in their own array for faster searches. A new
-						// "level" property can also be used to prevent tags
-						// from being nested within higher-level ones.
-						$name = $cursor->match[0];
+						list ($name, $type, $value/*, $literal*/) = $cursor->match;
 
-						if (!isset ($tags[$name]))
-							$tags[$name] = array ();
+						if (!isset ($chains[$name]))
+							$chains[$name] = array ();
 
-						$action = $mapaConvert[$cursor->match[1]][count ($tags[$name]) > 0 ? 1 : 0];
+						$action = $mapaConvert[$type][count ($chains[$name]) > 0 ? 1 : 0];
 
 						if ($action !== null)
 						{
-							// Add current unresolved cursor and action to tags
-							$tags[$name][] = array ($cursor, $action);
+							// Add current match to tags chain
+							$chain =& $chains[$name];
+							$chain[] = array ($cursor->start, $cursor->length, $name, $action, $value, $cursor->params);
 
-							// Remove all cursors before current one
-							array_splice ($cursors, 0, $current);
-
-							$current = 0;
-
-							// Remove all cursors after this one having a match
-							// that overlaps with current one's
-							for ($after = count ($cursors) - 1; $after > 0; --$after)
+							// Search for first tag of the chain, if any
+							switch ($action)
 							{
-								if ($cursors[$after]->start < $cursor->start + $cursor->length)
-									array_splice ($cursors, $after, 1);
-							}
-
-							// Resolve action if possible (FIXME: merge condition with hack below?)
-							if ($action === MAPA_ACTION_SINGLE || $action === MAPA_ACTION_STOP)
-							{
-								for ($j = count ($tags[$name]) - 1; $j >= 0; --$j)
-								{
-									list ($cursor, $action) = $tags[$name][$j];
-
-									for ($k = 0; $k < count ($links) && $links[$k][0]->start < $cursor->start; )
-										++$k;
-
-									array_splice ($links, $k, 0, array (array ($cursor, $action))); // FIXME: no need for an entire cursor here
-									array_splice ($tags[$name], $j, 1);
-
-									// Stop on tag start (FIXME: hack to handle [u][u]sth[/u][/u])
-									if ($action == MAPA_ACTION_SINGLE || $action == MAPA_ACTION_START)
-										break;
-								}
-
-								// Cleanup tags list if empty
-								if (count ($tags[$name]) < 1)
-									unset ($tags[$name]);
-							}
-						}
-// ==========
-/*
-						// Browse stack for compatible unprocessed tags
-						$links = array ();
-						$name = $cursor->match[0];
-
-						for ($link = count ($tags) - 1; $link >= $closed; --$link)
-						{
-							if ($tags[$link][0])
-							{
-								$other = $tags[$link][1];
-
-								if ($other->match[0] === $name)
-									$links[] = $link;
-								else if ($other->match[3]) // FIXME: hack for literal tags
-								{
-									$links = null;
+								case MAPA_ACTION_SINGLE:
+									$first = count ($chain) - 1;
 
 									break;
-								}
+
+								case MAPA_ACTION_STOP:
+									for ($first = count ($chain) - 2; $first >= 0 && $chain[$first][3] != MAPA_ACTION_START; )
+										--$first;
+
+									if ($first < 0)
+										$first = count ($chain);
+
+									break;
+
+								default:
+									$first = count ($chain);
+
+									break;
 							}
-						}
 
-						// Deduce action from tag type and links
-						$action = $links !== null ? $mapaConvert[$cursor->match[1]][count ($links) > 0 ? 1 : 0] : null;
+							// Push entire chain to tags, sorted by start index
+							for ($from = count ($chain) - 1; $from >= $first; --$from)
+							{
+								for ($to = count ($tags); $to > 0 && $tags[$to - 1][0] > $chain[$from][0]; )
+									--$to;
 
-						if ($action !== null)
-						{
+								array_splice ($tags, $to, 0, array_splice ($chain, $from, 1));
+							}
+
 							// Remove all cursors before current one
 							array_splice ($cursors, 0, $current);
 
 							$current = 0;
 
-							// Remove all cursors after this one having a match
-							// that overlaps with current one's
+							// Remove all cursors after this one overlapping it
 							for ($after = count ($cursors) - 1; $after > 0; --$after)
 							{
 								if ($cursors[$after]->start < $cursor->start + $cursor->length)
 									array_splice ($cursors, $after, 1);
 							}
-
-							// Add current unresolved cursor and action to tags
-							$tags[] = array (true, $cursor, $action);
-
-							if ($action === MAPA_ACTION_SINGLE || $action === MAPA_ACTION_STOP)
-							{
-								array_unshift ($links, count ($tags) - 1);
-
-								// Remove tags and flag them as processed
-								foreach ($links as $link)
-								{
-									$cursor = $tags[$link][1];
-
-									// Shift cursors after current one
-									for ($after = count ($cursors) - 1; $after > 0; --$after)
-										$cursors[$after]->start -= $cursor->length;
-
-									// Shift tags after current one
-									for ($after = count ($tags) - 1; $after > $link; --$after)
-										$tags[$after][1]->start -= $cursor->length;
-
-									// Remove tag from string
-									$length -= $cursor->length;
-									$plain = substr_replace ($plain, '', $cursor->start, $cursor->length);
-									$i -= $cursor->length;
-
-									// Flag as resolved
-									$tags[$link][0] = false;
-
-									// Stop on tag start (FIXME: hack to handle [u][u]sth[/u][/u])
-									if ($tags[$link][2] == MAPA_ACTION_SINGLE || $tags[$link][2] == MAPA_ACTION_START)
-										break;
-								}
-
-								// Close resolved tags for faster processing
-								while ($closed < count ($tags) && !$tags[$closed][0])
-									++$closed;
-							}
 						}
-*/
-// <<<<<<<<<
 					}
 
-					// Remove cursor once used
+					// Remove invalidated cursor from list
 					array_splice ($cursors, $current, 1);
 				}
 			}
 
-			// Tokenize processed tags into scopes
-/**/		$shift = 0;
-			$start = 0;
+			// Tokenize resolved tags into encoded header
+			$delta = 0;
+			$shift = 0;
 
-//			foreach ($tags as $tag)
-			foreach ($links as $tag)
+			foreach ($tags as $tag)
 			{
-//				list ($pending, $cursor, $action) = $tag;
-				list ($cursor, $action) = $tag;
+				list ($start, $length, $name, $action, $value, $params) = $tag;
 
-//				if ($pending)
-//					continue;
-				$cursor->start -= $shift;
-				$plain = substr_replace ($plain, '', $cursor->start, $cursor->length);
-				$shift += $cursor->length;
-
-				// Write delta offset and action
-				$token .= MAPA_TOKEN_SCOPE . ($cursor->start - $start) . self::$actionsEncode[$action];
-				$start = $cursor->start;
+				// Remove tag from string and append to tokenized header
+				$start -= $shift;
+				$shift += $length;
+				$plain = substr_replace ($plain, '', $start, $length);
+				$token .= MAPA_TOKEN_SCOPE . ($start - $delta) . self::$actionsEncode[$action];
+				$delta = $start;
 
 				// Write tag name
-				foreach (str_split ($cursor->match[0]) as $character)
+				foreach (str_split ($name) as $character)
 				{
 					if (isset (self::$escapesEncode[$character]))
 						$token .= MAPA_TOKEN_ESCAPE;
@@ -532,11 +447,11 @@ class	MaPa
 				}
 
 				// Write tag value
-				if ($cursor->match[2])
+				if ($value)
 				{
 					$token .= MAPA_TOKEN_VALUE;
 
-					foreach (str_split ($cursor->match[2]) as $character)
+					foreach (str_split ($value) as $character)
 					{
 						if (isset (self::$escapesEncode[$character]))
 							$token .= MAPA_TOKEN_ESCAPE;
@@ -546,7 +461,7 @@ class	MaPa
 				}
 
 				// Write tag parameters
-				foreach ($cursor->params as $param)
+				foreach ($params as $param)
 				{
 					$token .= MAPA_TOKEN_PARAM;
 
@@ -572,7 +487,6 @@ class	MaPa
 	*/
 	public static function	render ($token, $modifiers)
 	{
-
 		// Parse tokenized string
 		$parsed = self::parse ($token);
 

@@ -176,7 +176,7 @@ $mapaRulesDemo = array
 			'[/url]'			=> array (MAPA_TYPE_END)
 		)
 	),
-	'bold'	=> array
+	'b'		=> array
 	(
 		'tags'	=> array
 		(

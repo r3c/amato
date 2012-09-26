@@ -94,7 +94,7 @@ if ($mode && $text)
 
 		echo '
 			<div class="body">
-				<b>plain:</b>
+				<b>plain (' . strlen ($plain) . ' characters):</b>
 				<div class="code">
 					' . htmlspecialchars ($plain, ENT_COMPAT, CHARSET) . '
 				</div>
@@ -104,7 +104,7 @@ if ($mode && $text)
 
 		echo '
 			<div class="body">
-				<b>token:</b>
+				<b>token (' . strlen ($token) . ' characters):</b>
 				<div class="code">' . htmlspecialchars ($token, ENT_COMPAT, CHARSET) . '</div>
 			</div>';
 
@@ -112,7 +112,7 @@ if ($mode && $text)
 
 		echo '
 			<div class="body">
-				<b>render:</b>
+				<b>render (' . strlen ($render) . ' characters):</b>
 				<div class="code">' . htmlspecialchars ($render, ENT_COMPAT, CHARSET) . '</div>
 			</div>';
 
@@ -120,7 +120,7 @@ if ($mode && $text)
 
 		echo '
 			<div class="body">
-				<b>plain:</b>
+				<b>plain (' . strlen ($plain2) . ' characters):</b>
 				<div class="code" style="color: ' . ($plain == $plain2 ? 'green' : 'red') . ';">' . htmlspecialchars ($plain2, ENT_COMPAT, CHARSET) . '</div>
 			</div>';
 	}

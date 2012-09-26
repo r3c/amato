@@ -95,7 +95,7 @@ $mapaFormatsHTML = array
 		'single'	=> 'mapaDemoAnchorSingle',
 		'stop'		=> 'mapaDemoAnchorStop',
 	),
-	'bold'	=> array
+	'b'		=> array
 	(
 		'stop'	=> 'mapaDemoTagStop'
 	),
