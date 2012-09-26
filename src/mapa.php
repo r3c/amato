@@ -339,6 +339,7 @@ class	MaPa
 			$closed = 0;
 			$cursors = array ();
 			$length = strlen ($plain);
+/**/		$links = array ();
 			$tags = array ();
 
 			for ($i = 0; $i <= $length; ++$i)
@@ -358,13 +359,63 @@ class	MaPa
 					// Process this cursor's last matched tag, if any
 					if (isset ($cursor->match))
 					{
+// >>>>>>>>>
 						// FIXME: don't remove tags as soon as they're resolved
 						// but wait for the entire string to be parsed. This
 						// should allow unresolved tags of a given name to be
 						// kept in their own array for faster searches. A new
 						// "level" property can also be used to prevent tags
 						// from being nested within higher-level ones.
+						$name = $cursor->match[0];
 
+						if (!isset ($tags[$name]))
+							$tags[$name] = array ();
+
+						$action = $mapaConvert[$cursor->match[1]][count ($tags[$name]) > 0 ? 1 : 0];
+
+						if ($action !== null)
+						{
+							// Add current unresolved cursor and action to tags
+							$tags[$name][] = array ($cursor, $action);
+
+							// Remove all cursors before current one
+							array_splice ($cursors, 0, $current);
+
+							$current = 0;
+
+							// Remove all cursors after this one having a match
+							// that overlaps with current one's
+							for ($after = count ($cursors) - 1; $after > 0; --$after)
+							{
+								if ($cursors[$after]->start < $cursor->start + $cursor->length)
+									array_splice ($cursors, $after, 1);
+							}
+
+							// Resolve action if possible (FIXME: merge condition with hack below?)
+							if ($action === MAPA_ACTION_SINGLE || $action === MAPA_ACTION_STOP)
+							{
+								for ($j = count ($tags[$name]) - 1; $j >= 0; --$j)
+								{
+									list ($cursor, $action) = $tags[$name][$j];
+
+									for ($k = 0; $k < count ($links) && $links[$k][0]->start < $cursor->start; )
+										++$k;
+
+									array_splice ($links, $k, 0, array (array ($cursor, $action))); // FIXME: no need for an entire cursor here
+									array_splice ($tags[$name], $j, 1);
+
+									// Stop on tag start (FIXME: hack to handle [u][u]sth[/u][/u])
+									if ($action == MAPA_ACTION_SINGLE || $action == MAPA_ACTION_START)
+										break;
+								}
+
+								// Cleanup tags list if empty
+								if (count ($tags[$name]) < 1)
+									unset ($tags[$name]);
+							}
+						}
+// ==========
+/*
 						// Browse stack for compatible unprocessed tags
 						$links = array ();
 						$name = $cursor->match[0];
@@ -442,6 +493,8 @@ class	MaPa
 									++$closed;
 							}
 						}
+*/
+// <<<<<<<<<
 					}
 
 					// Remove cursor once used
@@ -450,18 +503,24 @@ class	MaPa
 			}
 
 			// Tokenize processed tags into scopes
-			$shift = 0;
+/**/		$shift = 0;
+			$start = 0;
 
-			foreach ($tags as $tag)
+//			foreach ($tags as $tag)
+			foreach ($links as $tag)
 			{
-				list ($pending, $cursor, $action) = $tag;
+//				list ($pending, $cursor, $action) = $tag;
+				list ($cursor, $action) = $tag;
 
-				if ($pending)
-					continue;
+//				if ($pending)
+//					continue;
+				$cursor->start -= $shift;
+				$plain = substr_replace ($plain, '', $cursor->start, $cursor->length);
+				$shift += $cursor->length;
 
 				// Write delta offset and action
-				$token .= MAPA_TOKEN_SCOPE . ($cursor->start - $shift) . self::$actionsEncode[$action];
-				$shift = $cursor->start;
+				$token .= MAPA_TOKEN_SCOPE . ($cursor->start - $start) . self::$actionsEncode[$action];
+				$start = $cursor->start;
 
 				// Write tag name
 				foreach (str_split ($cursor->match[0]) as $character)
