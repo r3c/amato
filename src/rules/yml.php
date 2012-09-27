@@ -5,12 +5,13 @@ require_once ('src/mapa.php');
 /*
 ** String parsing parameters character classes, as name => characters.
 */
-$mapaClassesDemo = array
+$mapaClassesYML = array
 (
 	'alnum'	=> '+0-9A-Za-z',
 	'any'	=> '-',
+	'hex'	=> '+0-9A-Fa-f',
 	'int'	=> '+0-9',
-	'text'	=> '-]',
+	'text'	=> '-[]',
 	'url'	=> '+0-9A-Za-z-._~:/?#@!$&\'()*+,;='
 );
 
@@ -21,7 +22,7 @@ $mapaClassesDemo = array
 **     .0:	tag type
 **     .1:	optional custom identifier
 */
-$mapaRulesDemo = array
+$mapaRulesYML = array
 (
 	'!'		=> array
 	(
@@ -34,7 +35,7 @@ $mapaRulesDemo = array
 	(
 		'tags'	=> array
 		(
-			'./(int*)'	=> array (MAPA_TYPE_SINGLE)
+			"\r\n"	=> array (MAPA_TYPE_SINGLE)
 		)
 	),
 	'0'		=> array
@@ -172,7 +173,19 @@ $mapaRulesDemo = array
 //			'http://(url*)'		=> array (MAPA_TYPE_SINGLE),
 			'[url](url*)[/url]'	=> array (MAPA_TYPE_SINGLE),
 			'[url=(url*)]'		=> array (MAPA_TYPE_BEGIN),
-			'[/url]'			=> array (MAPA_TYPE_END)
+			'[urli=(url*)]'		=> array (MAPA_TYPE_BEGIN, 'i'),
+			'[/url]'			=> array (MAPA_TYPE_END),
+			'[/urli]'			=> array (MAPA_TYPE_END, 'i')
+		)
+	),
+	'align'	=> array
+	(
+		'tags'	=> array
+		(
+			'[align=center]'	=> array (MAPA_TYPE_BEGIN, 'c'),
+			'[align=left]'		=> array (MAPA_TYPE_BEGIN, 'l'),
+			'[align=right]'		=> array (MAPA_TYPE_BEGIN, 'r'),
+			'[/align]'			=> array (MAPA_TYPE_END)
 		)
 	),
 	'b'		=> array
@@ -208,12 +221,36 @@ $mapaRulesDemo = array
 			'[/yncMd:159]'	=> array (MAPA_TYPE_END)
 		)
 	),
+	'color'	=> array
+	(
+		'tags'	=> array
+		(
+			'[color=(hex*)]'	=> array (MAPA_TYPE_BEGIN),
+			'[color=#(hex*)]'	=> array (MAPA_TYPE_BEGIN, '#'),
+			'[/color]'			=> array (MAPA_TYPE_END)
+		)
+	),
 	'em'	=> array
 	(
 		'tags'	=> array
 		(
 			'[em]'	=> array (MAPA_TYPE_BEGIN),
 			'[/em]'	=> array (MAPA_TYPE_END)
+		)
+	),
+	'font'	=> array
+	(
+		'tags'	=> array
+		(
+			'[font=(int*)]'	=> array (MAPA_TYPE_BEGIN),
+			'[/font]'		=> array (MAPA_TYPE_END)
+		)
+	),
+	'goog'	=> array
+	(
+		'tags'	=> array
+		(
+			'[google](text*)[/google]'	=> array (MAPA_TYPE_SINGLE)
 		)
 	),
 	'hr'	=> array
@@ -275,12 +312,34 @@ $mapaRulesDemo = array
 			'[/quote]'	=> array (MAPA_TYPE_END)
 		)
 	),
+	'ref'	=> array
+	(
+		'tags'	=> array
+		(
+			'./(int*)'	=> array (MAPA_TYPE_SINGLE)
+		)
+	),
 	's'		=> array
 	(
 		'tags'	=> array
 		(
 			'[s]'	=> array (MAPA_TYPE_BEGIN),
 			'[/s]'	=> array (MAPA_TYPE_END)
+		)
+	),
+/*	'slap'	=> array
+	(
+		'tags'	=> array
+		(
+			'!slap (text*)'	=> array (MAPA_TYPE_SINGLE)
+		)
+	),*/
+	'spoil'	=> array
+	(
+		'tags'	=> array
+		(
+			'[spoiler]'		=> array (MAPA_TYPE_BEGIN),
+			'[/spoiler]'	=> array (MAPA_TYPE_END)
 		)
 	),
 	'src'	=> array

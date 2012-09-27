@@ -4,7 +4,7 @@ define ('CHARSET',	'utf-8');
 
 include ('src/formats/html.php');
 require_once ('src/legacy/debug.php');
-include ('src/rules/demo.php');
+include ('src/rules/yml.php');
 
 function	formatHTML ($str)
 {
@@ -80,7 +80,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 
 if ($mode && $text)
 {
-	$codes = MaPa::compile ($mapaRulesDemo, $mapaClassesDemo);
+	$codes = MaPa::compile ($mapaRulesYML, $mapaClassesYML);
 /* FIXME */
 	if ($mode == 'debug')
 	{
@@ -127,7 +127,7 @@ if ($mode && $text)
 	else
 	{
 /* FIXME */
-		$result = nl2br (MaPa::render (MaPa::encode (htmlspecialchars ($text, ENT_COMPAT, CHARSET), $codes), $mapaFormatsHTML));
+		$result = MaPa::render (MaPa::encode (htmlspecialchars ($text, ENT_COMPAT, CHARSET), $codes), $mapaFormatsHTML);
 
 		if ($mode == 'code')
 			$output = formatHTML ($result);

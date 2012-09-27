@@ -4,7 +4,7 @@ define ('CHARSET',	'iso-8859-1');
 
 require_once ('src/formats/html.php');
 require_once ('src/legacy/regexp.php');
-require_once ('src/rules/demo.php');
+require_once ('src/rules/yml.php');
 
 function	bench ($count, $init, $loop, $stop)
 {
@@ -15,7 +15,7 @@ function	bench ($count, $init, $loop, $stop)
 	return (int)((microtime (true) - $time) * 1000);
 }
 
-$codes = MaPa::compile ($mapaRulesDemo, $mapaClassesDemo);
+$codes = MaPa::compile ($mapaRulesYML, $mapaClassesYML);
 $out = '';
 $i = 1;
 
@@ -31,7 +31,7 @@ while (($row = mysql_fetch_assoc ($q)))
 	$plain = $row['post'];
 	$token = MaPa::encode (htmlspecialchars ($plain, ENT_COMPAT, CHARSET), $codes);
 
-	$time1 = bench ($count, 'global $token, $mapaFormatsHTML;', 'nl2br (MaPa::render ($token, $mapaFormatsHTML));', '');
+	$time1 = bench ($count, 'global $token, $mapaFormatsHTML;', 'MaPa::render ($token, $mapaFormatsHTML);', '');
 	$time2 = bench ($count, 'global $plain;', 'formatRegexp ($plain);', '');
 
 	$out .= '
@@ -40,7 +40,7 @@ while (($row = mysql_fetch_assoc ($q)))
 				#' . $i++ . ' - Post (' . strlen ($plain) . ' bytes, ' . $count . ' loops): mapa = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[1]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a>
 			</div>
 			<div class="body mapa" style="display: none;">
-				' . nl2br (MaPa::render ($token, $mapaFormatsHTML)) . '
+				' . MaPa::render ($token, $mapaFormatsHTML) . '
 			</div>
 		</div>';
 }

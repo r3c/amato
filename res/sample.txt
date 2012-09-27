@@ -15,3 +15,7 @@
 [u]Start [u]over[/u] same tag[/u], [b]Cross-[i]over[/b] tags[/i], [5]Mixed [b]overlapping [s]random [i]tags[/b] jam[/5] nightmare[/s]![/i]
 
 [url=http://www.mirari.fr]mirari.fr[/url] - [url]http://www.mirari.fr[/url]
+
+[spoiler]Spoiler: [img]http://www.mirari.fr/module/core/template/avalanche/css/header.icon.png[/img]
+
+[box=And even a box within it!]Sadly, a box can't be spoiled.[/box][/spoiler]

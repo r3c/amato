@@ -5,7 +5,7 @@ define ('CHARSET',	'utf-8');
 require_once ('src/formats/html.php');
 require_once ('src/legacy/debug.php');
 require_once ('src/legacy/regexp.php');
-require_once ('src/rules/demo.php');
+require_once ('src/rules/yml.php');
 
 function	bench ($count, $init, $loop, $stop)
 {
@@ -16,7 +16,7 @@ function	bench ($count, $init, $loop, $stop)
 	return (int)((microtime (true) - $time) * 1000);
 }
 
-$parser = MaPa::compile ($mapaRulesDemo, $mapaClassesDemo);
+$parser = MaPa::compile ($mapaRulesYML, $mapaClassesYML);
 $out = '';
 $i = 1;
 
@@ -71,7 +71,7 @@ foreach ($test as $label => $params)
 	$plain = file_get_contents ($params['file']);
 	$token = MaPa::encode (htmlspecialchars ($plain, ENT_COMPAT, CHARSET), $parser);
 
-	$time1 = bench ($params['count'], 'global $token, $mapaFormatsHTML;', 'nl2br (MaPa::render ($token, $mapaFormatsHTML));', '');
+	$time1 = bench ($params['count'], 'global $token, $mapaFormatsHTML;', 'MaPa::render ($token, $mapaFormatsHTML);', '');
 	$time2 = bench ($params['count'], 'global $plain;', 'formatRegexp ($plain);', '');
 
 	$out .= '
@@ -80,7 +80,7 @@ foreach ($test as $label => $params)
 				#' . $i++ . ' - <a href="' . htmlspecialchars ($params['file']) . '">' . htmlspecialchars ($label) . '</a> (' . strlen ($plain) . ' bytes, ' . $params['count'] . ' loops): mapa = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[1]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a>
 			</div>
 			<div class="body mapa" style="display: none;">
-				' . nl2br (MaPa::render ($token, $mapaFormatsHTML)) . '
+				' . MaPa::render ($token, $mapaFormatsHTML) . '
 			</div>
 		</div>';
 }

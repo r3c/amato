@@ -3,9 +3,9 @@ div.mapa blockquote
 	padding:		3px 3px 3px 10px;
 	margin:			0px 30px 0px 50px;
 	background:		white;
-	border-top:		1px dashed #999;
-	border-bottom:	1px dashed #999;
-	border-left:	5px solid #369;
+	border-top:		1px dashed #999999;
+	border-bottom:	1px dashed #999999;
+	border-left:	5px solid #336699;
 }
 
 div.mapa blockquote blockquote
@@ -113,12 +113,12 @@ div.mapa div.modo
 
 div.mapa span.color0
 {
-	color:	#ffffff;
+	color:	white;
 }
 
 div.mapa span.color1
 {
-	color:	#000000;
+	color:	black;
 }
 
 div.mapa span.color2
@@ -153,12 +153,12 @@ div.mapa span.color7
 
 div.mapa span.color8
 {
-	color:	#FFFF00;
+	color:	yellow;
 }
 
 div.mapa span.color9
 {
-	color:	#00FF00;
+	color:	lime;
 }
 
 div.mapa span.color10
@@ -168,17 +168,17 @@ div.mapa span.color10
 
 div.mapa span.color11
 {
-	color:	#00FFFF;
+	color:	aqua;
 }
 
 div.mapa span.color12
 {
-	color:	#0000FF;
+	color:	blue;
 }
 
 div.mapa span.color13
 {
-	color:	#FF00FF;
+	color:	fuchsia;
 }
 
 div.mapa span.color14
@@ -191,9 +191,51 @@ div.mapa span.color15
 	color:	#CCCCCC;
 }
 
+div.mapa span.google1
+{
+	color:	#003366;
+}
+
+div.mapa span.google2
+{
+	color:	#CC3333;
+}
+
+div.mapa span.google3
+{
+	color:	#FFCC00;
+}
+
+div.mapa span.google4
+{
+	color:	#66CC00;
+}
+
 div.mapa span.s
 {
 	text-decoration:	line-through;
+}
+
+div.mapa span.spoil
+{
+	padding:	0 3px 0 3px;
+	background:	white;
+	color:		white;
+}
+
+div.mapa span.spoil *
+{
+	visibility:	hidden;
+}
+
+div.mapa span.spoil:hover
+{
+	color:	black;
+}
+
+div.mapa span.spoil:hover *
+{
+	visibility:	visible;
 }
 
 div.mapa span.u
