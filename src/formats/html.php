@@ -137,6 +137,11 @@ $mapaFormatsHTML = array
 		'step'	=> 'mapaDemoListStep',
 		'stop'	=> 'mapaDemoListStop'
 	),
+	'modo'	=> array
+	(
+		'level'	=> 2,
+		'stop'	=> 'mapaDemoDivStop'
+	),
 	'pre'	=> array
 	(
 		'level'	=> 2,
@@ -188,6 +193,11 @@ function	mapaDemoAnchorStop ($name, $value, $params, $body)
 function	mapaDemoColorStop ($name, $value, $params, $body)
 {
 	return $body ? '<span class="color' . $name . '">' . $body . '</span>' : '';
+}
+
+function	mapaDemoDivStop ($name, $value, $params, $body)
+{
+	return $body ? '<div class="' . $name . '">' . $body . '</div>' : '';
 }
 
 function	mapaDemoImageSingle ($name, $value, $params)
@@ -284,12 +294,8 @@ function	mapaDemoTagStop ($name, $value, $params, $body)
 
 /*
 ** Missing:
-** - media
 ** - !slap
 ** - name@domain.com
-** - email
-** - pre
-** - modo
 ** - google
 ** - tiwiki
 ** - smiley
@@ -309,7 +315,6 @@ function	mapaDemoTagStop ($name, $value, $params, $body)
 ** - right
 ** - sp
 ** - flash
-** - png
 ** - sondage
 ** - www.
 ** - unicode

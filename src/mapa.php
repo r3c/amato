@@ -3,10 +3,11 @@
 /*
 ** Internal constants.
 */
-define ('MAPA_ACTION_SINGLE',	0);
-define ('MAPA_ACTION_START',	1);
-define ('MAPA_ACTION_STEP',		2);
-define ('MAPA_ACTION_STOP',		3);
+define ('MAPA_ACTION_LITERAL',	0);
+define ('MAPA_ACTION_SINGLE',	1);
+define ('MAPA_ACTION_START',	2);
+define ('MAPA_ACTION_STEP',		3);
+define ('MAPA_ACTION_STOP',		4);
 
 define ('MAPA_BRANCH_INVALID',	0);
 define ('MAPA_BRANCH_SHARED',	1);
@@ -29,9 +30,10 @@ define ('MAPA_TOKEN_VALUE',		'=');
 define ('MAPA_TYPE_BEGIN',		0);
 define ('MAPA_TYPE_BETWEEN',	1);
 define ('MAPA_TYPE_END',		2);
-define ('MAPA_TYPE_RESUME',		3);
-define ('MAPA_TYPE_SINGLE',		4);
-define ('MAPA_TYPE_SWITCH',		5);
+define ('MAPA_TYPE_LITERAL',	3);
+define ('MAPA_TYPE_RESUME',		4);
+define ('MAPA_TYPE_SINGLE',		5);
+define ('MAPA_TYPE_SWITCH',		6);
 
 define ('MAPA_VERSION',			1);
 
@@ -40,6 +42,7 @@ $mapaConvert = array
 	MAPA_TYPE_BEGIN		=> array (MAPA_ACTION_START, MAPA_ACTION_START),
 	MAPA_TYPE_BETWEEN	=> array (null, MAPA_ACTION_STEP),
 	MAPA_TYPE_END		=> array (null, MAPA_ACTION_STOP),
+	MAPA_TYPE_LITERAL	=> array (MAPA_ACTION_LITERAL, MAPA_ACTION_LITERAL),
 	MAPA_TYPE_RESUME	=> array (MAPA_ACTION_START, MAPA_ACTION_STEP),
 	MAPA_TYPE_SINGLE	=> array (MAPA_ACTION_SINGLE, MAPA_ACTION_SINGLE),
 	MAPA_TYPE_SWITCH	=> array (MAPA_ACTION_START, MAPA_ACTION_STOP)
@@ -50,8 +53,8 @@ class	MaPa
 	/*
 	** Constant encoding/decoding hashes.
 	*/
-	private static	$actionsDecode = array ('/' => MAPA_ACTION_SINGLE, '<' => MAPA_ACTION_START, '!' => MAPA_ACTION_STEP, '>' => MAPA_ACTION_STOP);
-	private static	$actionsEncode = array (MAPA_ACTION_SINGLE => '/', MAPA_ACTION_START => '<', MAPA_ACTION_STEP => '!', MAPA_ACTION_STOP => '>');
+	private static	$actionsDecode = array ('!' => MAPA_ACTION_LITERAL, '/' => MAPA_ACTION_SINGLE, '<' => MAPA_ACTION_START, '-' => MAPA_ACTION_STEP, '>' => MAPA_ACTION_STOP);
+	private static	$actionsEncode = array (MAPA_ACTION_LITERAL => '!', MAPA_ACTION_SINGLE => '/', MAPA_ACTION_START => '<', MAPA_ACTION_STEP => '-', MAPA_ACTION_STOP => '>');
 	private static	$escapesDecode = array (MAPA_TOKEN_PARAM => true, MAPA_TOKEN_PLAIN => true, MAPA_TOKEN_SCOPE => true, MAPA_TOKEN_VALUE => true);
 	private static	$escapesEncode = array (MAPA_TOKEN_ESCAPE => true, MAPA_TOKEN_PARAM => true, MAPA_TOKEN_PLAIN => true, MAPA_TOKEN_SCOPE => true, MAPA_TOKEN_VALUE => true);
 
@@ -339,6 +342,7 @@ class	MaPa
 			$chains = array ();
 			$cursors = array ();
 			$length = strlen ($plain);
+			$resolve = true;
 			$tags = array ();
 
 			for ($i = 0; $i <= $length; ++$i)
@@ -358,44 +362,59 @@ class	MaPa
 					// Process this cursor's last matched tag, if any
 					if (isset ($cursor->match))
 					{
-						list ($name, $type, $value/*, $literal*/) = $cursor->match; // FIXME: unused literal
+						list ($name, $type, $value) = $cursor->match;
 
 						if (!isset ($chains[$name]))
 							$chains[$name] = array ();
 
 						$action = $mapaConvert[$type][count ($chains[$name]) > 0 ? 1 : 0];
 
-						if ($action !== null)
+						// Execute resolved action
+						if ($action !== null && ($resolve || $action === MAPA_ACTION_LITERAL))
 						{
 							// Add current match to tags chain
 							$chain =& $chains[$name];
 							$chain[] = array ($cursor->start, $cursor->length, $name, $action, $value, $cursor->params);
+							$flush = count ($chain);
 
-							// Search for first tag of the chain, if any
+							// Set start of chain to be flushed
 							switch ($action)
 							{
+								case MAPA_ACTION_LITERAL:
+									$resolve = !$resolve;
+
+									--$flush;
+
+									break;
+
 								case MAPA_ACTION_SINGLE:
-									$first = count ($chain) - 1;
+									--$flush;
+
+									break;
+
+								case MAPA_ACTION_STEP:
+									for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != MAPA_ACTION_START; )
+										--$start;
+
+									if ($start < 0)
+										array_pop ($chain);
 
 									break;
 
 								case MAPA_ACTION_STOP:
-									for ($first = count ($chain) - 2; $first >= 0 && $chain[$first][3] != MAPA_ACTION_START; )
-										--$first;
+									for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != MAPA_ACTION_START; )
+										--$start;
 
-									if ($first < 0)
-										$first = count ($chain);
-
-									break;
-
-								default:
-									$first = count ($chain);
+									if ($start < 0)
+										array_pop ($chain);
+									else
+										$flush = $start;
 
 									break;
 							}
 
 							// Push entire chain to tags, sorted by start index
-							for ($from = count ($chain) - 1; $from >= $first; --$from)
+							for ($from = count ($chain) - 1; $from >= $flush; --$from)
 							{
 								for ($to = count ($tags); $to > 0 && $tags[$to - 1][0] > $chain[$from][0]; )
 									--$to;

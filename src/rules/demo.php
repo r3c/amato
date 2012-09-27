@@ -17,7 +17,6 @@ $mapaClassesDemo = array
 /*
 ** String parsing rules for each available tag, as name => properties
 **   .decode:	optional flag to disable tag decoding
-**   .literal:	optional flag to allow only literal bodies for this tag
 **   .tags:		matching tag patterns, as pattern => behavior
 **     .0:	tag type
 **     .1:	optional custom identifier
@@ -250,13 +249,20 @@ $mapaRulesDemo = array
 			'[/list]'	=> array (MAPA_TYPE_END)
 		)
 	),
+	'modo'	=> array
+	(
+		'tags'	=> array
+		(
+			'[modo]'	=> array (MAPA_TYPE_BEGIN),
+			'[/modo]'	=> array (MAPA_TYPE_END)
+		)
+	),
 	'pre'	=> array
 	(
-		'literal'	=> true,
-		'tags'		=> array
+		'tags'	=> array
 		(
-			'[pre]'		=> array (MAPA_TYPE_BEGIN),
-			'[/pre]'	=> array (MAPA_TYPE_END)
+			'[pre]'		=> array (MAPA_TYPE_LITERAL, '1'),
+			'[/pre]'	=> array (MAPA_TYPE_LITERAL, '2')
 		)
 	),
 	'quote'	=> array

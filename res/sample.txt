@@ -2,6 +2,8 @@
 
 [[i]i]Italique[/i[/i]] [i][\i]Italique[/\i][/i]
 
+[7][pre]Literal [b]text[/7][/pre] should [b][pre][/7]prevent[/b][/pre] any tag[/b] from being used.[/7]
+
 [list]
 * Liste:[b]
 *# Gras 1
