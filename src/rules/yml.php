@@ -11,7 +11,7 @@ $mapaClassesYML = array
 	'any'	=> '-',
 	'hex'	=> '+0-9A-Fa-f',
 	'int'	=> '+0-9',
-	'text'	=> '-[]',
+	'text'	=> "-\r\n[]",
 	'url'	=> '+0-9A-Za-z-._~:/?#@!$&\'()*+,;='
 );
 
@@ -238,19 +238,20 @@ $mapaRulesYML = array
 			'[/em]'	=> array (MAPA_TYPE_END)
 		)
 	),
+	'flash'	=> array
+	(
+		'tags'	=> array
+		(
+			'[flash](url*)[/flash]'					=> array (MAPA_TYPE_SINGLE),
+			'[flash=(int*),(int*)](url*)[/flash]'	=> array (MAPA_TYPE_SINGLE)
+		)
+	),
 	'font'	=> array
 	(
 		'tags'	=> array
 		(
 			'[font=(int*)]'	=> array (MAPA_TYPE_BEGIN),
 			'[/font]'		=> array (MAPA_TYPE_END)
-		)
-	),
-	'goog'	=> array
-	(
-		'tags'	=> array
-		(
-			'[google](text*)[/google]'	=> array (MAPA_TYPE_SINGLE)
 		)
 	),
 	'hr'	=> array
@@ -294,6 +295,13 @@ $mapaRulesYML = array
 			'[/modo]'	=> array (MAPA_TYPE_END)
 		)
 	),
+	'poll'	=> array
+	(
+		'tags'	=> array
+		(
+			'[sondage=(int*)]'	=> array (MAPA_TYPE_SINGLE)
+		)
+	),
 	'pre'	=> array
 	(
 		'tags'	=> array
@@ -327,13 +335,31 @@ $mapaRulesYML = array
 			'[/s]'	=> array (MAPA_TYPE_END)
 		)
 	),
-/*	'slap'	=> array
+	'slap'	=> array
 	(
 		'tags'	=> array
 		(
 			'!slap (text*)'	=> array (MAPA_TYPE_SINGLE)
 		)
-	),*/
+	),
+	'smile'	=> array
+	(
+		'tags'	=> array
+		(
+			':D'			=> array (MAPA_TYPE_SINGLE, '0'),
+			':\\('			=> array (MAPA_TYPE_SINGLE, '1'),
+			':o'			=> array (MAPA_TYPE_SINGLE, '2'),
+			':)'			=> array (MAPA_TYPE_SINGLE, '3'),
+			':p'			=> array (MAPA_TYPE_SINGLE, '4'),
+			';)'			=> array (MAPA_TYPE_SINGLE, '5'),
+			'=)'			=> array (MAPA_TYPE_SINGLE, '6'),
+			'%)'			=> array (MAPA_TYPE_SINGLE, '7'),
+			':|'			=> array (MAPA_TYPE_SINGLE, '8'),
+			':S'			=> array (MAPA_TYPE_SINGLE, '9'),
+			'##(alnum*)##'	=> array (MAPA_TYPE_SINGLE, 'c'),
+			'#(alnum*)#'	=> array (MAPA_TYPE_SINGLE, 'n')
+		)
+	),
 	'spoil'	=> array
 	(
 		'tags'	=> array

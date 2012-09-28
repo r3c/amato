@@ -215,11 +215,12 @@ class	MaPa
 
 				// Register terminal node
 				if (isset ($branch))
+//					$branch[3][] = array ($name, $type, $value);
 				{
 					if ($branch[3] !== null)
 						throw new Exception ('conflict for pattern "' . $pattern . '" in rule "' . $name . '"');
 
-					$branch[3] = array ($name, $type, $value, isset ($rule['literal']) && $rule['literal']);
+					$branch[3] = array ($name, $type, $value);
 				}
 
 				// Register decoding array
@@ -466,7 +467,7 @@ class	MaPa
 				}
 
 				// Write tag value
-				if ($value)
+				if ($value !== '')
 				{
 					$token .= MAPA_TOKEN_VALUE;
 
@@ -511,7 +512,7 @@ class	MaPa
 
 		if ($parsed === null)
 			return null;
-profile ('r');
+
 		list ($scopes, $clean) = $parsed;
 
 		// Apply scopes on plain text
@@ -593,8 +594,8 @@ profile ('r');
 					// Update tag value and parameters
 					$broken =& $stack[$last];
 
-					foreach ($params as $key => $value) // FIXME: hack to save params modifications
-						$broken[4][$key] = $value;
+					foreach ($params as $paramKey => $paramValue) // FIXME: hack to save params modifications
+						$broken[4][$paramKey] = $paramValue;
 
 					$broken[3] = $value;
 
@@ -672,7 +673,7 @@ profile ('r');
 			for ($i = count ($stack) - 1; $i >= $last; --$i)
 				$stack[$i][1] = $index;
 		}
-profile ('r');
+
 		return $clean;
 	}
 
@@ -683,7 +684,6 @@ profile ('r');
 	*/
 	private static function	parse ($token)
 	{
-profile ('p');
 		$length = strlen ($token);
 		$scopes = array ();
 
@@ -762,7 +762,7 @@ profile ('p');
 
 		if ($i >= $length || $token[$i++] !== MAPA_TOKEN_PLAIN)
 			return null;
-profile ('p');
+
 		return array ($scopes, substr ($token, $i));
 	}
 }
@@ -771,6 +771,7 @@ class	MaPaCursor
 {
 	public function	__construct (&$tree, $start)
 	{
+		$this->captures = array ();
 		$this->length = 0;
 		$this->match = null;
 		$this->node =& $tree;
@@ -805,10 +806,10 @@ class	MaPaCursor
 		// Append character to parameters if requested
 		if ($branch[2] !== null)
 		{
-			if (!isset ($this->params[$branch[2]]))
-				$this->params[$branch[2]] = '';
+			if (!isset ($this->captures[$branch[2]]))
+				$this->captures[$branch[2]] = '';
 
-			$this->params[$branch[2]] .= $character;
+			$this->captures[$branch[2]] .= $character;
 		}
 
 		// Store matching information on terminal node
@@ -816,6 +817,7 @@ class	MaPaCursor
 		{
 			$this->length = $index - $this->start;
 			$this->match =& $branch[3];
+			$this->params = $this->captures;
 		}
 
 		return true;

@@ -3,6 +3,7 @@
 define ('CHARSET',	'iso-8859-1');
 
 require_once ('src/formats/html.php');
+require_once ('src/legacy/debug.php');
 require_once ('src/legacy/regexp.php');
 require_once ('src/rules/yml.php');
 

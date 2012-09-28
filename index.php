@@ -3,7 +3,7 @@
 define ('CHARSET',	'utf-8');
 
 include ('src/formats/html.php');
-require_once ('src/legacy/debug.php');
+include ('src/legacy/debug.php');
 include ('src/rules/yml.php');
 
 function	formatHTML ($str)

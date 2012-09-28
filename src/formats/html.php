@@ -128,13 +128,13 @@ $mapaFormatsHTML = array
 	(
 		'stop'	=> 'mapaHTMLTagStop'
 	),
+	'flash'	=> array
+	(
+		'single'	=> 'mapaHTMLFlashSingle'
+	),
 	'font'	=> array
 	(
 		'stop'	=> function ($name, $value, $params, $body) { return $body ? '<span style="font-size: ' . max (min ((int)$params[0], 300), 50) . '%; line-height: 100%;">' . $body . '</span>' : ''; }
-	),
-	'goog'	=> array
-	(
-		'single'	=> function ($name, $value, $params) { return $params[0] ? '<b><span class="google1">G</span><span class="google2">o</span><span class="google3">o</span><span class="google1">g</span><span class="google4">l</span><span class="color4">e</span> :</b> <a href="http://www.google.fr/search?hl=fr&amp;ie=UTF-8&amp;oe=UTF-8&amp;q=' . rawurlencode ($params[0]) . '&amp;meta=lr%3Dlang_fr" target="_blank">' . $params[0] . '</a>' : ''; }
 	),
 	'hr'	=> array
 	(
@@ -162,6 +162,12 @@ $mapaFormatsHTML = array
 		'level'	=> 2,
 		'stop'	=> 'mapaHTMLDivStop'
 	),
+	'poll'	=> array
+	(
+		'level'		=> 2,
+		'limit'		=> 1,
+		'single'	=> 'mapaHTMLPollSingle'
+	),
 	'pre'	=> array
 	(
 		'level'	=> 2,
@@ -181,10 +187,14 @@ $mapaFormatsHTML = array
 	(
 		'stop'	=> 'mapaHTMLSpanStop'
 	),
-/*	'slap'	=> array
+	'slap'	=> array
 	(
 		'single'	=> function ($name, $value, $params) { return '!slap ' . $params[0] . ($params[0] ? '<br /><span style="color: #990099;">&bull; FIXME slaps ' . $params[0] . ' around a bit with a large trout !</span>' : ''); }
-	),*/
+	),
+	'smile'	=> array
+	(
+		'single'	=> 'mapaHTMLSmileySingle'
+	),
 	'spoil'	=> array
 	(
 		'stop'	=> 'mapaHTMLSpanStop'
@@ -235,6 +245,26 @@ function	mapaHTMLColorStop ($name, $value, $params, $body)
 function	mapaHTMLDivStop ($name, $value, $params, $body)
 {
 	return $body ? '<div class="' . $name . '">' . $body . '</div>' : '';
+}
+
+function	mapaHTMLFlashSingle ($name, $value, $params)
+{
+	if (isset ($params[0]) && isset ($params[1]))
+	{
+		$size = array (max (min ((int)$params[0], 1024), 32), max (min ((int)$params[1], 1024), 32));
+		$url = $params[2];
+	}
+	else
+	{
+		$size = array (550, 400);
+		$url = $params[0];
+	}
+
+	if (!preg_match ('#^([0-9A-Za-z]+://)?(([^:@]+(:[^@]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $url, $matches))
+		return '';
+
+	// data="ADRESSE"
+	return '<object type="application/x-shockwave-flash" width="' . $size[0] . '" height="' . $size[1] . '"><param name="movie" value="' . (($matches[1] ? $matches[1] : 'http://') . $matches[2]) . '" /><param name="allowFullScreen" value="true" /></object>';
 }
 
 function	mapaHTMLImageSingle ($name, $value, $params)
@@ -289,15 +319,15 @@ function	mapaHTMLListStep ($name, $value, &$params, $body)
 			$params['out'] .= '<' . ($params['stack'][] = $params['tag']) . '><li>';
 
 		$params['next'] = 1;
-		$params['out'] .= $body;
 	}
 	else
-		++$params['next'];
+		$params['next'] = min ($params['next'] + 1, 8);
 
+	$params['out'] .= $body;
 	$params['tag'] = $value . 'l';
 }
 
-function	mapaHTMLListStop ($name, $value, &$params, $body)
+function	mapaHTMLListStop ($name, $value, $params, $body)
 {
 	mapaHTMLListStep ($name, $value, $params, $body);
 
@@ -305,6 +335,114 @@ function	mapaHTMLListStop ($name, $value, &$params, $body)
 		$params['out'] .= '</li></' . array_pop ($params['stack']) . '>';
 
 	return $params['out'];
+}
+
+function	mapaHTMLPollSingle ($name, $value, $params)
+{
+	$s = (int)$params[0];
+
+	include ("sond.php");
+
+	return $sondINC;
+}
+
+function	mapaHTMLSmileySingle ($name, $value, $params)
+{
+	static	$natives;
+
+	switch ($value)
+	{
+		case '0':
+			$alt = ':D';
+			$src = 'res/n/biggrin.gif';
+
+			break;
+
+		case '1':
+			$alt = ':(';
+			$src = 'res/n/frown.gif';
+
+			break;
+
+		case '2':
+			$alt = ':o';
+			$src = 'res/n/redface.gif';
+
+			break;
+
+		case '3':
+			$alt = ':)';
+			$src = 'res/n/smile.gif';
+
+			break;
+
+		case '4':
+			$alt = ':p';
+			$src = 'res/n/tongue.gif';
+
+			break;
+
+		case '5':
+			$alt = ';)';
+			$src = 'res/n/wink.gif';
+
+			break;
+
+		case '6':
+			$alt = '=)';
+			$src = 'res/n/smile2.gif';
+
+			break;
+
+		case '7':
+			$alt = '%)';
+			$src = 'res/n/mod.gif';
+
+			break;
+
+		case '8':
+			$alt = ':|';
+			$src = 'res/n/droit.gif';
+
+			break;
+
+		case '9':
+			$alt = ':S';
+			$src = 'res/n/cst.gif';
+
+			break;
+
+		case 'c':
+			$alt = $params[0];
+			$src = 'res/c/' . $params[0] . '.gif';
+
+			if (!file_exists ($src))
+				return '##' . $params[0] . '##';
+
+			break;
+
+		case 'n':
+			if (!isset ($natives))
+			{
+				$natives = array_flip (array
+				(
+					'bang', 'eek', 'confus', 'cool', 'roll', 'rage', 'alien', 'attention', 'vador', 'crayon', 'devil', 'doom', 'picol', 'vtff', 'mad', 'rotfl', 'zzz', 'miam', 'tsss', 'sick', 'pleure', 'oui', 'fou', 'love', 'tusors', 'triso', 'top', 'hum', 'black', 'coeur', 'hein', 'interdit', 'gni', 'couic', 'fuck', 'gol', 'grrr', 'magic', 'non', 'bisoo', 'coin', 'tp', 'fleurs', 'wc', 'lapin', 'poulpe', 'info', 'tv', 'doc', 'skull', 'mur', 'pam', 'dehors', 'tusors', 'chew', 'lol', 'boing', 'yel', 'biz', 'cyborg', 'chinois', 'calin', 'censure', 'scotch',
+					'anniv', 'arme', 'aveugle', 'banane', 'bandana', 'beret', 'blabla', 'bobo', 'bonbon', 'bourre', 'bulle', 'bzz', 'camouflage', 'car', 'casque', 'champignon', 'chante', 'chapo', 'chat', 'chausson', 'citrouille', 'classe', 'cle', 'cookie', 'coupe', 'cowboy', 'croque', 'cubiste', 'cuisse', 'diable', 'dingue', 'donut', 'drapeau', 'ecoute', 'eeek', 'enflamme', 'epee', 'fantome', 'fatigue', 'fesses', 'feu', 'fille', 'flic', 'flocon', 'fondu', 'fou2', 'fouet', 'froid', 'furieux', 'groupe', 'guitare', 'helico', 'hippy', 'hypno', 'interdit2', 'karate', 'king', 'krokro', 'langue', 'livre', 'lolpaf', 'loupe', 'love2', 'lune', 'marteau', 'masque', 'micro', 'mimi', 'note', 'peur', 'piano', 'pluie', 'pomme', 'reine', 'santa', 'sapin', 'saucisse', 'shhh', 'skate', 'slug', 'snail', 'snowman', 'soda', 'soleil', 'splat', 'starwars', 'stylo', 'stylobille', 'superguerrier', 'surf', 'swirl', 'tasse', 'tilt', 'toilettes', 'tomate', 'tombe', 'tompette', 'tortue', 'trefle', 'warp', 'yoyo', 'zen',
+					'ciao', 'crash', 'drapeaublanc', 'fou3', 'fucktricol', 'ouin', 'slurp', 'sygus', 'hum2', 'fireball', 'tricol', 'trifaq', 'trigic', 'trigni', 'trilol', 'trilove', 'trinon', 'tripo', 'trisors', 'trisotfl', 'tritop', 'trivil', 'trifouet', 'trifus', 'trilangue', 'triroll', 'couic2', 'faq', 'furax', 'ooh', 'bigeyes', 'civ3', 'ptw', 'fear', 'hehe', 'fleche', 'tripaf', 'gnimod', 'trioui', 'sheep', 'tromb',
+					'biere', 'citrouille2', 'foot', 'gato', 'hotdog', 'kado', 'cornet', 'meuh', 'mobile', 'pizza', 'poisson', 'yin'
+				));
+			}
+
+			if (!isset ($natives[$params[0]]))
+				return '#' . $params[0] . '#';
+
+			$alt = $params[0];
+			$src = 'res/n/' . $params[0] . '.gif';
+
+			break;
+	}
+
+	return '<img alt="' . $alt . '" src="' . $src . '" />';
 }
 
 function	mapaHTMLSourceSingle ($name, $value, $params)
@@ -331,19 +469,11 @@ function	mapaHTMLTagStop ($name, $value, $params, $body)
 
 /*
 ** Missing:
-** - !slap
-** - name@domain.com
-** - smiley
-** - nosmile
 ** - table
 ** - itable
 ** - li
 ** - ul
-** - code
-** - sp
-** - flash
-** - sondage
-** - www.
+** - http://
 ** - unicode
 */
 
