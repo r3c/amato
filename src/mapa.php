@@ -834,7 +834,7 @@ class	MaPaCursor
 					$this->params[$key] = '';
 			}
 
-			$this->captures = array ();
+			//$this->captures = array (); // FIXME: bug
 		}
 
 		return true;

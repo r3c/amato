@@ -18,3 +18,4 @@ X Make first started tag match instead of first ended
 - Fix bug: ## (no parameter, no decoding)
 - Allow named parameters
 - Allow parameters with 1+ characters
+- Parameters capture should be reset only when appropriate
