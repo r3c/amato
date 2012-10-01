@@ -11,8 +11,8 @@ X Differenciate # from * while decoding list tags
 X Fix bug: [b]aa[hr]bb[/b]
 X Order tags by name, remove when resolved and push to scopes array
 X Handle special case for <pre> tag in encoder
+X Make first started tag match instead of first ended
 - Implement missing yAronet tags (see format.yn.php)
-- Make first started tag match instead of first ended
 - Fix bug: [list]##coin[/list] (first # is ignored)
 - Allow multiple matches for same tag
 - Fix bug: ## (no parameter, no decoding)

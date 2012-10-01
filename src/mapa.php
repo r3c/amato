@@ -124,6 +124,7 @@ class	MaPa
 				// Build parsing tree and decoding array
 				$count = 0;
 				$decode = array ();
+				$keys = array ();
 				$length = strlen ($pattern);
 				$node =& $tree;
 				$type = $behavior[0];
@@ -184,7 +185,8 @@ class	MaPa
 								$node[$character] =& $target;
 							}
 
-							$decode[] = array (MAPA_DECODE_PARAM, $count++);
+							$decode[] = array (MAPA_DECODE_PARAM, $count);
+							$keys[] = $count++;
 
 							if ($branch[1] === MAPA_BRANCH_UNIQUE)
 								$node =& $branch[0];
@@ -215,12 +217,12 @@ class	MaPa
 
 				// Register terminal node
 				if (isset ($branch))
-//					$branch[3][] = array ($name, $type, $value);
+//					$branch[3][] = array ($name, $type, $value, $keys); // FIXME: multi-match tags
 				{
 					if ($branch[3] !== null)
 						throw new Exception ('conflict for pattern "' . $pattern . '" in rule "' . $name . '"');
 
-					$branch[3] = array ($name, $type, $value);
+					$branch[3] = array ($name, $type, $value, $keys);
 				}
 
 				// Register decoding array
@@ -343,103 +345,102 @@ class	MaPa
 			$chains = array ();
 			$cursors = array ();
 			$length = strlen ($plain);
-			$resolve = true;
+			$literal = false;
 			$tags = array ();
 
 			for ($i = 0; $i <= $length; ++$i)
 			{
-				$character = $i < $length ? $plain[$i] : null;
-
 				array_push ($cursors, new MaPaCursor ($tree, $i));
 
-				for ($current = count ($cursors) - 1; $current >= 0; --$current)
-				{
-					$cursor = $cursors[$current];
+				// Move all cursors and continue while more than one is active
+				$character = $i < $length ? $plain[$i] : null;
+				$moves = 0;
 
-					// Nothing to do until cursor can't be moved to next node
+				foreach ($cursors as $cursor)
+				{
 					if ($cursor->move ($character, $i + 1))
+						++$moves;
+				}
+
+				if ($moves > 0)
+					continue;
+
+				// Resolve cursor matches
+				for ($j = 0; $j < count ($cursors); ++$j)
+				{
+					$cursor = $cursors[$j];
+
+					// Execute action if a match and valid action are found
+					if (!isset ($cursor->match))
 						continue;
 
-					// Process this cursor's last matched tag, if any
-					if (isset ($cursor->match))
+					list ($name, $type, $value) = $cursor->match;
+
+					if (!isset ($chains[$name]))
+						$chains[$name] = array ();
+
+					$action = $mapaConvert[$type][count ($chains[$name]) > 0 ? 1 : 0];
+
+					if ($action === null || ($literal && $action !== MAPA_ACTION_LITERAL))
+						continue;
+
+					// Add current match to tags chain
+					$chain =& $chains[$name];
+					$chain[] = array ($cursor->start, $cursor->length, $name, $action, $value, $cursor->params);
+					$flush = count ($chain);
+
+					// Set start of chain to be flushed
+					switch ($action)
 					{
-						list ($name, $type, $value) = $cursor->match;
+						case MAPA_ACTION_LITERAL:
+							$literal = !$literal;
 
-						if (!isset ($chains[$name]))
-							$chains[$name] = array ();
+							--$flush;
 
-						$action = $mapaConvert[$type][count ($chains[$name]) > 0 ? 1 : 0];
+							break;
 
-						// Execute resolved action
-						if ($action !== null && ($resolve || $action === MAPA_ACTION_LITERAL))
-						{
-							// Add current match to tags chain
-							$chain =& $chains[$name];
-							$chain[] = array ($cursor->start, $cursor->length, $name, $action, $value, $cursor->params);
-							$flush = count ($chain);
+						case MAPA_ACTION_SINGLE:
+							--$flush;
 
-							// Set start of chain to be flushed
-							switch ($action)
-							{
-								case MAPA_ACTION_LITERAL:
-									$resolve = !$resolve;
+							break;
 
-									--$flush;
+						case MAPA_ACTION_STEP:
+							for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != MAPA_ACTION_START; )
+								--$start;
 
-									break;
+							if ($start < 0)
+								array_pop ($chain);
 
-								case MAPA_ACTION_SINGLE:
-									--$flush;
+							break;
 
-									break;
+						case MAPA_ACTION_STOP:
+							for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != MAPA_ACTION_START; )
+								--$start;
 
-								case MAPA_ACTION_STEP:
-									for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != MAPA_ACTION_START; )
-										--$start;
+							if ($start < 0)
+								array_pop ($chain);
+							else
+								$flush = $start;
 
-									if ($start < 0)
-										array_pop ($chain);
-
-									break;
-
-								case MAPA_ACTION_STOP:
-									for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != MAPA_ACTION_START; )
-										--$start;
-
-									if ($start < 0)
-										array_pop ($chain);
-									else
-										$flush = $start;
-
-									break;
-							}
-
-							// Push entire chain to tags, sorted by start index
-							for ($from = count ($chain) - 1; $from >= $flush; --$from)
-							{
-								for ($to = count ($tags); $to > 0 && $tags[$to - 1][0] > $chain[$from][0]; )
-									--$to;
-
-								array_splice ($tags, $to, 0, array_splice ($chain, $from, 1));
-							}
-
-							// Remove all cursors before current one
-							array_splice ($cursors, 0, $current);
-
-							$current = 0;
-
-							// Remove all cursors after this one overlapping it
-							for ($after = count ($cursors) - 1; $after > 0; --$after)
-							{
-								if ($cursors[$after]->start < $cursor->start + $cursor->length)
-									array_splice ($cursors, $after, 1);
-							}
-						}
+							break;
 					}
 
-					// Remove invalidated cursor from list
-					array_splice ($cursors, $current, 1);
+					// Push entire chain to tags, sorted by start index
+					for ($from = count ($chain) - 1; $from >= $flush; --$from)
+					{
+						for ($to = count ($tags); $to > 0 && $tags[$to - 1][0] > $chain[$from][0]; )
+							--$to;
+
+						array_splice ($tags, $to, 0, array_splice ($chain, $from, 1));
+					}
+
+					// Remove all cursors covered by this one
+					while ($j + 1 < count ($cursors) && $cursors[$j + 1]->start < $cursor->start + $cursor->length)
+						array_splice ($cursors, $j + 1, 1);
 				}
+
+				// Drop all cursors
+				$cursors = array ();
 			}
 
 			// Tokenize resolved tags into encoded header
@@ -791,14 +792,22 @@ class	MaPaCursor
 			else if ($this->node[$character][1] !== MAPA_BRANCH_INVALID)
 				$branch =& $this->node[$character];
 			else
+			{
+				unset ($this->node);
+
 				return false;
+			}
 		}
 		else
 		{
 			if (isset ($this->node[$character]))
 				$branch =& $this->node[$character];
 			else
+			{
+				unset ($this->node);
+
 				return false;
+			}
 		}
 
 		$this->node =& $branch[0];
@@ -818,6 +827,14 @@ class	MaPaCursor
 			$this->length = $index - $this->start;
 			$this->match =& $branch[3];
 			$this->params = $this->captures;
+
+			foreach ($this->match[3] as $key) // FIXME: ugly
+			{
+				if (!isset ($this->params[$key]))
+					$this->params[$key] = '';
+			}
+
+			$this->captures = array ();
 		}
 
 		return true;

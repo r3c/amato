@@ -170,7 +170,7 @@ $mapaRulesYML = array
 	(
 		'tags'	=> array
 		(
-//			'http://(url*)'		=> array (MAPA_TYPE_SINGLE),
+			'http://(url*)'		=> array (MAPA_TYPE_SINGLE, 'l'),
 			'[url](url*)[/url]'	=> array (MAPA_TYPE_SINGLE),
 			'[url=(url*)]'		=> array (MAPA_TYPE_BEGIN),
 			'[urli=(url*)]'		=> array (MAPA_TYPE_BEGIN, 'i'),
