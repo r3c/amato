@@ -77,7 +77,7 @@ class	Cursor
 		foreach ($this->orders as $index => $order)
 			$this->captures[$index][$order] .= $character;
 
-		// Store accepted indices and order by length descending order
+		// Store accepted indices and sort by length descending order
 		foreach ($state->accepts as $index)
 			$this->accepts[$index] = $this->length;
 
@@ -247,10 +247,12 @@ class	Lexer
 	{
 		$count = count ($cursors);
 
+		// Browse cursor from lowest to highest starting offset
 		for ($i = 0; $i < $count; ++$i)
 		{
 			$cursor = $cursors[$i];
 
+			// Browse accepted indices sorted by length descending order
 			foreach ($cursor->accepts as $index => $length)
 			{
 				$captures = isset ($cursor->captures[$index]) ? $cursor->captures[$index] : array ();

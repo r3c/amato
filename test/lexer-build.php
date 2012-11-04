@@ -1,34 +1,12 @@
 <html>
 	<head>
-		<style type="text/css">
-			ul
-			{
-				padding:	0px 0px 16px 16px;
-				margin:		0px;
-				font:		normal normal normal 11px consolas;
-			}
-
-			ul ul
-			{
-				padding:	0px 0px 0px 32px;
-			}
-
-			ul.test li.ko
-			{
-				color:	FireBrick;
-			}
-
-			ul.test li.ok
-			{
-				color:	Green;
-			}
-		</style>
+		<link type="text/css" rel="stylesheet" href="../res/test.css" />
 	</head>
 	<body>
 
 <?php
 
-include ('../lexer.php');
+include ('../src/lexer.php');
 
 function	debug ($state, &$known)
 {
@@ -61,7 +39,7 @@ function	test ($rules, $checks)
 {
 	$lexer = new Lexer ();
 
-	echo '<ul><li>Rules:<ul>';
+	echo '<ul class="tree"><li>Rules:<ul>';
 
 	foreach ($rules as $pattern => $match)
 	{

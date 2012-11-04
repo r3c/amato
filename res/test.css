@@ -1,0 +1,68 @@
+div.block
+{
+	padding:	4px 4px;
+	margin:		8px 0px;
+	background:	#F0F0FF;
+	border:		1px solid #E0E0F0;
+	font:		normal normal normal 11px consolas;
+	color:		#000000;
+}
+
+div.block legend
+{
+	padding:	0px 4px;
+	margin:		0px 0px 4px 0px;
+	font:		normal normal bold 13px consolas;
+}
+
+div.block span.tag
+{
+	position:		relative;
+	white-space:	nowrap;
+	color:			#F03030;
+}
+
+div.block span.tag:hover
+{
+	background:	#6060A0;
+	color:		#FFFFFF;
+}
+
+div.block span.tag span.hint
+{
+	display:	none;
+}
+
+div.block span.tag:hover span.hint
+{
+	display:	block;
+	z-index:	9999;
+	float:		left;
+	position:	absolute;
+	top:		12px;
+	left:		12px;
+	background:	#A0A0F0;
+	color:		#FFFFFF;
+}
+
+ul.tree
+{
+	padding:	0px 0px 16px 16px;
+	margin:		0px;
+	font:		normal normal normal 11px consolas;
+}
+
+ul.tree ul
+{
+	padding:	0px 0px 0px 32px;
+}
+
+ul.test li.ko
+{
+	color:	FireBrick;
+}
+
+ul.test li.ok
+{
+	color:	Green;
+}
