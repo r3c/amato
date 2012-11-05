@@ -51,7 +51,7 @@ $lexer->assign ('[14]', '14+');
 $lexer->assign ('[/14]', '14-');
 $lexer->assign ('[15]', '15+');
 $lexer->assign ('[/15]', '15-');
-$lexer->assign ('<http://(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>', 'url!standalone');
+$lexer->assign ('<https{,1}://(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>', 'url!standalone');
 $lexer->assign ('[url]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>[/url]', 'url!');
 $lexer->assign ('[url=<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>]', 'url+');
 $lexer->assign ('[urli=<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>]', 'url+i');

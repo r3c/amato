@@ -2,7 +2,6 @@
 
 define ('LEXER_CHARACTER_CAPTURE_BEGIN',	'<');
 define ('LEXER_CHARACTER_CAPTURE_END',		'>');
-define ('LEXER_CHARACTER_CAPTURE_ESCAPE',	'\\');
 define ('LEXER_CHARACTER_GROUP_BEGIN',		'(');
 define ('LEXER_CHARACTER_GROUP_END',		')');
 define ('LEXER_CHARACTER_GROUP_ESCAPE',		'\\');
@@ -95,37 +94,37 @@ class	Lexer
 		$this->start = new State ();
 	}
 
-	// FIXME: recode pattern parser
 	public function	assign ($pattern, $match)
 	{
 		$this->matches[] = $match;
 
 		$accept = count ($this->matches) - 1;
 		$length = strlen ($pattern);
-		$tails = array (array ($this->start, true)); // FIXME: ugly
+		$tails = array (array ($this->start, false)); // FIXME: ugly
 
 		for ($i = 0; $i < $length; )
 		{
-			// Parse capture commands
+			// Parse capture directives
 			$capture = 0;
 
-			if ($pattern[$i] === LEXER_CHARACTER_CAPTURE_BEGIN)
+			if ($i < $length && $pattern[$i] === LEXER_CHARACTER_CAPTURE_BEGIN)
 			{
 				$capture |= 1;
 
-				if (++$i >= $length)
-					break;
+				++$i;
 			}
 
-			if ($pattern[$i] === LEXER_CHARACTER_CAPTURE_END)
+			if ($i < $length && $pattern[$i] === LEXER_CHARACTER_CAPTURE_END)
 			{
 				$capture |= 2;
 
-				if (++$i >= $length)
-					break;
+				++$i;
 			}
 
-			// Parse characters
+			// Parse character or group
+			if ($i >= $length)
+				continue;
+
 			if ($pattern[$i] === LEXER_CHARACTER_GROUP_BEGIN)
 			{
 				$characters = array ();
@@ -153,8 +152,8 @@ class	Lexer
 					}
 				}
 
-				if ($i >= $length)
-					throw new Exception ('parse error, expected "' . LEXER_CHARACTER_GROUP_END . '"');
+				if ($i >= $length || $pattern[$i] !== LEXER_CHARACTER_GROUP_END)
+					throw new Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . LEXER_CHARACTER_GROUP_END . '"');
 			}
 			else
 			{
@@ -166,7 +165,7 @@ class	Lexer
 
 			++$i;
 
-			// Parse repeat
+			// Parse repeat modifiers
 			if ($i < $length && $pattern[$i] === LEXER_CHARACTER_REPEAT_BEGIN)
 			{
 				for ($j = ++$i; $i < $length && $pattern[$i] >= '0' && $pattern[$i] <= '9'; )
@@ -176,7 +175,7 @@ class	Lexer
 
 				if ($i < $length && $pattern[$i] == LEXER_CHARACTER_REPEAT_SPLIT)
 				{
-					for ($j = ++$i; $i < $length && $pattern[$i] !== LEXER_CHARACTER_REPEAT_END; )
+					for ($j = ++$i; $i < $length && $pattern[$i] >= '0' && $pattern[$i] <= '9'; )
 						++$i;
 
 					$max = $i > $j ? (int)substr ($pattern, $j, $i - $j) : 0;
@@ -185,7 +184,7 @@ class	Lexer
 					$max = $min;
 
 				if ($i >= $length || $pattern[$i] !== LEXER_CHARACTER_REPEAT_END)
-					throw new Exception ('parse error, expected "' . LEXER_CHARACTER_REPEAT_END . '"');
+					throw new Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . LEXER_CHARACTER_REPEAT_END . '"');
 
 				++$i;
 			}
@@ -195,6 +194,7 @@ class	Lexer
 				$min = 1;
 			}
 
+			// Update lexer states
 			$actives = $tails;
 			$repeat = max ($min, $max);
 			$tails = array ();
@@ -518,14 +518,14 @@ if (ord ($character) < 256)
 
 		foreach ($this->branches as $branch)
 		{
-			$next = $branch->to;
+			$target = $branch->to;
 
-			if ($next !== $this)
-				++$next->parents;
+			if ($target !== $this)
+				++$target->parents;
 			else
-				$next = $clone;
+				$target = $clone;
 
-			$clone->branches[] = new Branch ($next, $branch->hash);
+			$clone->branches[] = new Branch ($target, $branch->hash);
 		}
 
 		return $clone;
