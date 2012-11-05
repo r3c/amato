@@ -59,27 +59,27 @@ class	Cursor
 		$this->state = $state;
 
 		// Append character to captures
-		foreach ($state->captures as $index => $flags)
+		foreach ($state->captures as $accept => $flags)
 		{
-			if (($flags & 1) === 1 && !isset ($this->orders[$index]))
+			if (($flags & 1) === 1 && !isset ($this->orders[$accept]))
 			{
-				if (!isset ($this->captures[$index]))
-					$this->captures[$index] = array ();
+				if (!isset ($this->captures[$accept]))
+					$this->captures[$accept] = array ();
 
-				$this->captures[$index][] = '';
-				$this->orders[$index] = count ($this->captures[$index]) - 1;
+				$this->captures[$accept][] = '';
+				$this->orders[$accept] = count ($this->captures[$accept]) - 1;
 			}
 
 			if (($flags & 2) === 2)
-				unset ($this->orders[$index]);
+				unset ($this->orders[$accept]);
 		}
 
-		foreach ($this->orders as $index => $order)
-			$this->captures[$index][$order] .= $character;
+		foreach ($this->orders as $accept => $order)
+			$this->captures[$accept][$order] .= $character;
 
 		// Store accepted indices and sort by length descending order
-		foreach ($state->accepts as $index)
-			$this->accepts[$index] = $this->length;
+		foreach ($state->accepts as $accept)
+			$this->accepts[$accept] = $this->length;
 
 		arsort ($this->accepts, SORT_NUMERIC);
 
@@ -100,7 +100,7 @@ class	Lexer
 	{
 		$this->matches[] = $match;
 
-		$index = count ($this->matches) - 1;
+		$accept = count ($this->matches) - 1;
 		$length = strlen ($pattern);
 		$tails = array (array ($this->start, true)); // FIXME: ugly
 
@@ -215,7 +215,7 @@ class	Lexer
 				if ($capture !== 0)
 				{
 					foreach ($actives as $active)
-						$active[0]->captures[$index] = $capture; // FIXME: ugly
+						$active[0]->captures[$accept] = $capture; // FIXME: ugly
 				}
 			}
 
@@ -232,7 +232,7 @@ class	Lexer
 				if ($capture !== 0)
 				{
 					foreach ($actives as $active)
-						$active[0]->captures[$index] = $capture; // FIXME: ugly
+						$active[0]->captures[$accept] = $capture; // FIXME: ugly
 				}
 			}
 
@@ -240,7 +240,7 @@ class	Lexer
 		}
 
 		foreach ($tails as $state)
-			$state[0]->accepts[] = $index;
+			$state[0]->accepts[] = $accept;
 	}
 
 	public function resolve (&$cursors, $callback)
@@ -253,10 +253,10 @@ class	Lexer
 			$cursor = $cursors[$i];
 
 			// Browse accepted indices sorted by length descending order
-			foreach ($cursor->accepts as $index => $length)
+			foreach ($cursor->accepts as $accept => $length)
 			{
-				$captures = isset ($cursor->captures[$index]) ? $cursor->captures[$index] : array ();
-				$match = $this->matches[$index];
+				$captures = isset ($cursor->captures[$accept]) ? $cursor->captures[$accept] : array ();
+				$match = $this->matches[$accept];
 
 				if ($callback ($cursor->offset, $length, $match, $captures))
 				{
@@ -391,7 +391,7 @@ class	State
 			if ($target === null)
 			{
 				$target = new State ();
-				$tails[] = array ($target, false); // FIXME: ugly
+				$tails[] = array ($target, true); // FIXME: ugly
 			}
 
 			$this->branches[] = new Branch ($target, $hash);
@@ -406,8 +406,8 @@ class	State
 	{
 		$hash = array_flip ($characters);
 
-		// Assign cycle to current state if it has no branches
-		if (count ($this->branches) === 0)
+		// Create cycle on current state if it has no branches and no accepts
+		if (count ($this->accepts) === 0 && count ($this->branches) === 0)
 		{
 			$this->branches[] = new Branch ($this, $hash);
 
@@ -415,8 +415,6 @@ class	State
 		}
 
 		// Update existing cycle if one can be found
-		$count = count ($hash);
-
 		for ($i = count ($this->branches); $i-- > 0; )
 		{
 			$branch = $this->branches[$i];
@@ -469,7 +467,7 @@ class	State
 		// Disambiguate cycles by forwarding them to branches
 		$tails = array ();
 
-		foreach ($this->connect ($characters, $target, true) as $state) // FIXME: ugly
+		foreach ($this->connect ($characters, $target, true) as $state) // FIXME: ugly, possibly wrong
 			$tails = array_merge ($tails, $state[0]->cycle ($characters, $target)); // FIXME: ugly
 
 		$tails[] = array ($this, false); // FIXME: ugly

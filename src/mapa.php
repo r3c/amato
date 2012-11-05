@@ -1,5 +1,7 @@
 <?php
 
+define ('TEMP_TEST', true);
+
 /*
 ** Internal constants.
 */
@@ -9,10 +11,6 @@ define ('MAPA_ACTION_START',	2);
 define ('MAPA_ACTION_STEP',		3);
 define ('MAPA_ACTION_STOP',		4);
 
-define ('MAPA_BRANCH_INVALID',	0);
-define ('MAPA_BRANCH_SHARED',	1);
-define ('MAPA_BRANCH_UNIQUE',	2);
-
 define ('MAPA_DECODE_PARAM',	0);
 define ('MAPA_DECODE_PLAIN',	1);
 
@@ -20,7 +18,15 @@ define ('MAPA_PATTERN_BEGIN',	'(');
 define ('MAPA_PATTERN_END',		')');
 define ('MAPA_PATTERN_ESCAPE',	'\\');
 define ('MAPA_PATTERN_LOOP',	'*');
-
+if (TEMP_TEST){
+define ('MAPA_STATE_CYCLE',		0);
+define ('MAPA_STATE_EMPTY',		1);
+define ('MAPA_STATE_MULTI',		2);
+}else{
+define ('MAPA_STATE_INVALID',	0);
+define ('MAPA_STATE_SHARED',	1);
+define ('MAPA_STATE_UNIQUE',	2);
+}
 define ('MAPA_TOKEN_ESCAPE',	'\\');
 define ('MAPA_TOKEN_PARAM',		',');
 define ('MAPA_TOKEN_PLAIN',		'|');
@@ -114,7 +120,7 @@ class	MaPa
 
 		// Process rules
 		$decodes = array ();
-		$tree = null;
+		$root = new MaPaState (MAPA_STATE_EMPTY, null);
 
 		foreach ($rules as $name => $rule)
 		{
@@ -126,15 +132,17 @@ class	MaPa
 				$decode = array ();
 				$keys = array ();
 				$length = strlen ($pattern);
-				$node =& $tree;
 				$type = $behavior[0];
 				$value = isset ($behavior[1]) ? $behavior[1] : '';
-
+if (TEMP_TEST){
+				$state = $root;
+}
+else{
+				$node =& $tree;
+				$state = null;
+}
 				for ($i = 0; $i < $length; ++$i)
 				{
-					unset ($branch);
-					unset ($target);
-
 					switch ($pattern[$i])
 					{
 						case MAPA_PATTERN_BEGIN:
@@ -151,45 +159,72 @@ class	MaPa
 							switch ($pattern[$i])
 							{
 								case MAPA_PATTERN_LOOP:
-									$branch = array (&$node, MAPA_BRANCH_SHARED, $count, null);
+if (TEMP_TEST){
+									if ($state->type !== MAPA_STATE_EMPTY)
+										throw new Exception  ('can\'r reuse incompatible state with class "' . $class . '" for pattern "' . $pattern . '" in rule "' . $name . '"');
 
+									$state->type = MAPA_STATE_CYCLE;
+
+									$next = $state;
+}else{
+									$state = new MaPaState (MAPA_STATE_SHARED, $count);
+									$state->node =& $node;
+}
 									++$i;
 
 									break;
 
 								default:
-									$branch = array (null, MAPA_BRANCH_SHARED, $count, null);
+if (TEMP_TEST){
+									if ($state->type !== MAPA_STATE_EMPTY && $this->type !== MAPA_STATE_MULTI)
+										throw new Exception  ('can\'r reuse incompatible state with class "' . $class . '" for pattern "' . $pattern . '" in rule "' . $name . '"');
 
+									$state->type = MAPA_STATE_MULTI;
+
+									$next = new MaPaState (MAPA_STATE_EMPTY, $count);
+}else{
+									$state = new MaPaState (MAPA_STATE_SHARED, $count);
+}
 									break;
 							}
 
-							// Define target branch depending on special mode
+							// Define target state depending on special mode
 							if (!$specials[$class][0])
 							{
-								$target = array (null, MAPA_BRANCH_INVALID, null, null);
+if (TEMP_TEST){
+								$target = new MaPaState (MAPA_STATE_EMPTY, null);
+
+								if (!$state->addDefault ($next))
+									throw new Exception ('ambiguous default transition of class "' . $class . '" for pattern "' . $pattern . '" in rule "' . $name . '"');
+}else{
+								$target = new MaPaState (MAPA_STATE_INVALID, null);
 
 								if (isset ($node['']))
 									throw new Exception ('ambiguous default transition of class "' . $class . '" for pattern "' . $pattern . '" in rule "' . $name . '"');
 
-								$node[''] =& $branch;
+								$node[''] = $state;
+}
 							}
 							else
-								$target =& $branch;
+								//$target = $next;
+								$target = $state;
 
-							// Assign target branch to each class character
+							// Assign target state to each class character
 							foreach ($specials[$class][1] as $character)
 							{
+if (TEMP_TEST){
+								if (!$state->addCharacter ($character, $target))
+									throw new Exception ('ambiguous character "' . $character . '" of class #' . $class . ' for pattern "' . $pattern . '" in rule "' . $name . '"');
+}else{
 								if (isset ($node[$character]))
 									throw new Exception ('ambiguous character "' . $character . '" of class #' . $class . ' for pattern "' . $pattern . '" in rule "' . $name . '"');
 
-								$node[$character] =& $target;
+								$node[$character] = $target;
+}
 							}
 
 							$decode[] = array (MAPA_DECODE_PARAM, $count);
 							$keys[] = $count++;
-
-							if ($branch[1] === MAPA_BRANCH_UNIQUE)
-								$node =& $branch[0];
 
 							break;
 
@@ -199,30 +234,47 @@ class	MaPa
 
 							$character = $pattern[$i];
 							$decode[] = array (MAPA_DECODE_PLAIN, $character);
+if (TEMP_TEST){
+							$next = $state->getCharacter ($character);
 
+							if ($next === null)
+							{
+								$next = new MaPaState (MAPA_STATE_EMPTY, null);
+							
+								$state->addCharacter ($character, $next);
+							}
+							else if ($next->type !== MAPA_STATE_EMPTY && $state->type != MAPA_STATE_MULTI)
+								throw new Exception ('can\'t reuse incompatible state with character "' . $character . '" at position #' . $i . ' for pattern "' . $pattern . '" in rule "' . $name . '"');
+
+							if ($state->type == MAPA_STATE_EMPTY)
+								$state->type = MAPA_STATE_MULTI;
+}else{
 							if (!isset ($node[$character]))
-								$node[$character] = array (null, MAPA_BRANCH_UNIQUE, null, null);
+								$node[$character] = new MaPaState (MAPA_STATE_UNIQUE, null);
 
-							$branch =& $node[$character];
+							$state = $node[$character];
 
-							if ($branch[1] === MAPA_BRANCH_SHARED)
+							if ($state->type === MAPA_STATE_SHARED)
 								throw new Exception ('ambiguous character "' . $character . '" at position #' . $i . ' for pattern "' . $pattern . '" in rule "' . $name . '"');
 
-							$branch[1] = MAPA_BRANCH_UNIQUE;
-							$node =& $branch[0];
-
+							$state->type = MAPA_STATE_UNIQUE;
+							$node =& $state->node;
+}
 							break;
 					}
+if (TEMP_TEST){
+					$state = $next;
+}
 				}
 
 				// Register terminal node
-				if (isset ($branch))
-//					$branch[3][] = array ($name, $type, $value, $keys); // FIXME: multi-match tags
+				if ($state !== null)
+//					$state->matches[] = array ($name, $type, $value, $keys); // FIXME: multi-match tags
 				{
-					if ($branch[3] !== null)
+					if ($state->matches !== null)
 						throw new Exception ('conflict for pattern "' . $pattern . '" in rule "' . $name . '"');
 
-					$branch[3] = array ($name, $type, $value, $keys);
+					$state->matches = array ($name, $type, $value, $keys);
 				}
 
 				// Register decoding array
@@ -336,11 +388,11 @@ class	MaPa
 	{
 		global	$mapaConvert; // FIXME
 
+		$state = $codes[0];
 		$token = MAPA_VERSION;
-		$tree =& $codes[0];
 
 		// Parse plain string if a parsing tree is available
-		if ($tree !== null)
+		//if ($tree !== null)
 		{
 			$chains = array ();
 			$cursors = array ();
@@ -350,7 +402,7 @@ class	MaPa
 
 			for ($i = 0; $i <= $length; ++$i)
 			{
-				array_push ($cursors, new MaPaCursor ($tree, $i));
+				array_push ($cursors, new MaPaCursor ($state, $i));
 
 				// Move all cursors and continue while more than one is active
 				$character = $i < $length ? $plain[$i] : null;
@@ -770,62 +822,40 @@ class	MaPa
 
 class	MaPaCursor
 {
-	public function	__construct (&$tree, $start)
+	public function	__construct ($state, $start)
 	{
 		$this->captures = array ();
 		$this->length = 0;
 		$this->match = null;
-		$this->node =& $tree;
 		$this->params = array ();
 		$this->start = $start;
+		$this->state = $state;
 	}
 
 	public function	move ($character, $index)
 	{
-		// Find and follow branch to next node if possible
-		if (!isset ($this->node) || $character === null)
+		if ($this->state === null || $character === null)
 			return false;
-		else if (isset ($this->node['']))
-		{
-			if (!isset ($this->node[$character]))
-				$branch =& $this->node[''];
-			else if ($this->node[$character][1] !== MAPA_BRANCH_INVALID)
-				$branch =& $this->node[$character];
-			else
-			{
-				unset ($this->node);
 
-				return false;
-			}
-		}
-		else
-		{
-			if (isset ($this->node[$character]))
-				$branch =& $this->node[$character];
-			else
-			{
-				unset ($this->node);
+		$this->state = $this->state->next ($character);
 
-				return false;
-			}
-		}
-
-		$this->node =& $branch[0];
+		if ($this->state === null)
+			return false;
 
 		// Append character to parameters if requested
-		if ($branch[2] !== null)
+		if ($this->state->param !== null)
 		{
-			if (!isset ($this->captures[$branch[2]]))
-				$this->captures[$branch[2]] = '';
+			if (!isset ($this->captures[$this->state->param]))
+				$this->captures[$this->state->param] = '';
 
-			$this->captures[$branch[2]] .= $character;
+			$this->captures[$this->state->param] .= $character;
 		}
 
 		// Store matching information on terminal node
-		if ($branch[3] !== null)
+		if ($this->state->matches !== null)
 		{
 			$this->length = $index - $this->start;
-			$this->match =& $branch[3];
+			$this->match = $this->state->matches;
 			$this->params = $this->captures;
 
 			foreach ($this->match[3] as $key) // FIXME: ugly
@@ -838,6 +868,65 @@ class	MaPaCursor
 		}
 
 		return true;
+	}
+}
+
+class	MaPaState
+{
+	public function	__construct ($type, $param)
+	{
+		$this->matches = null;
+		$this->param = $param;
+		$this->type = $type;
+if (TEMP_TEST){
+		$this->stateCharacters = array ();
+		$this->stateDefault = null;
+}else{
+		$this->node = null;
+}
+	}
+
+	public function	addCharacter ($character, $state)
+	{
+		if (isset ($this->stateCharacters[$character]))
+			return false;
+
+		$this->stateCharacters[$character] = $state;
+
+		return true;
+	}
+
+	public function	addDefault ($state)
+	{
+		if ($this->stateDefault !== null)
+			return false;
+
+		$this->stateDefault = $state;
+
+		return true;
+	}
+
+	public function	getCharacter ($character)
+	{
+		if (isset ($this->stateCharacters[$character]))
+			return $this->stateCharacters[$character];
+
+		return null;
+	}
+
+	public function	next ($character)
+	{
+		if (isset ($this->stateCharacters[$character]))
+			$next = $this->stateCharacters[$character];
+		else if ($this->stateDefault !== null)
+			$next = $this->stateDefault;
+		else
+			$next = null;
+
+		if ($next !== null && $next->type !== MAPA_STATE_EMPTY)
+			return $next;
+
+		return null;
 	}
 }
 
