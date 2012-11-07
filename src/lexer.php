@@ -277,23 +277,25 @@ class	Lexer
 	public function	scan ($string, $callback)
 	{
 		$cursors = array ();
+		$length = strlen ($string);
 		$offset = 0;
 
-		foreach (str_split ($string) as $character)
+		for ($i = 0; $i < $length; ++$i)
 		{
 			$cursors[] = new Cursor ($this->start, $offset++);
 
 			// Move cursors and remove dead (locked with no accepts) ones
+			$character = $string[$i];
 			$flush = true;
 
-			for ($i = count ($cursors) - 1; $i >= 0; --$i)
+			for ($j = count ($cursors) - 1; $j >= 0; --$j)
 			{
-				$cursor = $cursors[$i];
+				$cursor = $cursors[$j];
 
 				if ($cursor->move ($character))
 					$flush = false;
 				else if (count ($cursor->accepts) === 0)
-					array_splice ($cursors, $i, 1);
+					array_splice ($cursors, $j, 1);
 			}
 
 			// Search for matches and drop all cursors
@@ -306,6 +308,39 @@ class	Lexer
 		}
 
 		$this->resolve ($cursors, $callback);
+	}
+}
+
+class	Range
+{
+	public function	__construct ($inclusive)
+	{
+		$this->inclusive = $inclusive;
+	}
+
+	public function	append ($from, $to)
+	{
+		throw new Exception ('not implemented');
+	}
+
+	public function	intersect ($range)
+	{
+		throw new Exception ('not implemented');
+	}
+
+	public function	remove ($range)
+	{
+		throw new Exception ('not implemented');
+	}
+
+	public function	size ()
+	{
+		throw new Exception ('not implemented');
+	}
+
+	public function	test ($character)
+	{
+		throw new Exception ('not implemented');
 	}
 }
 
@@ -345,29 +380,36 @@ class	State
 		{
 			$branch = $this->branches[$i];
 			$shares = array_intersect_key ($hash, $branch->hash);
+//			$share = $range->intersect ($branch->range);
 
 			if (count ($shares) > 0)
+//			if ($share->size () !== 0)
 			{
 				if ($branch->to === $this)
 					throw new Exception ('can\'t exit from cycle with one of cycle\'s characters');
 
 				// Remove shared characters from those to be branched
 				$hash = array_diff_key ($hash, $shares);
+//				$range = $range->remove ($share);
 				$next = $branch->to;
 
 				// Move unwanted characters to another branch if any
 				$excludes = array_diff_key ($branch->hash, $shares);
+//				$exclude = $branch->range->remove ($share);
 
 				if (count ($excludes) > 0)
+//				if ($exclude->size () !== 0)
 				{
 					$state = $next->fork ();
 
 					$this->branches[] = new Branch ($state, $excludes);
+//					$this->branches[] = new Branch ($state, $exclude);
 
 					++$state->parents;
 				}
 
 				$branch->hash = $shares;
+//				$branch->range = $share;
 
 				// Fork target state if we share it with another parent
 				if ($next->parents > 1)
@@ -387,6 +429,7 @@ class	State
 
 		// Create new branch for remaining characters if any
 		if (count ($hash) > 0)
+//		if ($range->size () !== 0)
 		{
 			if ($target === null)
 			{
@@ -395,6 +438,7 @@ class	State
 			}
 
 			$this->branches[] = new Branch ($target, $hash);
+//			$this->branches[] = new Branch ($target, $range);
 
 			++$target->parents;
 		}
@@ -410,6 +454,7 @@ class	State
 		if (count ($this->accepts) === 0 && count ($this->branches) === 0)
 		{
 			$this->branches[] = new Branch ($this, $hash);
+//			$this->branches[] = new Branch ($this, $range);
 
 			return array (array ($this, true)); // FIXME: ugly
 		}
@@ -424,39 +469,49 @@ class	State
 			if ($branch->to === $this)
 			{
 				$shares = array_intersect_key ($branch->hash, $hash);
+//				$share = $range->intersect ($branch->range);
 				$tails = array ();
 
 				// Move unwanted characters to another branch if any
 				$excludes = array_diff_key ($branch->hash, $shares);
+//				$exclude = $branch->range->remove ($share);
 
 				if (count ($excludes) > 0)
+//				if ($exclude->size () !== 0)
 				{
 					$state = $this->fork ();
 
 					$this->branches[] = new Branch ($state, $excludes);
+//					$this->branches[] = new Branch ($state, $exclude);
 
 					++$state->parents;
 				}
 
 				// Create new branch for exclusive characters
 				$includes = array_diff_key ($hash, $shares);
+//				$include = $range->remove ($share);
 
 				if (count ($includes) > 0)
+//				if ($include->size () !== 0)
 				{
 					$state = new State ();
 
 					$this->branches[] = new Branch ($state, $includes);
+//					$this->branches[] = new Branch ($state, $include);
 
 					++$state->parents;
 
 					$tails = array_merge ($tails, $state->cycle ($characters, $target));
+//					$tails = array_merge ($tails, $state->cycle ($range, $target));
 				}
 
 				// Update or remove current cycle branch
 				if (count ($shares) < 1)
+//				if ($share->size () === 0)
 					array_splice ($this->branches, $i, 1);
 				else
 					$branch->hash = $shares;
+//					$branch->range = $share;
 
 				$tails[] = array ($this, true); // FIXME: ugly
 
@@ -467,8 +522,10 @@ class	State
 		// Disambiguate cycles by forwarding them to branches
 		$tails = array ();
 
-		foreach ($this->connect ($characters, $target, true) as $state) // FIXME: ugly, possibly wrong
+		foreach ($this->connect ($characters, $target, false) as $state) // FIXME: ugly
+//		foreach ($this->connect ($range, $target, false) as $state) // FIXME: ugly
 			$tails = array_merge ($tails, $state[0]->cycle ($characters, $target)); // FIXME: ugly
+//			$tails = array_merge ($tails, $state[0]->cycle ($range, $target)); // FIXME: ugly
 
 		$tails[] = array ($this, false); // FIXME: ugly
 
