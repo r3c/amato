@@ -86,6 +86,70 @@ class	Cursor
 	}
 }
 
+class	Group
+{
+	public function	__construct ($inclusive)
+	{
+		$this->inclusive = $inclusive;
+		$this->ranges = array ();
+	}
+
+	public function	contains ($character)
+	{
+		throw new Exception ('not implemented');
+	}
+
+	public function	getExcept ($group)
+	{
+		throw new Exception ('not implemented');
+	}
+
+	public function	getInter ($group)
+	{
+		throw new Exception ('not implemented');
+	}
+
+	public function	merge ($lower, $upper)
+	{
+		$count = count ($this->ranges);
+
+		for ($i = 0; $i < $count && $lower > $this->ranges[$i][0]; )
+			++$i;
+
+		for ($j = $count; $j > 0 && ($this->ranges[$j - 1][1] === null || $upper < $this->ranges[$j - 1][1]); )
+			--$j;
+
+		$l_over = $i > 0 && ($this->ranges[$i - 1][1] === null || $lower <= $this->ranges[$i - 1][1]);
+		$u_over = $j < $count && $upper >= $this->ranges[$j][0];
+echo "bounds: $i, $j ($l_over, $u_over)<br />";
+		if ($l_over && $u_over)
+		{
+			$this->ranges[$i][1] = $this->ranges[$j - 1][1];
+
+			array_splice ($this->ranges, $i + 1, $j - $i);
+		}
+		else if ($l_over)
+		{
+			$this->ranges[$i][1] = $upper;
+
+			array_splice ($this->ranges, $i + 1, $j - $i - 1);
+		}
+		else if ($u_over)
+		{
+			$this->ranges[$j - 1][0] = $lower;
+
+			array_splice ($this->ranges, $i, $j - $i - 1);
+		}
+		else
+			array_splice ($this->ranges, $i + 1, $j - $i - 2, array (array ($lower, $upper)));
+	}
+
+	public function	size ()
+	{
+		throw new Exception ('not implemented');
+	}
+}
+
 class	Lexer
 {
 	public function	__construct ()
@@ -308,39 +372,6 @@ class	Lexer
 		}
 
 		$this->resolve ($cursors, $callback);
-	}
-}
-
-class	Range
-{
-	public function	__construct ($inclusive)
-	{
-		$this->inclusive = $inclusive;
-	}
-
-	public function	append ($from, $to)
-	{
-		throw new Exception ('not implemented');
-	}
-
-	public function	intersect ($range)
-	{
-		throw new Exception ('not implemented');
-	}
-
-	public function	remove ($range)
-	{
-		throw new Exception ('not implemented');
-	}
-
-	public function	size ()
-	{
-		throw new Exception ('not implemented');
-	}
-
-	public function	test ($character)
-	{
-		throw new Exception ('not implemented');
 	}
 }
 
