@@ -2,25 +2,26 @@
 
 /*
 ** String format modifiers for each available tag, as name => properties
+**   .alone:	optional tag alone callback, undefined if none
 **   .level:	optional nesting level (a tag can only enclose tags of lower or
 **				equal levels), default is 1
 **   .start:	optional tag begin callback, undefined if none
 **   .step:		optional tag break callback, undefined if none
-**   .stop:		tag end callback
+**   .stop:		optional tag end callback, undefined if none
 */
-$mapaFormatsHTML = array
+$htmlFormats = array
 (
 	'!'		=> array
 	(
-//		'level'		=> 1,
-		'single'	=> function ($name, $value, $params) { return $params[0]; }
-//		'start'		=> 'mapaHTMLAStart',
-//		'step'		=> 'mapaHTMLAStep',
-//		'stop'		=> 'mapaHTMLAStop'
+		'alone'	=> function ($name, $flag, $params) { return $params[0]; }
+//		'level'	=> 1,
+//		'start'	=> 'mapaHTMLAStart',
+//		'step'	=> 'mapaHTMLAStep',
+//		'stop'	=> 'mapaHTMLAStop'
 	),
 	'.'		=> array
 	(
-		'single'	=> function ($name, $value, $params) { return '<br />'; }
+		'alone'	=> function ($name, $flag, $params) { return '<br />'; }
 	),
 	'0'		=> array
 	(
@@ -88,14 +89,14 @@ $mapaFormatsHTML = array
 	),
 	'a'		=> array
 	(
-		'single'	=> 'mapaHTMLAnchorSingle',
-		'stop'		=> 'mapaHTMLAnchorStop',
+		'alone'	=> 'mapaHTMLAnchorAlone',
+		'stop'	=> 'mapaHTMLAnchorStop',
 	),
 	'align'	=> array
 	(
 		'level'	=> 2,
-		'start'	=> function ($name, $value, &$params) { $align = array ('c' => 'center', 'l' => 'left', 'r' => 'right'); $params[0] = $align[$value]; },
-		'stop'	=> function ($name, $value, $params, $body) { return $body ? '<div style="text-align: ' . $params[0] . ';">' . $body . '</div>' : ''; }
+		'start'	=> function ($name, $flag, &$params) { $align = array ('c' => 'center', 'l' => 'left', 'r' => 'right'); $params[0] = $align[$flag]; },
+		'stop'	=> function ($name, $flag, $params, $body) { return $body ? '<div style="text-align: ' . $params[0] . ';">' . $body . '</div>' : ''; }
 	),
 	'b'		=> array
 	(
@@ -104,17 +105,17 @@ $mapaFormatsHTML = array
 	'box'	=> array
 	(
 		'level'	=> 2,
-		'stop'	=> function ($name, $value, $params, $body) { return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') &gt;= 0 ? \'box box_0\' : \'box box_1\';">' . $params[0] . '</h1><div>' . $body . '</div></div>'; }
+		'stop'	=> function ($name, $flag, $params, $body) { return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') &gt;= 0 ? \'box box_0\' : \'box box_1\';">' . $params[0] . '</h1><div>' . $body . '</div></div>'; }
 	),
 	'c'		=> array
 	(
 		'level'	=> 2,
-		'stop'	=> function ($name, $value, $params, $body) { return $body ? '<div class="center">' . $body . '</div>' : ''; }
+		'stop'	=> function ($name, $flag, $params, $body) { return $body ? '<div class="center">' . $body . '</div>' : ''; }
 	),
 	'cmd'	=> array
 	(
 		'level'	=> 2,
-		'stop'	=> function ($name, $value, $params, $body) { return $body ? '<div class="cmd">' . $body . '</div>' : ''; }
+		'stop'	=> function ($name, $flag, $params, $body) { return $body ? '<div class="cmd">' . $body . '</div>' : ''; }
 	),
 	'color'	=> array
 	(
@@ -126,16 +127,16 @@ $mapaFormatsHTML = array
 	),
 	'flash'	=> array
 	(
-		'single'	=> 'mapaHTMLFlashSingle'
+		'alone'	=> 'mapaHTMLFlashAlone'
 	),
 	'font'	=> array
 	(
-		'stop'	=> function ($name, $value, $params, $body) { return $body ? '<span style="font-size: ' . max (min ((int)$params[0], 300), 50) . '%; line-height: 100%;">' . $body . '</span>' : ''; }
+		'stop'	=> function ($name, $flag, $params, $body) { return $body ? '<span style="font-size: ' . max (min ((int)$params[0], 300), 50) . '%; line-height: 100%;">' . $body . '</span>' : ''; }
 	),
 	'hr'	=> array
 	(
-		'level'		=> 2,
-		'single'	=> function ($name, $value, $params) { return '<hr />'; },
+		'alone'	=> function ($name, $flag, $params) { return '<hr />'; },
+		'level'	=> 2
 	),
 	'i'		=> array
 	(
@@ -143,7 +144,7 @@ $mapaFormatsHTML = array
 	),
 	'img'	=> array
 	(
-		'single'	=> 'mapaHTMLImageSingle'
+		'alone'	=> 'mapaHTMLImageAlone'
 	),
 	'list'	=> array
 	(
@@ -159,22 +160,22 @@ $mapaFormatsHTML = array
 	),
 	'poll'	=> array
 	(
-		'level'		=> 2,
-		'single'	=> 'mapaHTMLPollSingle'
+		'alone'	=> 'mapaHTMLPollAlone',
+		'level'	=> 2
 	),
 	'pre'	=> array
 	(
 		'level'	=> 2,
-		'stop'	=> function ($name, $value, $params, $body) { return $body ? '<pre>' . str_replace (array ("\r\n", "\r", "\n"), '<br />', $body) . '</pre>' : ''; }
+		'stop'	=> function ($name, $flag, $params, $body) { return $body ? '<pre>' . str_replace (array ("\r\n", "\r", "\n"), '<br />', $body) . '</pre>' : ''; }
 	),
 	'quote'	=> array
 	(
 		'level'	=> 2,
-		'stop'	=> function ($name, $value, $params, $body) { return $body ? '<blockquote>' . $body . '</blockquote>' : ''; }
+		'stop'	=> function ($name, $flag, $params, $body) { return $body ? '<blockquote>' . $body . '</blockquote>' : ''; }
 	),
 	'ref'	=> array
 	(
-		'single'	=> function ($name, $value, $params) { return '<a href="" onclick="getPost(event, ' . 'FIXME' . ',' . $params[0] . ');return false;">./' . $params[0] . '</a>'; }
+		'alone'	=> function ($name, $flag, $params) { return '<a href="" onclick="getPost(event, ' . 'FIXME' . ',' . $params[0] . ');return false;">./' . $params[0] . '</a>'; }
 	),
 	's'		=> array
 	(
@@ -182,11 +183,11 @@ $mapaFormatsHTML = array
 	),
 	'slap'	=> array
 	(
-		'single'	=> function ($name, $value, $params) { return '!slap ' . $params[0] . ($params[0] ? '<br /><span style="color: #990099;">&bull; FIXME slaps ' . $params[0] . ' around a bit with a large trout !</span>' : ''); }
+		'alone'	=> function ($name, $flag, $params) { return '!slap ' . $params[0] . ($params[0] ? '<br /><span style="color: #990099;">&bull; FIXME slaps ' . $params[0] . ' around a bit with a large trout !</span>' : ''); }
 	),
 	'smile'	=> array
 	(
-		'single'	=> 'mapaHTMLSmileySingle'
+		'alone'	=> 'mapaHTMLSmileyAlone'
 	),
 	'spoil'	=> array
 	(
@@ -194,7 +195,7 @@ $mapaFormatsHTML = array
 	),
 	'src'	=> array
 	(
-		'single'	=> 'mapaHTMLSourceSingle',
+		'alone'	=> 'mapaHTMLSourceAlone',
 	),
 	'sub'	=> array
 	(
@@ -210,14 +211,14 @@ $mapaFormatsHTML = array
 	)
 );
 
-function	mapaHTMLAnchorSingle ($name, $value, $params)
+function	mapaHTMLAnchorAlone ($name, $flag, $params)
 {
-	return mapaHTMLAnchorStop ($name, $value, $params, $params[0]);
+	return mapaHTMLAnchorStop ($name, $flag, $params, $params[0]);
 }
 
-function	mapaHTMLAnchorStop ($name, $value, $params, $body)
+function	mapaHTMLAnchorStop ($name, $flag, $params, $body)
 {
-	if (!preg_match ('#^([0-9A-Za-z]+://)?(([^:@]+(:[^@]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $params[0], $matches))
+	if (!preg_match ('#^([0-9A-Za-z+]+://)?(([^:@]+(:[^@]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $params[0], $matches))
 		return $body;
 
 	$href = ($matches[1] ? $matches[1] : 'http://') . $matches[2];
@@ -225,7 +226,7 @@ function	mapaHTMLAnchorStop ($name, $value, $params, $body)
 	return '<a href="' . $href . '">' . $body . '</a>';
 }
 
-function	mapaHTMLColorStop ($name, $value, $params, $body)
+function	mapaHTMLColorStop ($name, $flag, $params, $body)
 {
 	if (isset ($params[0]))
 		$attr = 'style="color: #' . $params[0] . ';"';
@@ -235,12 +236,12 @@ function	mapaHTMLColorStop ($name, $value, $params, $body)
 	return $body ? '<span ' . $attr . '>' . $body . '</span>' : '';
 }
 
-function	mapaHTMLDivStop ($name, $value, $params, $body)
+function	mapaHTMLDivStop ($name, $flag, $params, $body)
 {
 	return $body ? '<div class="' . $name . '">' . $body . '</div>' : '';
 }
 
-function	mapaHTMLFlashSingle ($name, $value, $params)
+function	mapaHTMLFlashAlone ($name, $flag, $params)
 {
 	if (isset ($params[0]) && isset ($params[1]))
 	{
@@ -253,14 +254,14 @@ function	mapaHTMLFlashSingle ($name, $value, $params)
 		$url = $params[0];
 	}
 
-	if (!preg_match ('#^([0-9A-Za-z]+://)?(([^:@]+(:[^@]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $url, $matches))
+	if (!preg_match ('#^([0-9A-Za-z+]+://)?(([^:@]+(:[^@]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $url, $matches))
 		return '';
 
 	// data="ADRESSE"
 	return '<object type="application/x-shockwave-flash" width="' . $size[0] . '" height="' . $size[1] . '"><param name="movie" value="' . (($matches[1] ? $matches[1] : 'http://') . $matches[2]) . '" /><param name="allowFullScreen" value="true" /></object>';
 }
 
-function	mapaHTMLImageSingle ($name, $value, $params)
+function	mapaHTMLImageAlone ($name, $flag, $params)
 {
 	if (isset ($params[1]))
 	{
@@ -273,7 +274,7 @@ function	mapaHTMLImageSingle ($name, $value, $params)
 		$src = $params[0];
 	}
 
-	if (!preg_match ('#^([0-9A-Za-z]+://)?([-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $src, $matches))
+	if (!preg_match ('#^([0-9A-Za-z+]+://)?([-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $src, $matches))
 		return $src;
 
 	$src = ($matches[1] ? $matches[1] : 'http://') . $matches[2];
@@ -284,7 +285,7 @@ function	mapaHTMLImageSingle ($name, $value, $params)
 		return '<img alt="img" src="' . $src . '" />';
 }
 
-function	mapaHTMLListStart ($name, $value, &$params)
+function	mapaHTMLListStart ($name, $flag, &$params)
 {
 	$params = $params + array
 	(
@@ -296,7 +297,7 @@ function	mapaHTMLListStart ($name, $value, &$params)
 	);
 }
 
-function	mapaHTMLListStep ($name, $value, &$params, $body)
+function	mapaHTMLListStep ($name, $flag, &$params, $body)
 {
 	$body = trim ($body);
 
@@ -317,12 +318,12 @@ function	mapaHTMLListStep ($name, $value, &$params, $body)
 		$params['next'] = min ($params['next'] + 1, 8);
 
 	$params['out'] .= $body;
-	$params['tag'] = $value . 'l';
+	$params['tag'] = $flag . 'l';
 }
 
-function	mapaHTMLListStop ($name, $value, $params, $body)
+function	mapaHTMLListStop ($name, $flag, $params, $body)
 {
-	mapaHTMLListStep ($name, $value, $params, $body);
+	mapaHTMLListStep ($name, $flag, $params, $body);
 
 	while ($params['level']--)
 		$params['out'] .= '</li></' . array_pop ($params['stack']) . '>';
@@ -330,7 +331,7 @@ function	mapaHTMLListStop ($name, $value, $params, $body)
 	return $params['out'];
 }
 
-function	mapaHTMLPollSingle ($name, $value, $params)
+function	mapaHTMLPollAlone ($name, $flag, $params)
 {
 	$s = (int)$params[0];
 
@@ -339,11 +340,11 @@ function	mapaHTMLPollSingle ($name, $value, $params)
 	return $sondINC;
 }
 
-function	mapaHTMLSmileySingle ($name, $value, $params)
+function	mapaHTMLSmileyAlone ($name, $flag, $params)
 {
 	static	$natives;
 
-	switch ($value)
+	switch ($flag)
 	{
 		case '0':
 			$alt = ':D';
@@ -438,7 +439,7 @@ function	mapaHTMLSmileySingle ($name, $value, $params)
 	return '<img alt="' . $alt . '" src="' . $src . '" />';
 }
 
-function	mapaHTMLSourceSingle ($name, $value, $params)
+function	mapaHTMLSourceAlone ($name, $flag, $params)
 {
 	global	$db;
 
@@ -450,12 +451,12 @@ function	mapaHTMLSourceSingle ($name, $value, $params)
 	return '<center><b>' . $GLOBALS['_LANG_num_src'] . $params[0] . ' N/A</b></center>';
 }
 
-function	mapaHTMLSpanStop ($name, $value, $params, $body)
+function	mapaHTMLSpanStop ($name, $flag, $params, $body)
 {
 	return $body ? '<span class="' . $name . '">' . $body . '</span>' : '';
 }
 
-function	mapaHTMLTagStop ($name, $value, $params, $body)
+function	mapaHTMLTagStop ($name, $flag, $params, $body)
 {
 	return $body ? '<' . $name . '>' . $body . '</' . $name . '>' : '';
 }

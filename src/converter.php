@@ -16,19 +16,25 @@ class	Converter
 
 		foreach ($rules as $name => $rule)
 		{
-			$limit = isset ($rule['limit']) ? (int)$rule['limit'] : null;
+			if (isset ($rule['limit']))
+				$limit = (int)$rule['limit'];
+			else
+				$limit = null;
 
-			foreach ($rule['tags'] as $pattern => $behavior)
+			if (isset ($rule['tags']))
 			{
-				$match = array
-				(
-					$name,
-					$limit,
-					$behavior[0],
-					count ($behavior) > 1 ? $behavior[1] : null
-				);
+				foreach ($rule['tags'] as $pattern => $options)
+				{
+					$match = array
+					(
+						$name,
+						$limit,
+						$options[0],
+						count ($options) > 1 ? $options[1] : null
+					);
 
-				$lexer->assign ($pattern, $match);
+					$lexer->assign ($pattern, $match);
+				}
 			}
 		}
 
@@ -83,14 +89,14 @@ class	Converter
 			// Set start of chain to be flushed
 			switch ($action)
 			{
-				case ENCODER_ACTION_LITERAL:
-					$literal = !$literal;
-
+				case ENCODER_ACTION_ALONE:
 					--$flush;
 
 					break;
 
-				case ENCODER_ACTION_SINGLE:
+				case ENCODER_ACTION_LITERAL:
+					$literal = !$literal;
+
 					--$flush;
 
 					break;

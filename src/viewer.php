@@ -48,7 +48,7 @@ class	Viewer
 			// Initialize action effect
 			switch ($action)
 			{
-				case ENCODER_ACTION_SINGLE:
+				case ENCODER_ACTION_ALONE:
 				case ENCODER_ACTION_START:
 					// Get precedence level for this modifier
 					if (isset ($format['level']))
@@ -72,8 +72,8 @@ class	Viewer
 					for ($last = count ($stack); $last > 0 && $level > $stack[$last - 1][0]; )
 						--$last;
 
-					// Action "single": close all crossed tags
-					if ($action === ENCODER_ACTION_SINGLE)
+					// Action "alone": close all crossed tags
+					if ($action === ENCODER_ACTION_ALONE)
 						$close = $last;
 
 					// Action "start": call initializer and insert modifier
@@ -146,11 +146,11 @@ class	Viewer
 			switch ($action)
 			{
 				// Generate body and insert to string
-				case ENCODER_ACTION_SINGLE:
-					// Use "single" callback to generate tag body if available
-					if (isset ($format['single']))
+				case ENCODER_ACTION_ALONE:
+					// Use "alone" callback to generate tag body if available
+					if (isset ($format['alone']))
 					{
-						$result = $format['single'] ($name, $flag, $params);
+						$result = $format['alone'] ($name, $flag, $params);
 
 						$plain = substr_replace ($plain, $result, $index, 0);
 						$index += strlen ($result);

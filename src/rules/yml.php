@@ -1,21 +1,21 @@
 <?php
 
-define ('YML_TYPE_BEGIN',		0);
-define ('YML_TYPE_BETWEEN',		1);
-define ('YML_TYPE_END',			2);
-define ('YML_TYPE_LITERAL',		3);
-define ('YML_TYPE_RESUME',		4);
-define ('YML_TYPE_SINGLE',		5);
+define ('YML_TYPE_ALONE',		0);
+define ('YML_TYPE_BEGIN',		1);
+define ('YML_TYPE_BETWEEN',		2);
+define ('YML_TYPE_END',			3);
+define ('YML_TYPE_LITERAL',		4);
+define ('YML_TYPE_RESUME',		5);
 define ('YML_TYPE_SWITCH',		6);
 
 $ymlActions = array
 (
+	YML_TYPE_ALONE		=> array (ENCODER_ACTION_ALONE, ENCODER_ACTION_ALONE),
 	YML_TYPE_BEGIN		=> array (ENCODER_ACTION_START, ENCODER_ACTION_START),
 	YML_TYPE_BETWEEN	=> array (null, ENCODER_ACTION_STEP),
 	YML_TYPE_END		=> array (null, ENCODER_ACTION_STOP),
 	YML_TYPE_LITERAL	=> array (ENCODER_ACTION_LITERAL, ENCODER_ACTION_LITERAL),
 	YML_TYPE_RESUME		=> array (ENCODER_ACTION_START, ENCODER_ACTION_STEP),
-	YML_TYPE_SINGLE		=> array (ENCODER_ACTION_SINGLE, ENCODER_ACTION_SINGLE),
 	YML_TYPE_SWITCH		=> array (ENCODER_ACTION_START, ENCODER_ACTION_STOP)
 );
 
@@ -28,17 +28,17 @@ $ymlRules = array
 (
 /*	'!'		=> array
 	(
-//		'limit'		=> 100,
+//		'limit'	=> 100,
 		'tags'	=> array
 		(
-			'\\\\(any)'	=> array (YML_TYPE_SINGLE)
+			'\\\\(any)'	=> array (YML_TYPE_ALONE)
 		)
 	),*/
 	'.'		=> array
 	(
 		'tags'	=> array
 		(
-			"\r\n"	=> array (YML_TYPE_SINGLE)
+			"\r\n"	=> array (YML_TYPE_ALONE)
 		)
 	),
 	'0'		=> array
@@ -173,8 +173,8 @@ $ymlRules = array
 	(
 		'tags'	=> array
 		(
-			'<https{,1}://(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>'	=> array (YML_TYPE_SINGLE, 's'),
-			'[url]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>[/url]'	=> array (YML_TYPE_SINGLE),
+			'<https{,1}://(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>'	=> array (YML_TYPE_ALONE, 's'),
+			'[url]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>[/url]'	=> array (YML_TYPE_ALONE),
 			'[url=<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>]'		=> array (YML_TYPE_BEGIN),
 			'[urli=<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>]'		=> array (YML_TYPE_BEGIN, 'i'),
 			'[/url]'												=> array (YML_TYPE_END),
@@ -247,8 +247,8 @@ $ymlRules = array
 	(
 		'tags'	=> array
 		(
-			'[flash]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>[/flash]'							=> array (YML_TYPE_SINGLE),
-			'[flash=<(0-9){1,}>,<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>[/flash]'	=> array (YML_TYPE_SINGLE)
+			'[flash]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>[/flash]'							=> array (YML_TYPE_ALONE),
+			'[flash=<(0-9){1,}>,<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>[/flash]'	=> array (YML_TYPE_ALONE)
 		)
 	),
 	'font'	=> array
@@ -263,7 +263,7 @@ $ymlRules = array
 	(
 		'tags'	=> array
 		(
-			'[hr]'	=> array (YML_TYPE_SINGLE)
+			'[hr]'	=> array (YML_TYPE_ALONE)
 		)
 	),
 	'i'		=> array
@@ -279,8 +279,8 @@ $ymlRules = array
 		'limit'	=> 50,
 		'tags'	=> array
 		(
-			'[img=<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>[/img]'	=> array (YML_TYPE_SINGLE),
-			'[img]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>[/img]'				=> array (YML_TYPE_SINGLE)
+			'[img=<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>[/img]'	=> array (YML_TYPE_ALONE),
+			'[img]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>[/img]'				=> array (YML_TYPE_ALONE)
 		)
 	),
 	'list'	=> array
@@ -306,7 +306,7 @@ $ymlRules = array
 		'limit'	=> 1,
 		'tags'	=> array
 		(
-			'[sondage=<(0-9){1,}>]'	=> array (YML_TYPE_SINGLE)
+			'[sondage=<(0-9){1,}>]'	=> array (YML_TYPE_ALONE)
 		)
 	),
 	'pre'	=> array
@@ -332,7 +332,7 @@ $ymlRules = array
 	(
 		'tags'	=> array
 		(
-			'./<(0-9){1,}>'	=> array (YML_TYPE_SINGLE)
+			'./<(0-9){1,}>'	=> array (YML_TYPE_ALONE)
 		)
 	),
 	's'		=> array
@@ -347,25 +347,25 @@ $ymlRules = array
 	(
 		'tags'	=> array
 		(
-			'!slap (fixme)'	=> array (YML_TYPE_SINGLE)
+			'!slap (fixme)'	=> array (YML_TYPE_ALONE)
 		)
 	),
 	'smile'	=> array
 	(
 		'tags'	=> array
 		(
-			':D'					=> array (YML_TYPE_SINGLE, '0'),
-			':\\('					=> array (YML_TYPE_SINGLE, '1'),
-			':o'					=> array (YML_TYPE_SINGLE, '2'),
-			':)'					=> array (YML_TYPE_SINGLE, '3'),
-			':p'					=> array (YML_TYPE_SINGLE, '4'),
-			';)'					=> array (YML_TYPE_SINGLE, '5'),
-			'=)'					=> array (YML_TYPE_SINGLE, '6'),
-			'%)'					=> array (YML_TYPE_SINGLE, '7'),
-			':|'					=> array (YML_TYPE_SINGLE, '8'),
-			':S'					=> array (YML_TYPE_SINGLE, '9'),
-			'##<(0-9A-Za-z){1,}>##'	=> array (YML_TYPE_SINGLE, 'c'),
-			'#<(0-9A-Za-z){1,}>#'	=> array (YML_TYPE_SINGLE, 'n')
+			':D'					=> array (YML_TYPE_ALONE, '0'),
+			':\\('					=> array (YML_TYPE_ALONE, '1'),
+			':o'					=> array (YML_TYPE_ALONE, '2'),
+			':)'					=> array (YML_TYPE_ALONE, '3'),
+			':p'					=> array (YML_TYPE_ALONE, '4'),
+			';)'					=> array (YML_TYPE_ALONE, '5'),
+			'=)'					=> array (YML_TYPE_ALONE, '6'),
+			'%)'					=> array (YML_TYPE_ALONE, '7'),
+			':|'					=> array (YML_TYPE_ALONE, '8'),
+			':S'					=> array (YML_TYPE_ALONE, '9'),
+			'##<(0-9A-Za-z){1,}>##'	=> array (YML_TYPE_ALONE, 'c'),
+			'#<(0-9A-Za-z){1,}>#'	=> array (YML_TYPE_ALONE, 'n')
 		)
 	),
 	'spoil'	=> array
@@ -380,7 +380,7 @@ $ymlRules = array
 	(
 		'tags'	=> array
 		(
-			'[source=<(0-9){1,}>]'	=> array (YML_TYPE_SINGLE)
+			'[source=<(0-9){1,}>]'	=> array (YML_TYPE_ALONE)
 		)
 	),
 	'sub'	=> array

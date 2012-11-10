@@ -8,7 +8,7 @@ include ('../src/rules/yml.php');
 $converter = new Converter ($ymlRules, $ymlActions);
 $token = $converter->convert (file_get_contents ('../res/tag.medium.txt'));
 
-$viewer = new Viewer ($mapaFormatsHTML);
+$viewer = new Viewer ($htmlFormats);
 $out = $viewer->view ($token);
 
 if (false)

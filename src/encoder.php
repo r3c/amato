@@ -1,7 +1,7 @@
 <?php
 
-define ('ENCODER_ACTION_LITERAL',	0);
-define ('ENCODER_ACTION_SINGLE',	1);
+define ('ENCODER_ACTION_ALONE',		0);
+define ('ENCODER_ACTION_LITERAL',	1);
 define ('ENCODER_ACTION_START',		2);
 define ('ENCODER_ACTION_STEP',		3);
 define ('ENCODER_ACTION_STOP',		4);
@@ -16,8 +16,8 @@ define ('ENCODER_VERSION',			1);
 
 class	Encoder
 {
-	private static	$actionsDecode = array ('!' => ENCODER_ACTION_LITERAL, '/' => ENCODER_ACTION_SINGLE, '<' => ENCODER_ACTION_START, '-' => ENCODER_ACTION_STEP, '>' => ENCODER_ACTION_STOP);
-	private static	$actionsEncode = array (ENCODER_ACTION_LITERAL => '!', ENCODER_ACTION_SINGLE => '/', ENCODER_ACTION_START => '<', ENCODER_ACTION_STEP => '-', ENCODER_ACTION_STOP => '>');
+	private static	$actionsDecode = array ('!' => ENCODER_ACTION_LITERAL, '/' => ENCODER_ACTION_ALONE, '<' => ENCODER_ACTION_START, '-' => ENCODER_ACTION_STEP, '>' => ENCODER_ACTION_STOP);
+	private static	$actionsEncode = array (ENCODER_ACTION_LITERAL => '!', ENCODER_ACTION_ALONE => '/', ENCODER_ACTION_START => '<', ENCODER_ACTION_STEP => '-', ENCODER_ACTION_STOP => '>');
 	private static	$escapesDecode = array (ENCODER_TOKEN_PARAM => true, ENCODER_TOKEN_PLAIN => true, ENCODER_TOKEN_SCOPE => true, ENCODER_TOKEN_FLAG => true);
 	private static	$escapesEncode = array (ENCODER_TOKEN_ESCAPE => true, ENCODER_TOKEN_PARAM => true, ENCODER_TOKEN_PLAIN => true, ENCODER_TOKEN_SCOPE => true, ENCODER_TOKEN_FLAG => true);
 

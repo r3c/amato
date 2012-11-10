@@ -83,7 +83,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 if ($mode && $text)
 {
 	$converter = new Converter ($ymlRules, $ymlActions);
-	$viewer = new Viewer ($mapaFormatsHTML);
+	$viewer = new Viewer ($htmlFormats);
 
 /* FIXME */
 	if ($mode == 'debug')
