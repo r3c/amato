@@ -2,10 +2,12 @@
 
 define ('CHARSET',	'iso-8859-1');
 
-require_once ('src/formats/html.php');
-require_once ('src/legacy/debug.php');
-require_once ('src/legacy/regexp.php');
-require_once ('src/rules/yml.php');
+include ('src/converter.php');
+include ('src/viewer.php');
+include ('src/formats/html.php');
+include ('src/legacy/debug.php');
+include ('src/legacy/regexp.php');
+include ('src/rules/yml.php');
 
 function	bench ($count, $init, $loop, $stop)
 {
@@ -16,7 +18,9 @@ function	bench ($count, $init, $loop, $stop)
 	return (int)((microtime (true) - $time) * 1000);
 }
 
-$codes = MaPa::compile ($mapaRulesYML, $mapaClassesYML);
+$converter = new Converter ($ymlRules, $ymlActions);
+$viewer = new Viewer ($htmlFormats);
+
 $out = '';
 $i = 1;
 
@@ -30,9 +34,9 @@ while (($row = mysql_fetch_assoc ($q)))
 	$count = 50;
 
 	$plain = $row['post'];
-	$token = MaPa::encode (htmlspecialchars ($plain, ENT_COMPAT, CHARSET), $codes);
+	$token = $converter->convert (htmlspecialchars ($plain, ENT_COMPAT, CHARSET));
 
-	$time1 = bench ($count, 'global $token, $mapaFormatsHTML;', 'MaPa::render ($token, $mapaFormatsHTML);', '');
+	$time1 = bench ($count, 'global $token, $viewer;', '$viewer->view ($token);', '');
 	$time2 = bench ($count, 'global $plain;', 'formatRegexp ($plain);', '');
 
 	$out .= '
@@ -41,7 +45,7 @@ while (($row = mysql_fetch_assoc ($q)))
 				#' . $i++ . ' - Post (' . strlen ($plain) . ' bytes, ' . $count . ' loops): mapa = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[1]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a>
 			</div>
 			<div class="body mapa" style="display: none;">
-				' . MaPa::render ($token, $mapaFormatsHTML) . '
+				' . $viewer->view ($token) . '
 			</div>
 		</div>';
 }
