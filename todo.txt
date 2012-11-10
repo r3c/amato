@@ -12,10 +12,13 @@ X Fix bug: [b]aa[hr]bb[/b]
 X Order tags by name, remove when resolved and push to scopes array
 X Handle special case for <pre> tag in encoder
 X Make first started tag match instead of first ended
+X Fix bug: [list]##coin[/list] (first # is ignored)
+X Allow parameters with 1+ characters
+X Limits should be verified by scanner, not renderer
 - Implement missing yAronet tags (see format.yn.php)
-- Fix bug: [list]##coin[/list] (first # is ignored)
 - Allow multiple matches for same tag
-- Fix bug: ## (no parameter, no decoding)
-- Allow named parameters
-- Allow parameters with 1+ characters
+- Fix bug: ## (no parameter capture problem)
 - Parameters capture should be reset only when appropriate
+- Allow tokenized string decoding
+- Allow negative character groups
+- Handle escape sequence

@@ -6,7 +6,7 @@
 
 <?php
 
-include ('../src/lexer.php');
+include ('../src/scanner.php');
 
 $files = array
 (

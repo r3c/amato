@@ -619,3 +619,5 @@ if (ord ($character) < 256)
 		return $clone;
 	}
 }
+
+?>

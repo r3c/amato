@@ -2,6 +2,8 @@
 
 define ('CHARSET',	'utf-8');
 
+include ('src/converter.php');
+include ('src/viewer.php');
 include ('src/formats/html.php');
 include ('src/legacy/debug.php');
 include ('src/rules/yml.php');
@@ -80,7 +82,9 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 
 if ($mode && $text)
 {
-	$codes = MaPa::compile ($mapaRulesYML, $mapaClassesYML);
+	$converter = new Converter ($ymlRules, $ymlActions);
+	$viewer = new Viewer ($mapaFormatsHTML);
+
 /* FIXME */
 	if ($mode == 'debug')
 	{
@@ -100,7 +104,7 @@ if ($mode && $text)
 				</div>
 			</div>';
 
-		$token = MaPa::encode ($plain, $codes);
+		$token = $converter->convert ($plain);
 
 		echo '
 			<div class="body">
@@ -108,7 +112,7 @@ if ($mode && $text)
 				<div class="code">' . htmlspecialchars ($token, ENT_COMPAT, CHARSET) . '</div>
 			</div>';
 
-		$render = MaPa::render ($token, $mapaFormatsHTML);
+		$render = $viewer->view ($token);
 
 		echo '
 			<div class="body">
@@ -116,7 +120,7 @@ if ($mode && $text)
 				<div class="code">' . htmlspecialchars ($render, ENT_COMPAT, CHARSET) . '</div>
 			</div>';
 
-		$plain2 = MaPa::decode ($token, $codes);
+		$plain2 = $converter->reverse ($token);
 
 		echo '
 			<div class="body">
@@ -127,7 +131,7 @@ if ($mode && $text)
 	else
 	{
 /* FIXME */
-		$result = MaPa::render (MaPa::encode (htmlspecialchars ($text, ENT_COMPAT, CHARSET), $codes), $mapaFormatsHTML);
+		$result = $viewer->view ($converter->convert (htmlspecialchars ($text, ENT_COMPAT, CHARSET)));
 
 		if ($mode == 'code')
 			$output = formatHTML ($result);

@@ -1,12 +1,9 @@
 <?php
 
-require_once ('src/mapa.php');
-
 /*
 ** String format modifiers for each available tag, as name => properties
 **   .level:	optional nesting level (a tag can only enclose tags of lower or
 **				equal levels), default is 1
-**   .limit:	optional allowed number of uses of this tag, default is 100
 **   .start:	optional tag begin callback, undefined if none
 **   .step:		optional tag break callback, undefined if none
 **   .stop:		tag end callback
@@ -16,7 +13,6 @@ $mapaFormatsHTML = array
 	'!'		=> array
 	(
 //		'level'		=> 1,
-//		'limit'		=> 100,
 		'single'	=> function ($name, $value, $params) { return $params[0]; }
 //		'start'		=> 'mapaHTMLAStart',
 //		'step'		=> 'mapaHTMLAStep',
@@ -147,7 +143,6 @@ $mapaFormatsHTML = array
 	),
 	'img'	=> array
 	(
-		'limit'		=> 50,
 		'single'	=> 'mapaHTMLImageSingle'
 	),
 	'list'	=> array
@@ -165,7 +160,6 @@ $mapaFormatsHTML = array
 	'poll'	=> array
 	(
 		'level'		=> 2,
-		'limit'		=> 1,
 		'single'	=> 'mapaHTMLPollSingle'
 	),
 	'pre'	=> array
@@ -176,7 +170,6 @@ $mapaFormatsHTML = array
 	'quote'	=> array
 	(
 		'level'	=> 2,
-		'limit'	=> 8,
 		'stop'	=> function ($name, $value, $params, $body) { return $body ? '<blockquote>' . $body . '</blockquote>' : ''; }
 	),
 	'ref'	=> array
