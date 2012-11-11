@@ -100,6 +100,9 @@ function	test ($rules, $checks)
 
 // Run some unit tests
 
+test (array ('#<a{}>#' => 1),
+array ());
+
 test (array ('a' => 1, 'b' => 2),
 array
 (

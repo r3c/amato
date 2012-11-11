@@ -1,4 +1,4 @@
-div.mapa blockquote
+div.umen blockquote
 {
 	padding:		3px 3px 3px 10px;
 	margin:			0px 30px 0px 50px;
@@ -8,42 +8,42 @@ div.mapa blockquote
 	border-left:	5px solid #336699;
 }
 
-div.mapa blockquote blockquote
+div.umen blockquote blockquote
 {
 	border-left-color:	#3B77B1;
 }
 
-div.mapa blockquote blockquote blockquote
+div.umen blockquote blockquote blockquote
 {
 	border-left-color:	#4987C3;
 }
 
-div.mapa blockquote blockquote blockquote blockquote
+div.umen blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#6197CB;
 }
 
-div.mapa blockquote blockquote blockquote blockquote blockquote
+div.umen blockquote blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#79A7D2;
 }
 
-div.mapa blockquote blockquote blockquote blockquote blockquote blockquote
+div.umen blockquote blockquote blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#91B6DA;
 }
 
-div.mapa blockquote blockquote blockquote blockquote blockquote blockquote blockquote
+div.umen blockquote blockquote blockquote blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#A9C6E3;
 }
 
-div.mapa blockquote blockquote blockquote blockquote blockquote blockquote blockquote blockquote
+div.umen blockquote blockquote blockquote blockquote blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#C1D6EA;
 }
 
-div.mapa div.box
+div.umen div.box
 {
 	padding:	3px;
 	margin:		5px;
@@ -51,22 +51,22 @@ div.mapa div.box
 	border:		1px solid #DDDDDD;
 }
 
-div.mapa div.box div
+div.umen div.box div
 {
 	padding:	4px 4px 0px 4px;
 }
 
-div.mapa div.box_0 div
+div.umen div.box_0 div
 {
 	display:	none;
 }
 
-div.mapa div.box_1 div
+div.umen div.box_1 div
 {
 	display:	block;
 }
 
-div.mapa div.box h1
+div.umen div.box h1
 {
 	padding:		3px 3px 3px 20px;
 	margin:			0px;
@@ -75,23 +75,23 @@ div.mapa div.box h1
 	cursor:			pointer;
 }
 
-div.mapa div.box_0 h1
+div.umen div.box_0 h1
 {
 	background:		#EEEEEE url('box_0.png') no-repeat 2px 1px;
 }
 
-div.mapa div.box_1 h1
+div.umen div.box_1 h1
 {
 	background:		#EEEEEE url('box_1.png') no-repeat 2px 1px;
 }
 
-div.mapa div.center
+div.umen div.center
 {
 	margin:		auto;
 	text-align:	center;
 }
 
-div.mapa div.cmd
+div.umen div.cmd
 {
 	border:			1px solid #003366;
 	border-right:	0;
@@ -101,7 +101,7 @@ div.mapa div.cmd
 	padding-left:	5px;
 }
 
-div.mapa div.modo
+div.umen div.modo
 {
 	background:		#FFEBEB;
 	border-top:		1px dashed #CC3300;
@@ -111,114 +111,114 @@ div.mapa div.modo
 	margin:			0px 30px 0px 50px;
 }
 
-div.mapa span.color0
+div.umen span.color0
 {
 	color:	white;
 }
 
-div.mapa span.color1
+div.umen span.color1
 {
 	color:	black;
 }
 
-div.mapa span.color2
+div.umen span.color2
 {
 	color:	#000066;
 }
 
-div.mapa span.color3
+div.umen span.color3
 {
 	color:	#009900;
 }
 
-div.mapa span.color4
+div.umen span.color4
 {
 	color:	#CC3300;
 }
 
-div.mapa span.color5
+div.umen span.color5
 {
 	color:	#660000;
 }
 
-div.mapa span.color6
+div.umen span.color6
 {
 	color:	#990099;
 }
 
-div.mapa span.color7
+div.umen span.color7
 {
 	color:	#FF6600;
 }
 
-div.mapa span.color8
+div.umen span.color8
 {
 	color:	yellow;
 }
 
-div.mapa span.color9
+div.umen span.color9
 {
 	color:	lime;
 }
 
-div.mapa span.color10
+div.umen span.color10
 {
 	color:	#009999;
 }
 
-div.mapa span.color11
+div.umen span.color11
 {
 	color:	aqua;
 }
 
-div.mapa span.color12
+div.umen span.color12
 {
 	color:	blue;
 }
 
-div.mapa span.color13
+div.umen span.color13
 {
 	color:	fuchsia;
 }
 
-div.mapa span.color14
+div.umen span.color14
 {
 	color:	#666666;
 }
 
-div.mapa span.color15
+div.umen span.color15
 {
 	color:	#CCCCCC;
 }
 
-div.mapa span.s
+div.umen span.s
 {
 	text-decoration:	line-through;
 }
 
-div.mapa span.spoil
+div.umen span.spoil
 {
 	padding:	0 3px 0 3px;
 	background:	white;
 	color:		white;
 }
 
-div.mapa span.spoil *
+div.umen span.spoil *
 {
 	visibility:	hidden;
 }
 
-div.mapa span.spoil:hover
+div.umen span.spoil:hover
 {
 	color:	black;
 }
 
-div.mapa span.spoil:hover *
+div.umen span.spoil:hover *
 {
 	visibility:	visible;
 }
 
-div.mapa span.u
+div.umen span.u
 {
 	text-decoration:	underline;
 }

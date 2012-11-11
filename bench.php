@@ -2,12 +2,13 @@
 
 define ('CHARSET',	'utf-8');
 
-include ('src/converter.php');
-include ('src/viewer.php');
+include ('src/definition.php');
 include ('src/formats/html.php');
+include ('src/rules/yml.php');
+include ('src/parser.php');
+include ('src/viewer.php');
 include ('src/legacy/debug.php');
 include ('src/legacy/regexp.php');
-include ('src/rules/yml.php');
 
 function	bench ($count, $init, $loop, $stop)
 {
@@ -18,8 +19,8 @@ function	bench ($count, $init, $loop, $stop)
 	return (int)((microtime (true) - $time) * 1000);
 }
 
-$converter = new Converter ($ymlRules, $ymlActions);
-$viewer = new Viewer ($htmlFormats);
+$parser = new UmenParser ($ymlMarkup, $ymlContext, '\\');
+$viewer = new UmenViewer ($htmlFormat);
 
 $out = '';
 $i = 1;
@@ -73,7 +74,7 @@ foreach ($test as $label => $params)
 	file_exists ($params['file']) or die ('Cannot open input file "' . $params['file'] . '"');
 
 	$plain = file_get_contents ($params['file']);
-	$token = $converter->convert (htmlspecialchars ($plain, ENT_COMPAT, CHARSET));
+	$token = $parser->parse (htmlspecialchars ($plain, ENT_COMPAT, CHARSET));
 
 	$time1 = bench ($params['count'], 'global $token, $viewer;', '$viewer->view ($token);', '');
 	$time2 = bench ($params['count'], 'global $plain;', 'formatRegexp ($plain);', '');

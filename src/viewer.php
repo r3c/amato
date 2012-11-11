@@ -2,16 +2,16 @@
 
 require_once (dirname (__FILE__) . '/encoder.php');
 
-class	Viewer
+class	UmenViewer
 {
 	/*
 	** Initialize a new viewer.
-	** $formats:	rendering formats
+	** $format:	render format definition
 	*/
-	public function	__construct ($formats)
+	public function	__construct ($format)
 	{
-		$this->encoder = new Encoder ();
-		$this->formats = $formats;
+		$this->encoder = new UmenEncoder ();
+		$this->format = $format;
 	}
 
 	/*
@@ -32,7 +32,6 @@ class	Viewer
 		// Apply scopes on plain text
 		$index = 0;
 		$stack = array ();
-		$uses = array ();
 
 		foreach ($scopes as $scope)
 		{
@@ -40,40 +39,25 @@ class	Viewer
 
 			$index += $delta;
 
-			if (!isset ($this->formats[$name]))
+			if (!isset ($this->format[$name]))
 				continue;
 
-			$format = $this->formats[$name];
+			$rule = $this->format[$name];
 
 			// Initialize action effect
 			switch ($action)
 			{
-				case ENCODER_ACTION_ALONE:
-				case ENCODER_ACTION_START:
+				case UMEN_ACTION_ALONE:
+				case UMEN_ACTION_START:
 					// Get precedence level for this modifier
-					if (isset ($format['level']))
-						$level = $format['level'];
-					else
-						$level = 1;
-
-					// Check usage limit for this modifier
-					if (isset ($format['limit']))
-					{
-						if (!isset ($uses[$name]))
-							$uses[$name] = 0;
-
-						if ($uses[$name] >= $format['limit'])
-							continue 2;
-
-						++$uses[$name];
-					}
+					$level = isset ($rule['level']) ? (int)$rule['level'] : 1;
 
 					// Browse pending tags with lower precedence
 					for ($last = count ($stack); $last > 0 && $level > $stack[$last - 1][0]; )
 						--$last;
 
 					// Action "alone": close all crossed tags
-					if ($action === ENCODER_ACTION_ALONE)
+					if ($action === UMEN_ACTION_ALONE)
 						$close = $last;
 
 					// Action "start": call initializer and insert modifier
@@ -81,8 +65,8 @@ class	Viewer
 					{
 						$close = $last + 1;
 
-						if (isset ($format['start']))
-							$format['start'] ($name, $flag, $params);
+						if (isset ($rule['start']))
+							$rule['start'] ($name, $flag, $params);
 
 						array_splice ($stack, $last, 0, array (array
 						(
@@ -96,8 +80,8 @@ class	Viewer
 
 					break;
 
-				case ENCODER_ACTION_STEP:
-				case ENCODER_ACTION_STOP:
+				case UMEN_ACTION_STEP:
+				case UMEN_ACTION_STOP:
 					// Search for matching tag in pending stack, cancel if none
 					for ($last = count ($stack) - 1; $last >= 0 && $stack[$last][2] != $name; )
 						--$last;
@@ -114,7 +98,7 @@ class	Viewer
 					$broken[3] = $flag;
 
 					// Action "step": close all tags before this one, excluded
-					if ($action === ENCODER_ACTION_STEP)
+					if ($action === UMEN_ACTION_STEP)
 						$close = $last + 1;
 
 					// Action "stop": close all tags before this one, included
@@ -132,10 +116,10 @@ class	Viewer
 			{
 				list ($level, $start, $name, $flag, $params) = $stack[$i];
 
-				if (isset ($this->formats[$name]['stop']))
+				if (isset ($this->format[$name]['stop']))
 				{
 					$length = $index - $start;
-					$result = $this->formats[$name]['stop'] ($name, $flag, $params, substr ($plain, $start, $length));
+					$result = $this->format[$name]['stop'] ($name, $flag, $params, substr ($plain, $start, $length));
 
 					$plain = substr_replace ($plain, $result, $start, $length);
 					$index = $start + strlen ($result);
@@ -146,11 +130,11 @@ class	Viewer
 			switch ($action)
 			{
 				// Generate body and insert to string
-				case ENCODER_ACTION_ALONE:
+				case UMEN_ACTION_ALONE:
 					// Use "alone" callback to generate tag body if available
-					if (isset ($format['alone']))
+					if (isset ($rule['alone']))
 					{
-						$result = $format['alone'] ($name, $flag, $params);
+						$result = $rule['alone'] ($name, $flag, $params);
 
 						$plain = substr_replace ($plain, $result, $index, 0);
 						$index += strlen ($result);
@@ -159,20 +143,20 @@ class	Viewer
 					break;
 
 				// Remove closed tag from the stack
-				case ENCODER_ACTION_STOP:
+				case UMEN_ACTION_STOP:
 					array_splice ($stack, $last, 1);
 
 					break;
 
 				// Call step function
-				case ENCODER_ACTION_STEP:
+				case UMEN_ACTION_STEP:
 					list ($level, $start, $name, $flag, $params) = $stack[$last];
 
 					// Use "step" callback to replace tag body if available
-					if (isset ($this->formats[$name]['step']))
+					if (isset ($this->format[$name]['step']))
 					{
 						$length = $index - $start;
-						$result = $this->formats[$name]['step'] ($name, $flag, $params, substr ($plain, $start, $length));
+						$result = $this->format[$name]['step'] ($name, $flag, $params, substr ($plain, $start, $length));
 
 						$plain = substr_replace ($plain, $result, $start, $length);
 						$index = $start + strlen ($result);

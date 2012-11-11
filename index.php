@@ -2,11 +2,11 @@
 
 define ('CHARSET',	'utf-8');
 
-include ('src/converter.php');
+include ('src/parser.php');
 include ('src/viewer.php');
+
 include ('src/formats/html.php');
-include ('src/legacy/debug.php');
-include ('src/rules/yml.php');
+include ('src/markups/yml.php');
 
 function	formatHTML ($str)
 {
@@ -51,16 +51,22 @@ function	formatW3C ($str)
 </html>', ENT_COMPAT, CHARSET);
 }
 
-$mode = isset ($_POST['mode']) ? $_POST['mode'] : '';
-$text = isset ($_POST['text']) ? $_POST['text'] : file_get_contents ('res/sample.txt');
+$mode = isset ($_POST['mode']) ? $_POST['mode'] : 'html';
+
+$options = array
+(
+	'render'	=> array ('umen', 'Show actual rendering'),
+	'tree'		=> array ('code', 'Display syntax tree'),
+	'test'		=> array ('code', 'Test parser')
+);
 
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<link href="res/style.css" rel="stylesheet" type="text/css" />
-		<link href="res/mapa.css" rel="stylesheet" type="text/css" />
+		<link href="res/umen.css" rel="stylesheet" type="text/css" />
 		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . CHARSET . '" />
-		<title>MaPa Test Page</title>
+		<title>Universal Markup Engine Test Page</title>
 	</head>
 	<body>
 		<div class="box">
@@ -69,97 +75,86 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 			</div>
 			<div class="body">
 				<form action="" method="POST">
-					<textarea name="text" rows="10" style="box-sizing: border-box; width: 100%;">' . htmlspecialchars ($text) . '</textarea>
-					<select name="mode">
-						<option' . (isset ($mode) && $mode != 'code' && $mode != 'debug' ? ' selected="selected"' : '') . ' value="mapa">Render as HTML</option>
-						<option' . (isset ($mode) && $mode == 'code' ? ' selected="selected"' : '') . ' value="code">View render tree</option>
-'/* FIXME */.'			<option' . (isset ($mode) && $mode == 'debug' ? ' selected="selected"' : '') . ' value="debug">Debug processing</option>
+					<textarea name="text" rows="10" style="box-sizing: border-box; width: 100%;">' . htmlspecialchars (isset ($_POST['text']) ? $_POST['text'] : file_get_contents ('res/sample.txt'), ENT_COMPAT, CHARSET) . '</textarea>
+					<select name="mode">';
+
+foreach ($options as $optionMode => $option)
+{
+	echo '
+						<option' . (($optionMode === $mode) ? ' selected="selected"' : '') . ' value="' . htmlspecialchars ($optionMode, ENT_COMPAT, CHARSET) . '">' . htmlspecialchars ($option[1], ENT_COMPAT, CHARSET) . '</option>';
+}
+
+echo '
+					</select>
+					using
+					<select name="markups">
+						<option value="yml">yML</option>
+					</select>
+					to
+					<select name="formats">
+						<option value="html">HTML</option>
 					</select>
 					<input type="submit" value="Format" />
 				</form>
 			</div>
 		</div>';
 
-if ($mode && $text)
+if (isset ($options[$mode]) && isset ($_POST['text']))
 {
-	$converter = new Converter ($ymlRules, $ymlActions);
-	$viewer = new Viewer ($htmlFormats);
+	$option = $options[$mode];
+	$text = $_POST['text'];
 
-/* FIXME */
-	if ($mode == 'debug')
+	$parser = new UmenParser ($ymlMarkup, $ymlContext, '\\');
+	$viewer = new UmenViewer ($htmlFormat);
+
+	$token = $parser->parse (htmlspecialchars ($text, ENT_COMPAT, CHARSET));
+	$render = $viewer->view ($token);
+
+	switch ($mode)
 	{
-		echo '
+		case 'render':
+			$output = $render;
+
+			break;
+
+		case 'test':
+			$inverse = $parser->inverse ($token);
+
+			$output =
+				'<b>plain (' . strlen ($text) . ' characters):</b><br />' . 
+				htmlspecialchars ($text, ENT_COMPAT, CHARSET) . '<hr />' .
+				'<b>token (' . strlen ($token) . ' characters):</b><br />' .
+				htmlspecialchars ($token, ENT_COMPAT, CHARSET) . '<hr />' .
+				'<b>render (' . strlen ($render) . ' characters):</b><br />' .
+				htmlspecialchars ($render, ENT_COMPAT, CHARSET) . '<hr />' .
+				'<b>inverse (' . strlen ($inverse) . ' characters):</b><br />' .
+				'<span style="color: ' . ($inverse === $text ? 'green' : 'red') . ';">' . htmlspecialchars ($inverse, ENT_COMPAT, CHARSET) . '</span>';
+
+			break;
+
+		case 'tree':
+			$output = formatHTML ($render);
+
+			break;
+	}
+
+	echo '
 		<div class="box">
 			<div class="head">
-				Debug:
-			</div>';
-
-		$plain = $text;
-
-		echo '
+				Output render:
+			</div>
+			<div class="body ' . htmlspecialchars ($option[0], ENT_COMPAT, CHARSET) . '">
+				' . $output . '
+			</div>
 			<div class="body">
-				<b>plain (' . strlen ($plain) . ' characters):</b>
-				<div class="code">
-					' . htmlspecialchars ($plain, ENT_COMPAT, CHARSET) . '
-				</div>
-			</div>';
-
-		$token = $converter->convert ($plain);
-
-		echo '
-			<div class="body">
-				<b>token (' . strlen ($token) . ' characters):</b>
-				<div class="code">' . htmlspecialchars ($token, ENT_COMPAT, CHARSET) . '</div>
-			</div>';
-
-		$render = $viewer->view ($token);
-
-		echo '
-			<div class="body">
-				<b>render (' . strlen ($render) . ' characters):</b>
-				<div class="code">' . htmlspecialchars ($render, ENT_COMPAT, CHARSET) . '</div>
-			</div>';
-
-		$plain2 = $converter->reverse ($token);
-
-		echo '
-			<div class="body">
-				<b>plain (' . strlen ($plain2) . ' characters):</b>
-				<div class="code" style="color: ' . ($plain == $plain2 ? 'green' : 'red') . ';">' . htmlspecialchars ($plain2, ENT_COMPAT, CHARSET) . '</div>
-			</div>';
-	}
-	else
-	{
-/* FIXME */
-		$result = $viewer->view ($converter->convert (htmlspecialchars ($text, ENT_COMPAT, CHARSET)));
-
-		if ($mode == 'code')
-			$output = formatHTML ($result);
-		else
-			$output = $result;
-
-		echo '
-			<div class="box">
-				<div class="head">
-					Formatted output:
-				</div>
-				<div class="body ' . htmlspecialchars ($mode, ENT_COMPAT, CHARSET) . '">
-					' . $output . '
-				</div>
-				<div class="body">
-					<form action="http://validator.w3.org/check" method="POST" target="_blank">
-						<textarea cols="1" name="fragment" rows="1" style="display: none;">' . formatW3C ($result) . '</textarea>
-						<input name="charset" type="hidden" value="' . CHARSET . '" />
-						<input type="submit" value="Submit to w3c validator" />
-					</form>
-				</div>
-			</div>';
-/* FIXME */
-	}
-/* FIXME */
+				<form action="http://validator.w3.org/check" method="POST" target="_blank">
+					<textarea cols="1" name="fragment" rows="1" style="display: none;">' . formatW3C ($render) . '</textarea>
+					<input name="charset" type="hidden" value="' . CHARSET . '" />
+					<input type="submit" value="Submit to w3c validator" />
+				</form>
+			</div>
+		</div>';
 }
-
-profile (null);
 
 echo '
 	</body>

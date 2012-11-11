@@ -1,25 +1,21 @@
 <?php
 
-define ('ENCODER_ACTION_ALONE',		0);
-define ('ENCODER_ACTION_LITERAL',	1);
-define ('ENCODER_ACTION_START',		2);
-define ('ENCODER_ACTION_STEP',		3);
-define ('ENCODER_ACTION_STOP',		4);
+require_once (dirname (__FILE__) . '/definition.php');
 
-define ('ENCODER_TOKEN_ESCAPE',		'\\');
-define ('ENCODER_TOKEN_FLAG',		'=');
-define ('ENCODER_TOKEN_PARAM',		',');
-define ('ENCODER_TOKEN_PLAIN',		'|');
-define ('ENCODER_TOKEN_SCOPE',		';');
+define ('UMEN_ENCODER_TOKEN_ESCAPE',	'\\');
+define ('UMEN_ENCODER_TOKEN_FLAG',		'=');
+define ('UMEN_ENCODER_TOKEN_PARAM',		',');
+define ('UMEN_ENCODER_TOKEN_PLAIN',		'|');
+define ('UMEN_ENCODER_TOKEN_SCOPE',		';');
 
-define ('ENCODER_VERSION',			1);
+define ('UMEN_ENCODER_VERSION',			1);
 
-class	Encoder
+class	UmenEncoder
 {
-	private static	$actionsDecode = array ('!' => ENCODER_ACTION_LITERAL, '/' => ENCODER_ACTION_ALONE, '<' => ENCODER_ACTION_START, '-' => ENCODER_ACTION_STEP, '>' => ENCODER_ACTION_STOP);
-	private static	$actionsEncode = array (ENCODER_ACTION_LITERAL => '!', ENCODER_ACTION_ALONE => '/', ENCODER_ACTION_START => '<', ENCODER_ACTION_STEP => '-', ENCODER_ACTION_STOP => '>');
-	private static	$escapesDecode = array (ENCODER_TOKEN_PARAM => true, ENCODER_TOKEN_PLAIN => true, ENCODER_TOKEN_SCOPE => true, ENCODER_TOKEN_FLAG => true);
-	private static	$escapesEncode = array (ENCODER_TOKEN_ESCAPE => true, ENCODER_TOKEN_PARAM => true, ENCODER_TOKEN_PLAIN => true, ENCODER_TOKEN_SCOPE => true, ENCODER_TOKEN_FLAG => true);
+	private static	$actionsDecode = array ('!' => UMEN_ACTION_LITERAL, '/' => UMEN_ACTION_ALONE, '<' => UMEN_ACTION_START, '-' => UMEN_ACTION_STEP, '>' => UMEN_ACTION_STOP);
+	private static	$actionsEncode = array (UMEN_ACTION_LITERAL => '!', UMEN_ACTION_ALONE => '/', UMEN_ACTION_START => '<', UMEN_ACTION_STEP => '-', UMEN_ACTION_STOP => '>');
+	private static	$escapesDecode = array (UMEN_ENCODER_TOKEN_PARAM => true, UMEN_ENCODER_TOKEN_PLAIN => true, UMEN_ENCODER_TOKEN_SCOPE => true, UMEN_ENCODER_TOKEN_FLAG => true);
+	private static	$escapesEncode = array (UMEN_ENCODER_TOKEN_ESCAPE => true, UMEN_ENCODER_TOKEN_PARAM => true, UMEN_ENCODER_TOKEN_PLAIN => true, UMEN_ENCODER_TOKEN_SCOPE => true, UMEN_ENCODER_TOKEN_FLAG => true);
 
 	/*
 	** Decode tokenized string into tag scopes and plain string.
@@ -37,15 +33,15 @@ class	Encoder
 
 		$version = (int)substr ($token, 0, $i);
 
-		if ($version !== ENCODER_VERSION)
+		if ($version !== UMEN_ENCODER_VERSION)
 			return null;
 
 		// Parse header
-		while ($i < $length && $token[$i] === ENCODER_TOKEN_SCOPE)
+		while ($i < $length && $token[$i] === UMEN_ENCODER_TOKEN_SCOPE)
 		{
 			++$i;
 
-			// Parse delta
+			// Read tag delta
 			for ($j = $i; $i < $length && $token[$i] >= '0' && $token[$i] <= '9'; )
 				++$i;
 
@@ -54,45 +50,45 @@ class	Encoder
 			else
 				continue;
 
-			// Parse action
+			// Read tag action
 			if ($i < $length && isset (self::$actionsDecode[$token[$i]]))
 				$action = self::$actionsDecode[$token[$i++]];
 			else
 				continue;
 
-			// Parse name
+			// Read tag name
 			$name = '';
 
 			for ($i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
 			{
-				if ($token[$i] === ENCODER_TOKEN_ESCAPE && $i + 1 < $length)
+				if ($token[$i] === UMEN_ENCODER_TOKEN_ESCAPE && $i + 1 < $length)
 					++$i;
 
 				$name .= $token[$i];
 			}
 
-			// Parse flag
+			// Read tag flag
 			$flag = '';
 
-			if ($i < $length && $token[$i] === ENCODER_TOKEN_FLAG)
+			if ($i < $length && $token[$i] === UMEN_ENCODER_TOKEN_FLAG)
 			{
 				for (++$i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
 				{
-					if ($token[$i] === ENCODER_TOKEN_ESCAPE && $i + 1 < $length)
+					if ($token[$i] === UMEN_ENCODER_TOKEN_ESCAPE && $i + 1 < $length)
 						++$i;
 
 					$flag .= $token[$i];
 				}
 			}
 
-			// Parse params
-			for ($params = array (); $i < $length && $token[$i] === ENCODER_TOKEN_PARAM; )
+			// Read tag params
+			for ($params = array (); $i < $length && $token[$i] === UMEN_ENCODER_TOKEN_PARAM; )
 			{
 				$param = '';
 
 				for (++$i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
 				{
-					if ($token[$i] === ENCODER_TOKEN_ESCAPE && $i + 1 < $length)
+					if ($token[$i] === UMEN_ENCODER_TOKEN_ESCAPE && $i + 1 < $length)
 						++$i;
 
 					$param .= $token[$i];
@@ -104,7 +100,7 @@ class	Encoder
 			$scopes[] = array ($delta, $name, $action, $flag, $params);
 		}
 
-		if ($i >= $length || $token[$i++] !== ENCODER_TOKEN_PLAIN)
+		if ($i >= $length || $token[$i++] !== UMEN_ENCODER_TOKEN_PLAIN)
 			return null;
 
 		return array ($scopes, substr ($token, $i));
@@ -118,20 +114,20 @@ class	Encoder
 	*/
 	public function	encode ($scopes, $plain)
 	{
-		$token = ENCODER_VERSION;
+		$token = UMEN_ENCODER_VERSION;
 
 		foreach ($scopes as $scope)
 		{
 			list ($delta, $name, $action, $flag, $params) = $scope;
 
 			// Append offset delta and action to tokenized header
-			$token .= ENCODER_TOKEN_SCOPE . $delta . self::$actionsEncode[$action];
+			$token .= UMEN_ENCODER_TOKEN_SCOPE . $delta . self::$actionsEncode[$action];
 
 			// Write tag name
 			foreach (str_split ($name) as $character)
 			{
 				if (isset (self::$escapesEncode[$character]))
-					$token .= ENCODER_TOKEN_ESCAPE;
+					$token .= UMEN_ENCODER_TOKEN_ESCAPE;
 
 				$token .= $character;
 			}
@@ -139,12 +135,12 @@ class	Encoder
 			// Write tag flag
 			if ($flag !== null)
 			{
-				$token .= ENCODER_TOKEN_FLAG;
+				$token .= UMEN_ENCODER_TOKEN_FLAG;
 
 				foreach (str_split ($flag) as $character)
 				{
 					if (isset (self::$escapesEncode[$character]))
-						$token .= ENCODER_TOKEN_ESCAPE;
+						$token .= UMEN_ENCODER_TOKEN_ESCAPE;
 
 					$token .= $character;
 				}
@@ -153,19 +149,19 @@ class	Encoder
 			// Write tag parameters
 			foreach ($params as $param)
 			{
-				$token .= ENCODER_TOKEN_PARAM;
+				$token .= UMEN_ENCODER_TOKEN_PARAM;
 
 				foreach (str_split ($param) as $character)
 				{
 					if (isset (self::$escapesEncode[$character]))
-						$token .= ENCODER_TOKEN_ESCAPE;
+						$token .= UMEN_ENCODER_TOKEN_ESCAPE;
 
 					$token .= $character;
 				}
 			}
 		}
 
-		return $token . ENCODER_TOKEN_PLAIN . $plain;
+		return $token . UMEN_ENCODER_TOKEN_PLAIN . $plain;
 	}
 }
 

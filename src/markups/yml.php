@@ -1,22 +1,22 @@
 <?php
 
-define ('YML_TYPE_ALONE',		0);
-define ('YML_TYPE_BEGIN',		1);
-define ('YML_TYPE_BETWEEN',		2);
-define ('YML_TYPE_END',			3);
-define ('YML_TYPE_LITERAL',		4);
-define ('YML_TYPE_RESUME',		5);
-define ('YML_TYPE_SWITCH',		6);
+define ('YML_TYPE_ALONE',	0);
+define ('YML_TYPE_BEGIN',	1);
+define ('YML_TYPE_BETWEEN',	2);
+define ('YML_TYPE_END',		3);
+define ('YML_TYPE_LITERAL',	4);
+define ('YML_TYPE_RESUME',	5);
+define ('YML_TYPE_SWITCH',	6);
 
-$ymlActions = array
+$ymlContext = array
 (
-	YML_TYPE_ALONE		=> array (ENCODER_ACTION_ALONE, ENCODER_ACTION_ALONE),
-	YML_TYPE_BEGIN		=> array (ENCODER_ACTION_START, ENCODER_ACTION_START),
-	YML_TYPE_BETWEEN	=> array (null, ENCODER_ACTION_STEP),
-	YML_TYPE_END		=> array (null, ENCODER_ACTION_STOP),
-	YML_TYPE_LITERAL	=> array (ENCODER_ACTION_LITERAL, ENCODER_ACTION_LITERAL),
-	YML_TYPE_RESUME		=> array (ENCODER_ACTION_START, ENCODER_ACTION_STEP),
-	YML_TYPE_SWITCH		=> array (ENCODER_ACTION_START, ENCODER_ACTION_STOP)
+	YML_TYPE_ALONE		=> array (UMEN_ACTION_ALONE, UMEN_ACTION_ALONE),
+	YML_TYPE_BEGIN		=> array (UMEN_ACTION_START, UMEN_ACTION_START),
+	YML_TYPE_BETWEEN	=> array (null, UMEN_ACTION_STEP),
+	YML_TYPE_END		=> array (null, UMEN_ACTION_STOP),
+	YML_TYPE_LITERAL	=> array (UMEN_ACTION_LITERAL, UMEN_ACTION_LITERAL),
+	YML_TYPE_RESUME		=> array (UMEN_ACTION_START, UMEN_ACTION_STEP),
+	YML_TYPE_SWITCH		=> array (UMEN_ACTION_START, UMEN_ACTION_STOP)
 );
 
 /*
@@ -24,18 +24,11 @@ $ymlActions = array
 **   .limit:	optional allowed number of uses of this tag, default is 100
 **   .tags:		tag patterns list, as pattern => (type, flag)
 */
-$ymlRules = array
+$ymlMarkup = array
 (
-/*	'!'		=> array
-	(
-//		'limit'	=> 100,
-		'tags'	=> array
-		(
-			'\\\\(any)'	=> array (YML_TYPE_ALONE)
-		)
-	),*/
 	'.'		=> array
 	(
+//		'limit'	=> 100,
 		'tags'	=> array
 		(
 			"\r\n"	=> array (YML_TYPE_ALONE)

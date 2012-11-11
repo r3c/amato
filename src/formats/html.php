@@ -9,7 +9,7 @@
 **   .step:		optional tag break callback, undefined if none
 **   .stop:		optional tag end callback, undefined if none
 */
-$htmlFormats = array
+$htmlFormat = array
 (
 	'!'		=> array
 	(

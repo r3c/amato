@@ -15,10 +15,10 @@ X Make first started tag match instead of first ended
 X Fix bug: [list]##coin[/list] (first # is ignored)
 X Allow parameters with 1+ characters
 X Limits should be verified by scanner, not renderer
-- Implement missing yAronet tags (see format.yn.php)
-- Allow multiple matches for same tag
-- Fix bug: ## (no parameter capture problem)
+X Allow multiple matches for same tag
+- Fix capture on "{}" cycles bug
 - Parameters capture should be reset only when appropriate
-- Allow tokenized string decoding
-- Allow negative character groups
-- Handle escape sequence
+- Implement tokenized string un-parsing
+- Escape sequences should be restored by "inverse", not saved
+- Implement negative character groups
+- Add missing yAronet tags and formats (see format.yn.php)

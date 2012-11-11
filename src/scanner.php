@@ -1,14 +1,14 @@
 <?php
 
-define ('LEXER_CHARACTER_CAPTURE_BEGIN',	'<');
-define ('LEXER_CHARACTER_CAPTURE_END',		'>');
-define ('LEXER_CHARACTER_GROUP_BEGIN',		'(');
-define ('LEXER_CHARACTER_GROUP_END',		')');
-define ('LEXER_CHARACTER_GROUP_ESCAPE',		'\\');
-define ('LEXER_CHARACTER_GROUP_RANGE',		'-');
-define ('LEXER_CHARACTER_REPEAT_BEGIN',		'{');
-define ('LEXER_CHARACTER_REPEAT_END',		'}');
-define ('LEXER_CHARACTER_REPEAT_SPLIT',		',');
+define ('UMEN_SCANNER_CAPTURE_BEGIN',	'<');
+define ('UMEN_SCANNER_CAPTURE_END',		'>');
+define ('UMEN_SCANNER_GROUP_BEGIN',		'(');
+define ('UMEN_SCANNER_GROUP_END',		')');
+define ('UMEN_SCANNER_GROUP_ESCAPE',	'\\');
+define ('UMEN_SCANNER_GROUP_RANGE',		'-');
+define ('UMEN_SCANNER_REPEAT_BEGIN',	'{');
+define ('UMEN_SCANNER_REPEAT_END',		'}');
+define ('UMEN_SCANNER_REPEAT_SPLIT',	',');
 
 // FIXME: should not use hash tables but ranges, and support union/except operations
 class	Branch
@@ -152,8 +152,9 @@ echo "bounds: $i, $j ($l_over, $u_over)<br />";
 
 class	Lexer
 {
-	public function	__construct ()
+	public function	__construct ($escape)
 	{
+		$this->escape = $escape;
 		$this->matches = array ();
 		$this->start = new State ();
 	}
@@ -168,17 +169,17 @@ class	Lexer
 
 		for ($i = 0; $i < $length; )
 		{
-			// Parse capture directives
+			// Parse capture instructions
 			$capture = 0;
 
-			if ($i < $length && $pattern[$i] === LEXER_CHARACTER_CAPTURE_BEGIN)
+			if ($i < $length && $pattern[$i] === UMEN_SCANNER_CAPTURE_BEGIN)
 			{
 				$capture |= 1;
 
 				++$i;
 			}
 
-			if ($i < $length && $pattern[$i] === LEXER_CHARACTER_CAPTURE_END)
+			if ($i < $length && $pattern[$i] === UMEN_SCANNER_CAPTURE_END)
 			{
 				$capture |= 2;
 
@@ -189,19 +190,19 @@ class	Lexer
 			if ($i >= $length)
 				continue;
 
-			if ($pattern[$i] === LEXER_CHARACTER_GROUP_BEGIN)
+			if ($pattern[$i] === UMEN_SCANNER_GROUP_BEGIN)
 			{
 				$characters = array ();
 
-				for (++$i; $i < $length && $pattern[$i] !== LEXER_CHARACTER_GROUP_END; )
+				for (++$i; $i < $length && $pattern[$i] !== UMEN_SCANNER_GROUP_END; )
 				{
-					if ($i + 1 < $length && $pattern[$i] === LEXER_CHARACTER_GROUP_ESCAPE)
+					if ($i + 1 < $length && $pattern[$i] === UMEN_SCANNER_GROUP_ESCAPE)
 					{
 						$characters[] = $pattern[$i + 1];
 
 						$i += 2;
 					}
-					else if ($i + 2 < $length && $pattern[$i + 1] === LEXER_CHARACTER_GROUP_RANGE)
+					else if ($i + 2 < $length && $pattern[$i + 1] === UMEN_SCANNER_GROUP_RANGE)
 					{
 						for ($ord = ord ($pattern[$i]); $ord <= ord ($pattern[$i + 2]); ++$ord)
 							$characters[] = chr ($ord);
@@ -216,12 +217,12 @@ class	Lexer
 					}
 				}
 
-				if ($i >= $length || $pattern[$i] !== LEXER_CHARACTER_GROUP_END)
-					throw new Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . LEXER_CHARACTER_GROUP_END . '"');
+				if ($i >= $length || $pattern[$i] !== UMEN_SCANNER_GROUP_END)
+					throw new Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . UMEN_SCANNER_GROUP_END . '"');
 			}
 			else
 			{
-				if ($i + 1 < $length && $pattern[$i] === LEXER_CHARACTER_GROUP_ESCAPE)
+				if ($i + 1 < $length && $pattern[$i] === UMEN_SCANNER_GROUP_ESCAPE)
 					++$i;
 
 				$characters = array ($pattern[$i]);
@@ -230,14 +231,14 @@ class	Lexer
 			++$i;
 
 			// Parse repeat modifiers
-			if ($i < $length && $pattern[$i] === LEXER_CHARACTER_REPEAT_BEGIN)
+			if ($i < $length && $pattern[$i] === UMEN_SCANNER_REPEAT_BEGIN)
 			{
 				for ($j = ++$i; $i < $length && $pattern[$i] >= '0' && $pattern[$i] <= '9'; )
 					++$i;
 
 				$min = $i > $j ? (int)substr ($pattern, $j, $i - $j) : 0;
 
-				if ($i < $length && $pattern[$i] == LEXER_CHARACTER_REPEAT_SPLIT)
+				if ($i < $length && $pattern[$i] == UMEN_SCANNER_REPEAT_SPLIT)
 				{
 					for ($j = ++$i; $i < $length && $pattern[$i] >= '0' && $pattern[$i] <= '9'; )
 						++$i;
@@ -247,8 +248,8 @@ class	Lexer
 				else
 					$max = $min;
 
-				if ($i >= $length || $pattern[$i] !== LEXER_CHARACTER_REPEAT_END)
-					throw new Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . LEXER_CHARACTER_REPEAT_END . '"');
+				if ($i >= $length || $pattern[$i] !== UMEN_SCANNER_REPEAT_END)
+					throw new Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . UMEN_SCANNER_REPEAT_END . '"');
 
 				++$i;
 			}
@@ -307,6 +308,11 @@ class	Lexer
 			$state[0]->accepts[] = $accept;
 	}
 
+	public function	escape ($string)
+	{
+		throw new Exception ('not implemented');
+	}
+
 	public function resolve (&$cursors, $callback)
 	{
 		$count = count ($cursors);
@@ -338,40 +344,60 @@ class	Lexer
 		}
 	}
 
+	/*
+	** Search given string for known patterns, invoke callback for all matches
+	** and return cleaned up string (with escape characters removed).
+	** $string:		input string
+	** $callback:	matching callback (offset, length, match, captures) -> bool
+	** return:		cleaned up string
+	*/
 	public function	scan ($string, $callback)
 	{
 		$cursors = array ();
 		$length = strlen ($string);
-		$offset = 0;
 
 		for ($i = 0; $i < $length; ++$i)
 		{
-			$cursors[] = new Cursor ($this->start, $offset++);
-
-			// Move cursors and remove dead (locked with no accepts) ones
 			$character = $string[$i];
-			$flush = true;
 
-			for ($j = count ($cursors) - 1; $j >= 0; --$j)
+			// Drop cursors and remove escape character from original string
+			if ($character === $this->escape && $i + 1 < $length)
 			{
-				$cursor = $cursors[$j];
+				$cursors = array ();
+				$string = substr_replace ($string, '', $i, 1);
 
-				if ($cursor->move ($character))
-					$flush = false;
-				else if (count ($cursor->accepts) === 0)
-					array_splice ($cursors, $j, 1);
+				--$length;
 			}
 
-			// Search for matches and drop all cursors
-			if ($flush)
+			// Move cursors and drop dead (locked with no accepts) ones
+			else
 			{
-				$this->resolve ($cursors, $callback);
+				$cursors[] = new Cursor ($this->start, $i);
+				$flush = true;
 
-				$cursors = array ();
+				for ($j = count ($cursors) - 1; $j >= 0; --$j)
+				{
+					$cursor = $cursors[$j];
+
+					if ($cursor->move ($character))
+						$flush = false;
+					else if (count ($cursor->accepts) === 0)
+						array_splice ($cursors, $j, 1);
+				}
+
+				// Search for matches and drop all cursors
+				if ($flush)
+				{
+					$this->resolve ($cursors, $callback);
+
+					$cursors = array ();
+				}
 			}
 		}
 
 		$this->resolve ($cursors, $callback);
+
+		return $string;
 	}
 }
 
@@ -565,7 +591,7 @@ class	State
 
 	public function	follow ($character)
 	{
-/* FIXME: hack */
+/* FIXME: cache hack */
 if (!isset ($this->lookup))
 {
 	$this->lookup = array ();
@@ -587,7 +613,7 @@ if (ord ($character) < 256)
 
 	return null;
 }
-/* FIXME: hack */
+/* FIXME: cache hack */
 
 		foreach ($this->branches as $branch)
 		{
