@@ -19,7 +19,7 @@ X Allow multiple matches for same tag
 X Implement tokenized string un-parsing
 X Escape sequences should be restored by "inverse", not saved
 - Empty cycles cause captures to be assigned to a wrong state
-- Parameters capture should be reset only when appropriate
+- Parameters capture should be reset only when appropriate (FIXMEs in viewer)
 - Implement negative character groups
 - Add missing yAronet tags and formats (see format.yn.php)
 - Empty cycles creates holes in captures

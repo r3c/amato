@@ -1,6 +1,12 @@
 <?php
 
 /*
+** Missing:
+** - li
+** - ul
+*/
+
+/*
 ** String format modifiers for each available tag, as name => properties
 **   .alone:	optional tag alone callback, undefined if none
 **   .level:	optional nesting level (a tag can only enclose tags of lower or
@@ -11,86 +17,82 @@
 */
 $htmlFormat = array
 (
-	'!'		=> array
-	(
-		'alone'	=> function ($name, $flag, $params) { return $params[0]; }
-//		'level'	=> 1,
-//		'start'	=> 'mapaHTMLAStart',
-//		'step'	=> 'mapaHTMLAStep',
-//		'stop'	=> 'mapaHTMLAStop'
-	),
 	'.'		=> array
 	(
 		'alone'	=> function ($name, $flag, $params) { return '<br />'; }
+//		'level'	=> 1,
+//		'start'	=> 'umenHTMLAStart',
+//		'step'	=> 'umenHTMLAStep',
+//		'stop'	=> 'umenHTMLAStop'
 	),
 	'0'		=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'1'		=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'2'		=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'3'		=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'4'		=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'5'		=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'6'		=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'7'		=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'8'		=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'9'		=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'10'	=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'11'	=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'12'	=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'13'	=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'14'	=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'15'	=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'a'		=> array
 	(
-		'alone'	=> 'mapaHTMLAnchorAlone',
-		'stop'	=> 'mapaHTMLAnchorStop',
+		'alone'	=> 'umenHTMLAnchorAlone',
+		'stop'	=> 'umenHTMLAnchorStop',
 	),
 	'align'	=> array
 	(
@@ -100,7 +102,7 @@ $htmlFormat = array
 	),
 	'b'		=> array
 	(
-		'stop'	=> 'mapaHTMLTagStop'
+		'stop'	=> 'umenHTMLTagStop'
 	),
 	'box'	=> array
 	(
@@ -119,15 +121,15 @@ $htmlFormat = array
 	),
 	'color'	=> array
 	(
-		'stop'	=> 'mapaHTMLColorStop'
+		'stop'	=> 'umenHTMLColorStop'
 	),
 	'em'	=> array
 	(
-		'stop'	=> 'mapaHTMLTagStop'
+		'stop'	=> 'umenHTMLTagStop'
 	),
 	'flash'	=> array
 	(
-		'alone'	=> 'mapaHTMLFlashAlone'
+		'alone'	=> 'umenHTMLFlashAlone'
 	),
 	'font'	=> array
 	(
@@ -140,27 +142,27 @@ $htmlFormat = array
 	),
 	'i'		=> array
 	(
-		'stop'	=> 'mapaHTMLTagStop'
+		'stop'	=> 'umenHTMLTagStop'
 	),
 	'img'	=> array
 	(
-		'alone'	=> 'mapaHTMLImageAlone'
+		'alone'	=> 'umenHTMLImageAlone'
 	),
 	'list'	=> array
 	(
 		'level'	=> 2,
-		'start'	=> 'mapaHTMLListStart',
-		'step'	=> 'mapaHTMLListStep',
-		'stop'	=> 'mapaHTMLListStop'
+		'start'	=> 'umenHTMLListStart',
+		'step'	=> 'umenHTMLListStep',
+		'stop'	=> 'umenHTMLListStop'
 	),
 	'modo'	=> array
 	(
 		'level'	=> 2,
-		'stop'	=> 'mapaHTMLDivStop'
+		'stop'	=> 'umenHTMLDivStop'
 	),
 	'poll'	=> array
 	(
-		'alone'	=> 'mapaHTMLPollAlone',
+		'alone'	=> 'umenHTMLPollAlone',
 		'level'	=> 2
 	),
 	'pre'	=> array
@@ -179,7 +181,7 @@ $htmlFormat = array
 	),
 	's'		=> array
 	(
-		'stop'	=> 'mapaHTMLSpanStop'
+		'stop'	=> 'umenHTMLSpanStop'
 	),
 	'slap'	=> array
 	(
@@ -187,36 +189,47 @@ $htmlFormat = array
 	),
 	'smile'	=> array
 	(
-		'alone'	=> 'mapaHTMLSmileyAlone'
+		'alone'	=> 'umenHTMLSmileyAlone'
 	),
 	'spoil'	=> array
 	(
-		'stop'	=> 'mapaHTMLSpanStop'
+		'stop'	=> 'umenHTMLSpanStop'
 	),
 	'src'	=> array
 	(
-		'alone'	=> 'mapaHTMLSourceAlone',
+		'alone'	=> 'umenHTMLSourceAlone',
 	),
 	'sub'	=> array
 	(
-		'stop'	=> 'mapaHTMLTagStop'
+		'stop'	=> 'umenHTMLTagStop'
 	),
 	'sup'	=> array
 	(
-		'stop'	=> 'mapaHTMLTagStop'
+		'stop'	=> 'umenHTMLTagStop'
+	),
+	'table'	=> array
+	(
+		'level'	=> 2,
+		'start'	=> 'umenHTMLTableStart',
+		'step'	=> 'umenHTMLTableStep',
+		'stop'	=> 'umenHTMLTableStop'
 	),
 	'u'		=> array
 	(
-		'stop'	=> 'mapaHTMLSpanStop',
+		'stop'	=> 'umenHTMLSpanStop',
+	),
+	'uni'	=> array
+	(
+		'alone'	=> function ($name, $flag, $params) { return '&#' . $params[0] . ';'; }
 	)
 );
 
-function	mapaHTMLAnchorAlone ($name, $flag, $params)
+function	umenHTMLAnchorAlone ($name, $flag, $params)
 {
-	return mapaHTMLAnchorStop ($name, $flag, $params, $params[0]);
+	return umenHTMLAnchorStop ($name, $flag, $params, $params[0]);
 }
 
-function	mapaHTMLAnchorStop ($name, $flag, $params, $body)
+function	umenHTMLAnchorStop ($name, $flag, $params, $body)
 {
 	if (!preg_match ('#^([0-9A-Za-z+]+://)?(([^:@]+(:[^@]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $params[0], $matches))
 		return $body;
@@ -226,7 +239,7 @@ function	mapaHTMLAnchorStop ($name, $flag, $params, $body)
 	return '<a href="' . $href . '">' . $body . '</a>';
 }
 
-function	mapaHTMLColorStop ($name, $flag, $params, $body)
+function	umenHTMLColorStop ($name, $flag, $params, $body)
 {
 	if (isset ($params[0]))
 		$attr = 'style="color: #' . $params[0] . ';"';
@@ -236,12 +249,12 @@ function	mapaHTMLColorStop ($name, $flag, $params, $body)
 	return $body ? '<span ' . $attr . '>' . $body . '</span>' : '';
 }
 
-function	mapaHTMLDivStop ($name, $flag, $params, $body)
+function	umenHTMLDivStop ($name, $flag, $params, $body)
 {
 	return $body ? '<div class="' . $name . '">' . $body . '</div>' : '';
 }
 
-function	mapaHTMLFlashAlone ($name, $flag, $params)
+function	umenHTMLFlashAlone ($name, $flag, $params)
 {
 	if (isset ($params[0]) && isset ($params[1]))
 	{
@@ -261,7 +274,7 @@ function	mapaHTMLFlashAlone ($name, $flag, $params)
 	return '<object type="application/x-shockwave-flash" width="' . $size[0] . '" height="' . $size[1] . '"><param name="movie" value="' . (($matches[1] ? $matches[1] : 'http://') . $matches[2]) . '" /><param name="allowFullScreen" value="true" /></object>';
 }
 
-function	mapaHTMLImageAlone ($name, $flag, $params)
+function	umenHTMLImageAlone ($name, $flag, $params)
 {
 	if (isset ($params[1]))
 	{
@@ -285,7 +298,7 @@ function	mapaHTMLImageAlone ($name, $flag, $params)
 		return '<img alt="img" src="' . $src . '" />';
 }
 
-function	mapaHTMLListStart ($name, $flag, &$params)
+function	umenHTMLListStart ($name, $flag, &$params)
 {
 	$params = $params + array
 	(
@@ -297,11 +310,11 @@ function	mapaHTMLListStart ($name, $flag, &$params)
 	);
 }
 
-function	mapaHTMLListStep ($name, $flag, &$params, $body)
+function	umenHTMLListStep ($name, $flag, &$params, $body)
 {
 	$body = trim ($body);
 
-	if ($params['tag'] && $body)
+	if ($params['tag'] !== '' && $body)
 	{
 		for (; $params['level'] > $params['next']; --$params['level'])
 			$params['out'] .= '</li></' . array_pop ($params['stack']) . '>';
@@ -321,9 +334,9 @@ function	mapaHTMLListStep ($name, $flag, &$params, $body)
 	$params['tag'] = $flag . 'l';
 }
 
-function	mapaHTMLListStop ($name, $flag, $params, $body)
+function	umenHTMLListStop ($name, $flag, $params, $body)
 {
-	mapaHTMLListStep ($name, $flag, $params, $body);
+	umenHTMLListStep ($name, $flag, $params, $body);
 
 	while ($params['level']--)
 		$params['out'] .= '</li></' . array_pop ($params['stack']) . '>';
@@ -331,7 +344,7 @@ function	mapaHTMLListStop ($name, $flag, $params, $body)
 	return $params['out'];
 }
 
-function	mapaHTMLPollAlone ($name, $flag, $params)
+function	umenHTMLPollAlone ($name, $flag, $params)
 {
 	$s = (int)$params[0];
 
@@ -340,7 +353,7 @@ function	mapaHTMLPollAlone ($name, $flag, $params)
 	return $sondINC;
 }
 
-function	mapaHTMLSmileyAlone ($name, $flag, $params)
+function	umenHTMLSmileyAlone ($name, $flag, $params)
 {
 	static	$natives;
 
@@ -439,7 +452,7 @@ function	mapaHTMLSmileyAlone ($name, $flag, $params)
 	return '<img alt="' . $alt . '" src="' . $src . '" />';
 }
 
-function	mapaHTMLSourceAlone ($name, $flag, $params)
+function	umenHTMLSourceAlone ($name, $flag, $params)
 {
 	global	$db;
 
@@ -451,24 +464,108 @@ function	mapaHTMLSourceAlone ($name, $flag, $params)
 	return '<center><b>' . $GLOBALS['_LANG_num_src'] . $params[0] . ' N/A</b></center>';
 }
 
-function	mapaHTMLSpanStop ($name, $flag, $params, $body)
+function	umenHTMLSpanStop ($name, $flag, $params, $body)
 {
 	return $body ? '<span class="' . $name . '">' . $body . '</span>' : '';
 }
 
-function	mapaHTMLTagStop ($name, $flag, $params, $body)
+function	umenHTMLTableStart ($name, $flag, &$params)
+{
+	$params = $params + array
+	(
+		'cols'	=> 0,
+		'head'	=> false,
+		'rows'	=> array (array ()),
+		'size'	=> 0,
+		'span'	=> 0
+	);
+}
+
+function	umenHTMLTableStep ($name, $flag, &$params, $body)
+{
+	if ($body !== '')
+	{
+		$span = max ($params['span'], 1);
+
+		$params['rows'][count ($params['rows']) - 1][] = array ($params['head'], $span, $body);
+		$params['size'] += $span;
+		$params['span'] = 1;
+	}
+	else
+		++$params['span'];
+
+	switch ($flag)
+	{
+		case 'c':
+			$params['head'] = false;
+
+			break;
+
+		case 'h':
+			$params['head'] = true;
+
+			break;
+
+		case 'r':
+			$params['cols'] = max ($params['cols'], $params['size']);
+			$params['head'] = false;
+			$params['rows'][] = array ();
+			$params['size'] = 0;
+			$params['span'] = 0;
+
+			break;
+	}
+}
+
+function	umenHTMLTableStop ($name, $flag, $params, $body)
+{
+	umenHTMLTableStep ($name, $flag, $params, $body);
+
+	$rows = '';
+
+	foreach ($params['rows'] as $row)
+	{
+		$rows .= '<tr>';
+		$i = 0;
+
+		foreach ($row as $cell)
+		{
+			$span = $cell[1];
+			$tag = $cell[0] ? 'th' : 'td';
+			$text = $cell[2];
+
+			$al = substr ($text, -2) === '  ';
+			$ar = substr ($text, 0, 2) === '  ';
+
+			if ($al && $ar)
+				$align = 'center';
+			else if ($al)
+				$align = 'left';
+			else if ($ar)
+				$align = 'right';
+			else
+				$align = '';
+
+			$rows .=
+				'<' . $tag . ($span > 1 ? ' colspan="' . $span . '"' : '') . ($align !== '' ? (' style="text-align: ' . $align . ';">') : '>') .
+				preg_replace ('#^[[:blank:]]*(<br />)?(.*)(<br />)?[[:blank:]]*$#', '$2', $text) .
+				'</' . $tag . '>';
+
+			$i += $span;
+		}
+
+		if ($i < $params['cols'])
+			$rows .= '<td ' . ($params['cols'] > $i + 1 ? ' colspan="' . ($params['cols'] - $i) . '"' : '') . '></td>';
+
+		$rows .= '</tr>';
+	}
+
+	return '<table>' . $rows . '</table>';
+}
+
+function	umenHTMLTagStop ($name, $flag, $params, $body)
 {
 	return $body ? '<' . $name . '>' . $body . '</' . $name . '>' : '';
 }
-
-/*
-** Missing:
-** - table
-** - itable
-** - li
-** - ul
-** - http://
-** - unicode
-*/
 
 ?>

@@ -318,31 +318,30 @@ class	UmenScanner
 				$string = substr_replace ($string, '', $offset, 1);
 
 				--$length;
+
+				continue;
 			}
 
 			// Move cursors and drop dead ones with no accepts
-			else
+			$cursors[] = new UmenScannerCursor ($this->start, $offset);
+			$flush = true;
+
+			for ($i = count ($cursors) - 1; $i >= 0; --$i)
 			{
-				$cursors[] = new UmenScannerCursor ($this->start, $offset);
-				$flush = true;
+				$cursor = $cursors[$i];
 
-				for ($i = count ($cursors) - 1; $i >= 0; --$i)
-				{
-					$cursor = $cursors[$i];
+				if ($cursor->move ($character))
+					$flush = false;
+				else if (count ($cursor->accepts) === 0)
+					array_splice ($cursors, $i, 1);
+			}
 
-					if ($cursor->move ($character))
-						$flush = false;
-					else if (count ($cursor->accepts) === 0)
-						array_splice ($cursors, $i, 1);
-				}
+			// Search for matches and drop all cursors
+			if ($flush)
+			{
+				$this->resolve ($cursors, $callback);
 
-				// Search for matches and drop all cursors
-				if ($flush)
-				{
-					$this->resolve ($cursors, $callback);
-
-					$cursors = array ();
-				}
+				$cursors = array ();
 			}
 		}
 

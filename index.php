@@ -118,7 +118,7 @@ if (isset ($actions[$action]) && isset ($_POST['string']))
 			break;
 
 		case 'test':
-			$inverse = $parser->inverse ($token);
+			$inverse = htmlspecialchars_decode ($parser->inverse ($token), ENT_COMPAT);
 
 			$output =
 				'<b>string (' . strlen ($string) . ' characters):</b><br />' . 

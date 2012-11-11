@@ -166,7 +166,8 @@ $ymlMarkup = array
 	(
 		'tags'	=> array
 		(
-			'<https{,1}://(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>'	=> array (YML_TYPE_ALONE, 's'),
+			'<https{,1}://(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>'	=> array (YML_TYPE_ALONE, 'h'),
+			'<www.(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>'			=> array (YML_TYPE_ALONE, 'w'),
 			'[url]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>[/url]'	=> array (YML_TYPE_ALONE),
 			'[url=<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>]'		=> array (YML_TYPE_BEGIN),
 			'[urli=<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>]'		=> array (YML_TYPE_BEGIN, 'i'),
@@ -194,6 +195,7 @@ $ymlMarkup = array
 	),
 	'box'	=> array
 	(
+		'limit'	=> 20,
 		'tags'	=> array
 		(
 			'[box=<(fixme)>]'	=> array (YML_TYPE_BEGIN),
@@ -210,7 +212,8 @@ $ymlMarkup = array
 	),
 	'cmd'	=> array
 	(
-		'decode'	=> false,
+		'decode'	=> false, // FIXME
+		'limit'		=> 10,
 		'tags'		=> array
 		(
 			'[yncMd:159]'	=> array (YML_TYPE_BEGIN),
@@ -238,6 +241,7 @@ $ymlMarkup = array
 	),
 	'flash'	=> array
 	(
+		'limit'	=> 5,
 		'tags'	=> array
 		(
 			'[flash]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>[/flash]'							=> array (YML_TYPE_ALONE),
@@ -278,16 +282,18 @@ $ymlMarkup = array
 	),
 	'list'	=> array
 	(
+		'limit'	=> 200,
 		'tags'	=> array
 		(
 			'[list]'	=> array (YML_TYPE_BEGIN),
-			'#'			=> array (YML_TYPE_BETWEEN, 'o'),
-			'*'			=> array (YML_TYPE_BETWEEN, 'u'),
+			'[#]'		=> array (YML_TYPE_BETWEEN, 'o'),
+			'[*]'		=> array (YML_TYPE_BETWEEN, 'u'),
 			'[/list]'	=> array (YML_TYPE_END)
 		)
 	),
 	'modo'	=> array
 	(
+		'limit'	=> 20,
 		'tags'	=> array
 		(
 			'[modo]'	=> array (YML_TYPE_BEGIN),
@@ -296,7 +302,7 @@ $ymlMarkup = array
 	),
 	'poll'	=> array
 	(
-		'limit'	=> 1,
+		'limit'	=> 5,
 		'tags'	=> array
 		(
 			'[sondage=<(0-9){1,}>]'	=> array (YML_TYPE_ALONE)
@@ -312,7 +318,7 @@ $ymlMarkup = array
 	),
 	'quote'	=> array
 	(
-		'limit'	=> 8,
+		'limit'	=> 20,
 		'tags'	=> array
 		(
 			'[cite]'	=> array (YML_TYPE_BEGIN, 'c'),
@@ -371,6 +377,7 @@ $ymlMarkup = array
 	),
 	'src'	=> array
 	(
+		'limit'	=> 10,
 		'tags'	=> array
 		(
 			'[source=<(0-9){1,}>]'	=> array (YML_TYPE_ALONE)
@@ -392,12 +399,31 @@ $ymlMarkup = array
 			'[/sup]'	=> array (YML_TYPE_END)
 		)
 	),
+	'table'	=> array
+	(
+		'limit'	=> 200,
+		'tags'	=> array
+		(
+			'[table]'	=> array (YML_TYPE_BEGIN),
+			'[^]'		=> array (YML_TYPE_BETWEEN, 'h'),
+			'[|]'		=> array (YML_TYPE_BETWEEN, 'c'),
+			'[-]'		=> array (YML_TYPE_BETWEEN, 'r'),
+			'[/table]'	=> array (YML_TYPE_END)
+		)
+	),
 	'u'		=> array
 	(
 		'tags'	=> array
 		(
 			'[u]'	=> array (YML_TYPE_BEGIN),
 			'[/u]'	=> array (YML_TYPE_END)
+		)
+	),
+	'uni'	=> array
+	(
+		'tags'	=> array
+		(
+			'&amp;#<(a-z0-9){1,}>;'	=> array (YML_TYPE_ALONE)
 		)
 	)
 );
