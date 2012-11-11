@@ -16,9 +16,10 @@ X Fix bug: [list]##coin[/list] (first # is ignored)
 X Allow parameters with 1+ characters
 X Limits should be verified by scanner, not renderer
 X Allow multiple matches for same tag
-- Fix capture on "{}" cycles bug
+X Implement tokenized string un-parsing
+X Escape sequences should be restored by "inverse", not saved
+- Empty cycles cause captures to be assigned to a wrong state
 - Parameters capture should be reset only when appropriate
-- Implement tokenized string un-parsing
-- Escape sequences should be restored by "inverse", not saved
 - Implement negative character groups
 - Add missing yAronet tags and formats (see format.yn.php)
+- Empty cycles creates holes in captures

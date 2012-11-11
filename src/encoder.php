@@ -133,7 +133,7 @@ class	UmenEncoder
 			}
 
 			// Write tag flag
-			if ($flag !== null)
+			if ($flag !== '')
 			{
 				$token .= UMEN_ENCODER_TOKEN_FLAG;
 

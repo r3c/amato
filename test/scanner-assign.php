@@ -8,7 +8,7 @@
 
 include ('../src/scanner.php');
 
-function	debug ($lexer, $state, &$known)
+function	debug ($scanner, $state, &$known)
 {
 	for ($i = count ($known); $i-- > 0; )
 	{
@@ -23,12 +23,12 @@ function	debug ($lexer, $state, &$known)
 		$out .= ', captures = ' . implode (', ', array_map (function ($k, $v) { return "$k:$v"; }, array_keys ($state->captures), $state->captures));
 
 	if (count ($state->accepts) > 0)
-		$out .= ', accepts = ' . implode (', ', array_map (function ($index) use ($lexer) { return $lexer->matches[$index]; }, $state->accepts));
+		$out .= ', accepts = ' . implode (', ', array_map (function ($index) use ($scanner) { return $scanner->table[$index][2]; }, $state->accepts));
 
 	$out .= ')<ul>';
 
 	foreach ($state->branches as $branch)
-		$out .= '<li>' . implode (', ', array_keys ($branch->hash)) . ' =&gt; ' . debug ($lexer, $branch->to, $known) . '</li>';
+		$out .= '<li>' . implode (', ', array_keys ($branch->hash)) . ' =&gt; ' . debug ($scanner, $branch->to, $known) . '</li>';
 
 	$out .= '</ul>';
 
@@ -37,7 +37,7 @@ function	debug ($lexer, $state, &$known)
 
 function	test ($rules, $checks)
 {
-	$lexer = new Lexer ();
+	$scanner = new UmenScanner ('\\');
 
 	echo '<ul class="tree"><li>Rules:<ul>';
 
@@ -45,15 +45,15 @@ function	test ($rules, $checks)
 	{
 		echo '<li>' . $pattern . ' = ' . $match . '</li>';
 
-		$lexer->assign ($pattern, $match);
+		$scanner->assign ($pattern, $match);
 	}
 
 	echo '</ul></li>';
 
 	$known = array ();
-	$start = $lexer->start;
+	$start = $scanner->start;
 
-	echo '<li>States:<ul><li>&lt;start&gt; ' . debug ($lexer, $lexer->start, $known) . '</li></ul></li>';
+	echo '<li>States:<ul><li>&lt;start&gt; ' . debug ($scanner, $scanner->start, $known) . '</li></ul></li>';
 	echo '<li>Tests:<ul class="test">';
 
 	foreach ($checks as $string => $matches)
@@ -85,7 +85,7 @@ function	test ($rules, $checks)
 		}
 
 		if ($state !== null)
-			$results = array_map (function ($index) use ($lexer) { return $lexer->matches[$index]; }, $state->accepts);
+			$results = array_map (function ($index) use ($scanner) { return $scanner->table[$index][2]; }, $state->accepts);
 		else
 			$results = array ();
 

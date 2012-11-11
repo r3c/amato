@@ -2,6 +2,8 @@
 
 define ('UMEN_SCANNER_CAPTURE_BEGIN',	'<');
 define ('UMEN_SCANNER_CAPTURE_END',		'>');
+define ('UMEN_SCANNER_DECODE_CAPTURE',	0);
+define ('UMEN_SCANNER_DECODE_STRING',	1);
 define ('UMEN_SCANNER_GROUP_BEGIN',		'(');
 define ('UMEN_SCANNER_GROUP_END',		')');
 define ('UMEN_SCANNER_GROUP_ESCAPE',	'\\');
@@ -10,178 +12,38 @@ define ('UMEN_SCANNER_REPEAT_BEGIN',	'{');
 define ('UMEN_SCANNER_REPEAT_END',		'}');
 define ('UMEN_SCANNER_REPEAT_SPLIT',	',');
 
-// FIXME: should not use hash tables but ranges, and support union/except operations
-class	Branch
-{
-	public function	__construct ($to, $hash)
-	{
-		$this->hash = $hash;
-		$this->to = $to;
-	}
-
-	public function	contains ($character)
-	{
-		return isset ($this->hash[$character]);
-	}
-}
-
-class	Cursor
-{
-	public function	__construct ($state, $offset)
-	{
-		$this->accepts = array ();
-		$this->captures = array ();
-		$this->length = 0;
-		$this->offset = $offset;
-		$this->orders = array ();
-		$this->state = $state;
-	}
-
-	public function	move ($character)
-	{
-		// Cancel is cursor is already in a dead state
-		if ($this->state === null)
-			return false;
-
-		// Follow branch to next state if possible
-		$state = $this->state->follow ($character);
-
-		if ($state === null)
-		{
-			$this->state = null;
-
-			return false;
-		}
-
-		// Increase match length and save current state
-		$this->length += 1;
-		$this->state = $state;
-
-		// Append character to captures
-		foreach ($state->captures as $accept => $flags)
-		{
-			if (($flags & 1) === 1 && !isset ($this->orders[$accept]))
-			{
-				if (!isset ($this->captures[$accept]))
-					$this->captures[$accept] = array ();
-
-				$this->captures[$accept][] = '';
-				$this->orders[$accept] = count ($this->captures[$accept]) - 1;
-			}
-
-			if (($flags & 2) === 2)
-				unset ($this->orders[$accept]);
-		}
-
-		foreach ($this->orders as $accept => $order)
-			$this->captures[$accept][$order] .= $character;
-
-		// Store accepted indices and sort by length descending order
-		foreach ($state->accepts as $accept)
-			$this->accepts[$accept] = $this->length;
-
-		arsort ($this->accepts, SORT_NUMERIC);
-
-		return true;
-	}
-}
-
-class	Group
-{
-	public function	__construct ($inclusive)
-	{
-		$this->inclusive = $inclusive;
-		$this->ranges = array ();
-	}
-
-	public function	contains ($character)
-	{
-		throw new Exception ('not implemented');
-	}
-
-	public function	getExcept ($group)
-	{
-		throw new Exception ('not implemented');
-	}
-
-	public function	getInter ($group)
-	{
-		throw new Exception ('not implemented');
-	}
-
-	public function	merge ($lower, $upper)
-	{
-		$count = count ($this->ranges);
-
-		for ($i = 0; $i < $count && $lower > $this->ranges[$i][0]; )
-			++$i;
-
-		for ($j = $count; $j > 0 && ($this->ranges[$j - 1][1] === null || $upper < $this->ranges[$j - 1][1]); )
-			--$j;
-
-		$l_over = $i > 0 && ($this->ranges[$i - 1][1] === null || $lower <= $this->ranges[$i - 1][1]);
-		$u_over = $j < $count && $upper >= $this->ranges[$j][0];
-echo "bounds: $i, $j ($l_over, $u_over)<br />";
-		if ($l_over && $u_over)
-		{
-			$this->ranges[$i][1] = $this->ranges[$j - 1][1];
-
-			array_splice ($this->ranges, $i + 1, $j - $i);
-		}
-		else if ($l_over)
-		{
-			$this->ranges[$i][1] = $upper;
-
-			array_splice ($this->ranges, $i + 1, $j - $i - 1);
-		}
-		else if ($u_over)
-		{
-			$this->ranges[$j - 1][0] = $lower;
-
-			array_splice ($this->ranges, $i, $j - $i - 1);
-		}
-		else
-			array_splice ($this->ranges, $i + 1, $j - $i - 2, array (array ($lower, $upper)));
-	}
-
-	public function	size ()
-	{
-		throw new Exception ('not implemented');
-	}
-}
-
-class	Lexer
+class	UmenScanner
 {
 	public function	__construct ($escape)
 	{
 		$this->escape = $escape;
-		$this->matches = array ();
-		$this->start = new State ();
+		$this->start = new UmenScannerState ();
+		$this->table = array ();
 	}
 
 	public function	assign ($pattern, $match)
 	{
-		$this->matches[] = $match;
-
-		$accept = count ($this->matches) - 1;
+		$accept = count ($this->table);
+		$capture = null;
+		$decode = array ();
 		$length = strlen ($pattern);
+		$order = 0;
 		$tails = array (array ($this->start, false)); // FIXME: ugly
 
 		for ($i = 0; $i < $length; )
 		{
 			// Parse capture instructions
-			$capture = 0;
-
 			if ($i < $length && $pattern[$i] === UMEN_SCANNER_CAPTURE_BEGIN)
 			{
-				$capture |= 1;
+				$capture = $order++;
+				$decode[] = array (UMEN_SCANNER_DECODE_CAPTURE, $capture);
 
 				++$i;
 			}
 
 			if ($i < $length && $pattern[$i] === UMEN_SCANNER_CAPTURE_END)
 			{
-				$capture |= 2;
+				$capture = null;
 
 				++$i;
 			}
@@ -259,7 +121,7 @@ class	Lexer
 				$min = 1;
 			}
 
-			// Update lexer states
+			// Update scanner states
 			$actives = $tails;
 			$repeat = max ($min, $max);
 			$tails = array ();
@@ -277,7 +139,7 @@ class	Lexer
 
 				$actives = $follows;
 
-				if ($capture !== 0)
+				if ($capture !== null)
 				{
 					foreach ($actives as $active)
 						$active[0]->captures[$accept] = $capture; // FIXME: ugly
@@ -294,7 +156,7 @@ class	Lexer
 
 				$actives = $follows;
 
-				if ($capture !== 0)
+				if ($capture !== null)
 				{
 					foreach ($actives as $active)
 						$active[0]->captures[$accept] = $capture; // FIXME: ugly
@@ -302,15 +164,102 @@ class	Lexer
 			}
 
 			$tails = array_merge ($tails, $actives);
+
+			// Register constant characters to decode array
+			if ($capture === null)
+			{
+				$constant = str_repeat ($characters[0], $min);
+				$count = count ($decode);
+
+				if ($count > 0 && $decode[$count - 1][0] === UMEN_SCANNER_DECODE_STRING)
+					$decode[$count - 1][1] .= $constant;
+				else
+					$decode[] = array (UMEN_SCANNER_DECODE_STRING, $constant);
+			}
 		}
 
 		foreach ($tails as $state)
 			$state[0]->accepts[] = $accept;
+
+		$this->table[] = array ($decode, $order, $match);
+	}
+
+	public function	decode ($match, $captures)
+	{
+		$count = count ($captures);
+		$index = null;
+
+		foreach ($this->table as $accept => $compare)
+		{
+			if ($compare[1] === $count && $compare[2] === $match)
+			{
+				$index = $accept;
+
+				break;
+			}
+		}
+
+		if ($index === null)
+			return null;
+
+		$decode = $this->table[$index][0];
+		$string = '';
+
+		foreach ($decode as $segment)
+		{
+			if ($segment[0] === UMEN_SCANNER_DECODE_CAPTURE)
+				$string .= $captures[$segment[1]];
+			else
+				$string .= $segment[1];
+		}
+
+		return $string;
 	}
 
 	public function	escape ($string)
 	{
-		throw new Exception ('not implemented');
+		$cursors = array ();
+		$length = strlen ($string);
+
+		for ($offset = 0; $offset < $length; ++$offset)
+		{
+			$character = $string[$offset];
+
+			if ($character === $this->escape)
+				$insert = $offset;
+			else
+			{
+				$cursors[] = new UmenScannerCursor ($this->start, $offset);
+				$insert = null;
+
+				for ($i = count ($cursors) - 1; $i >= 0; --$i)
+				{
+					$cursor = $cursors[$i];
+					$keep = $cursor->move ($character);
+
+					if (count ($cursor->accepts) > 0)
+					{
+						$insert = $cursor->offset;
+
+						break;
+					}
+
+					if (!$keep)
+						array_splice ($cursors, $i, 1);
+				}
+			}
+
+			if ($insert !== null)
+			{
+				$cursors = array ();
+				$string = substr_replace ($string, $this->escape, $insert, 0);
+
+				++$length;
+				++$offset;
+			}
+		}
+
+		return $string;
 	}
 
 	public function resolve (&$cursors, $callback)
@@ -326,7 +275,7 @@ class	Lexer
 			foreach ($cursor->accepts as $accept => $length)
 			{
 				$captures = isset ($cursor->captures[$accept]) ? $cursor->captures[$accept] : array ();
-				$match = $this->matches[$accept];
+				$match = $this->table[$accept][2];
 
 				if ($callback ($cursor->offset, $length, $match, $captures))
 				{
@@ -356,33 +305,35 @@ class	Lexer
 		$cursors = array ();
 		$length = strlen ($string);
 
-		for ($i = 0; $i < $length; ++$i)
+		for ($offset = 0; $offset < $length; ++$offset)
 		{
-			$character = $string[$i];
+			$character = $string[$offset];
 
-			// Drop cursors and remove escape character from original string
-			if ($character === $this->escape && $i + 1 < $length)
+			// Kill cursors and remove escape character from original string
+			if ($character === $this->escape && $offset + 1 < $length)
 			{
-				$cursors = array ();
-				$string = substr_replace ($string, '', $i, 1);
+				foreach ($cursors as $cursor)
+					$cursor->kill ();
+
+				$string = substr_replace ($string, '', $offset, 1);
 
 				--$length;
 			}
 
-			// Move cursors and drop dead (locked with no accepts) ones
+			// Move cursors and drop dead ones with no accepts
 			else
 			{
-				$cursors[] = new Cursor ($this->start, $i);
+				$cursors[] = new UmenScannerCursor ($this->start, $offset);
 				$flush = true;
 
-				for ($j = count ($cursors) - 1; $j >= 0; --$j)
+				for ($i = count ($cursors) - 1; $i >= 0; --$i)
 				{
-					$cursor = $cursors[$j];
+					$cursor = $cursors[$i];
 
 					if ($cursor->move ($character))
 						$flush = false;
 					else if (count ($cursor->accepts) === 0)
-						array_splice ($cursors, $j, 1);
+						array_splice ($cursors, $i, 1);
 				}
 
 				// Search for matches and drop all cursors
@@ -401,7 +352,144 @@ class	Lexer
 	}
 }
 
-class	State
+// FIXME: should not use hash tables but ranges, and support union/except operations
+class	UmenScannerBranch
+{
+	public function	__construct ($to, $hash)
+	{
+		$this->hash = $hash;
+		$this->to = $to;
+	}
+
+	public function	contains ($character)
+	{
+		return isset ($this->hash[$character]);
+	}
+}
+
+class	UmenScannerCursor
+{
+	public function	__construct ($state, $offset)
+	{
+		$this->accepts = array ();
+		$this->captures = array ();
+		$this->length = 0;
+		$this->offset = $offset;
+		$this->state = $state;
+	}
+
+	public function	kill ()
+	{
+		$this->state = null;
+	}
+
+	public function	move ($character)
+	{
+		// Cancel is cursor is already in a dead state
+		if ($this->state === null)
+			return false;
+
+		// Follow branch to next state if possible
+		$state = $this->state->follow ($character);
+
+		if ($state === null)
+		{
+			$this->state = null;
+
+			return false;
+		}
+
+		// Increase match length and save current state
+		$this->length += 1;
+		$this->state = $state;
+
+		// Append character to captures
+		foreach ($state->captures as $accept => $order)
+		{
+			if (!isset ($this->captures[$accept]))
+				$this->captures[$accept] = array ();
+
+			if (!isset ($this->captures[$accept][$order]))
+				$this->captures[$accept][$order] = '';
+
+			$this->captures[$accept][$order] .= $character;
+		}
+
+		// Store accepted indices and sort by length descending order
+		foreach ($state->accepts as $accept)
+			$this->accepts[$accept] = $this->length;
+
+		arsort ($this->accepts, SORT_NUMERIC);
+
+		return true;
+	}
+}
+
+class	UmenScannerGroup
+{
+	public function	__construct ($inclusive)
+	{
+		$this->inclusive = $inclusive;
+		$this->ranges = array ();
+	}
+
+	public function	contains ($character)
+	{
+		throw new Exception ('not implemented');
+	}
+
+	public function	getExcept ($group)
+	{
+		throw new Exception ('not implemented');
+	}
+
+	public function	getShare ($group)
+	{
+		throw new Exception ('not implemented');
+	}
+
+	public function	merge ($lower, $upper)
+	{
+		$count = count ($this->ranges);
+
+		for ($i = 0; $i < $count && $lower > $this->ranges[$i][0]; )
+			++$i;
+
+		for ($j = $count; $j > 0 && ($this->ranges[$j - 1][1] === null || $upper < $this->ranges[$j - 1][1]); )
+			--$j;
+
+		$l_over = $i > 0 && ($this->ranges[$i - 1][1] === null || $lower <= $this->ranges[$i - 1][1]);
+		$u_over = $j < $count && $upper >= $this->ranges[$j][0];
+echo "bounds: $i, $j ($l_over, $u_over)<br />";
+		if ($l_over && $u_over)
+		{
+			$this->ranges[$i][1] = $this->ranges[$j - 1][1];
+
+			array_splice ($this->ranges, $i + 1, $j - $i);
+		}
+		else if ($l_over)
+		{
+			$this->ranges[$i][1] = $upper;
+
+			array_splice ($this->ranges, $i + 1, $j - $i - 1);
+		}
+		else if ($u_over)
+		{
+			$this->ranges[$j - 1][0] = $lower;
+
+			array_splice ($this->ranges, $i, $j - $i - 1);
+		}
+		else
+			array_splice ($this->ranges, $i + 1, $j - $i - 2, array (array ($lower, $upper)));
+	}
+
+	public function	size ()
+	{
+		throw new Exception ('not implemented');
+	}
+}
+
+class	UmenScannerState
 {
 	public function	__construct ()
 	{
@@ -437,7 +525,7 @@ class	State
 		{
 			$branch = $this->branches[$i];
 			$shares = array_intersect_key ($hash, $branch->hash);
-//			$share = $range->intersect ($branch->range);
+//			$share = $range->getShare ($branch->range);
 
 			if (count ($shares) > 0)
 //			if ($share->size () !== 0)
@@ -447,20 +535,20 @@ class	State
 
 				// Remove shared characters from those to be branched
 				$hash = array_diff_key ($hash, $shares);
-//				$range = $range->remove ($share);
+//				$range = $range->getExcept ($share);
 				$next = $branch->to;
 
 				// Move unwanted characters to another branch if any
 				$excludes = array_diff_key ($branch->hash, $shares);
-//				$exclude = $branch->range->remove ($share);
+//				$exclude = $branch->range->getExcept ($share);
 
 				if (count ($excludes) > 0)
 //				if ($exclude->size () !== 0)
 				{
 					$state = $next->fork ();
 
-					$this->branches[] = new Branch ($state, $excludes);
-//					$this->branches[] = new Branch ($state, $exclude);
+					$this->branches[] = new UmenScannerBranch ($state, $excludes);
+//					$this->branches[] = new UmenScannerBranch ($state, $exclude);
 
 					++$state->parents;
 				}
@@ -490,12 +578,12 @@ class	State
 		{
 			if ($target === null)
 			{
-				$target = new State ();
+				$target = new UmenScannerState ();
 				$tails[] = array ($target, true); // FIXME: ugly
 			}
 
-			$this->branches[] = new Branch ($target, $hash);
-//			$this->branches[] = new Branch ($target, $range);
+			$this->branches[] = new UmenScannerBranch ($target, $hash);
+//			$this->branches[] = new UmenScannerBranch ($target, $range);
 
 			++$target->parents;
 		}
@@ -510,8 +598,8 @@ class	State
 		// Create cycle on current state if it has no branches and no accepts
 		if (count ($this->accepts) === 0 && count ($this->branches) === 0)
 		{
-			$this->branches[] = new Branch ($this, $hash);
-//			$this->branches[] = new Branch ($this, $range);
+			$this->branches[] = new UmenScannerBranch ($this, $hash);
+//			$this->branches[] = new UmenScannerBranch ($this, $range);
 
 			return array (array ($this, true)); // FIXME: ugly
 		}
@@ -526,35 +614,35 @@ class	State
 			if ($branch->to === $this)
 			{
 				$shares = array_intersect_key ($branch->hash, $hash);
-//				$share = $range->intersect ($branch->range);
+//				$share = $range->getShare ($branch->range);
 				$tails = array ();
 
 				// Move unwanted characters to another branch if any
 				$excludes = array_diff_key ($branch->hash, $shares);
-//				$exclude = $branch->range->remove ($share);
+//				$exclude = $branch->range->getExcept ($share);
 
 				if (count ($excludes) > 0)
 //				if ($exclude->size () !== 0)
 				{
 					$state = $this->fork ();
 
-					$this->branches[] = new Branch ($state, $excludes);
-//					$this->branches[] = new Branch ($state, $exclude);
+					$this->branches[] = new UmenScannerBranch ($state, $excludes);
+//					$this->branches[] = new UmenScannerBranch ($state, $exclude);
 
 					++$state->parents;
 				}
 
 				// Create new branch for exclusive characters
 				$includes = array_diff_key ($hash, $shares);
-//				$include = $range->remove ($share);
+//				$include = $range->getExcept ($share);
 
 				if (count ($includes) > 0)
 //				if ($include->size () !== 0)
 				{
-					$state = new State ();
+					$state = new UmenScannerState ();
 
-					$this->branches[] = new Branch ($state, $includes);
-//					$this->branches[] = new Branch ($state, $include);
+					$this->branches[] = new UmenScannerBranch ($state, $includes);
+//					$this->branches[] = new UmenScannerBranch ($state, $include);
 
 					++$state->parents;
 
@@ -626,7 +714,7 @@ if (ord ($character) < 256)
 
 	public function	fork ()
 	{
-		$clone = new State ();
+		$clone = new UmenScannerState ();
 		$clone->accepts = $this->accepts;
 		$clone->captures = $this->captures;
 
@@ -639,7 +727,7 @@ if (ord ($character) < 256)
 			else
 				$target = $clone;
 
-			$clone->branches[] = new Branch ($target, $branch->hash);
+			$clone->branches[] = new UmenScannerBranch ($target, $branch->hash);
 		}
 
 		return $clone;

@@ -10,13 +10,13 @@ function	debug ($group)
 	}, $group->ranges));
 }
 
-$group = new Group (true);
+$group = new UmenScannerGroup (true);
 $group->merge (1, 5);
 $group->merge (7, 9);
 
 echo debug ($group) . "<br />\n";
 
-$group = new Group (true);
+$group = new UmenScannerGroup (true);
 $group->merge (1, 5);
 $group->merge (3, 9);
 

@@ -196,8 +196,8 @@ $ymlMarkup = array
 	(
 		'tags'	=> array
 		(
-			'[box=(fixme)]'	=> array (YML_TYPE_BEGIN),
-			'[/box]'		=> array (YML_TYPE_END)
+			'[box=<(fixme)>]'	=> array (YML_TYPE_BEGIN),
+			'[/box]'			=> array (YML_TYPE_END)
 		)
 	),
 	'c'		=> array
@@ -225,7 +225,7 @@ $ymlMarkup = array
 			'[color=<(0-9A-Fa-f){6}>]'	=> array (YML_TYPE_BEGIN, '6'),
 			'[color=#<(0-9A-Fa-f){3}>]'	=> array (YML_TYPE_BEGIN, '#3'),
 			'[color=#<(0-9A-Fa-f){6}>]'	=> array (YML_TYPE_BEGIN, '#6'),
-			'[/color]'			=> array (YML_TYPE_END)
+			'[/color]'					=> array (YML_TYPE_END)
 		)
 	),
 	'em'	=> array
@@ -340,7 +340,7 @@ $ymlMarkup = array
 	(
 		'tags'	=> array
 		(
-			'!slap (fixme)'	=> array (YML_TYPE_ALONE)
+			'!slap <(fixme)>'	=> array (YML_TYPE_ALONE)
 		)
 	),
 	'smile'	=> array

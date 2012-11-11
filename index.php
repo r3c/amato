@@ -51,14 +51,14 @@ function	formatW3C ($str)
 </html>', ENT_COMPAT, CHARSET);
 }
 
-$mode = isset ($_POST['mode']) ? $_POST['mode'] : 'html';
-
-$options = array
+$actions = array
 (
-	'render'	=> array ('umen', 'Show actual rendering'),
-	'tree'		=> array ('code', 'Display syntax tree'),
-	'test'		=> array ('code', 'Test parser')
+	'print'	=> array ('umen', 'Show actual rendering'),
+	'tree'	=> array ('code', 'Display syntax tree'),
+	'test'	=> array ('code', 'Render and reverse')
 );
+
+$action = isset ($_POST['mode']) ? $_POST['mode'] : 'html';
 
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -71,17 +71,17 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 	<body>
 		<div class="box">
 			<div class="head">
-				Input text:
+				Input string:
 			</div>
 			<div class="body">
 				<form action="" method="POST">
-					<textarea name="text" rows="10" style="box-sizing: border-box; width: 100%;">' . htmlspecialchars (isset ($_POST['text']) ? $_POST['text'] : file_get_contents ('res/sample.txt'), ENT_COMPAT, CHARSET) . '</textarea>
+					<textarea name="string" rows="10" style="box-sizing: border-box; width: 100%;">' . htmlspecialchars (isset ($_POST['string']) ? $_POST['string'] : file_get_contents ('res/sample.txt'), ENT_COMPAT, CHARSET) . '</textarea>
 					<select name="mode">';
 
-foreach ($options as $optionMode => $option)
+foreach ($actions as $name => $attributes)
 {
 	echo '
-						<option' . (($optionMode === $mode) ? ' selected="selected"' : '') . ' value="' . htmlspecialchars ($optionMode, ENT_COMPAT, CHARSET) . '">' . htmlspecialchars ($option[1], ENT_COMPAT, CHARSET) . '</option>';
+						<option' . ($action === $name ? ' selected="selected"' : '') . ' value="' . htmlspecialchars ($name, ENT_COMPAT, CHARSET) . '">' . htmlspecialchars ($attributes[1], ENT_COMPAT, CHARSET) . '</option>';
 }
 
 echo '
@@ -99,21 +99,21 @@ echo '
 			</div>
 		</div>';
 
-if (isset ($options[$mode]) && isset ($_POST['text']))
+if (isset ($actions[$action]) && isset ($_POST['string']))
 {
-	$option = $options[$mode];
-	$text = $_POST['text'];
+	$caption = $actions[$action][0];
+	$string = $_POST['string'];
 
 	$parser = new UmenParser ($ymlMarkup, $ymlContext, '\\');
 	$viewer = new UmenViewer ($htmlFormat);
 
-	$token = $parser->parse (htmlspecialchars ($text, ENT_COMPAT, CHARSET));
-	$render = $viewer->view ($token);
+	$token = $parser->parse (htmlspecialchars ($string, ENT_COMPAT, CHARSET));
+	$print = $viewer->view ($token);
 
-	switch ($mode)
+	switch ($action)
 	{
-		case 'render':
-			$output = $render;
+		case 'print':
+			$output = $print;
 
 			break;
 
@@ -121,19 +121,24 @@ if (isset ($options[$mode]) && isset ($_POST['text']))
 			$inverse = $parser->inverse ($token);
 
 			$output =
-				'<b>plain (' . strlen ($text) . ' characters):</b><br />' . 
-				htmlspecialchars ($text, ENT_COMPAT, CHARSET) . '<hr />' .
+				'<b>string (' . strlen ($string) . ' characters):</b><br />' . 
+				htmlspecialchars ($string, ENT_COMPAT, CHARSET) . '<hr />' .
 				'<b>token (' . strlen ($token) . ' characters):</b><br />' .
 				htmlspecialchars ($token, ENT_COMPAT, CHARSET) . '<hr />' .
-				'<b>render (' . strlen ($render) . ' characters):</b><br />' .
-				htmlspecialchars ($render, ENT_COMPAT, CHARSET) . '<hr />' .
+				'<b>print (' . strlen ($print) . ' characters):</b><br />' .
+				htmlspecialchars ($print, ENT_COMPAT, CHARSET) . '<hr />' .
 				'<b>inverse (' . strlen ($inverse) . ' characters):</b><br />' .
-				'<span style="color: ' . ($inverse === $text ? 'green' : 'red') . ';">' . htmlspecialchars ($inverse, ENT_COMPAT, CHARSET) . '</span>';
+				'<span style="color: ' . (str_replace ('\\', '', $inverse) === str_replace ('\\', '', $string) ? 'green' : 'red') . ';">' . htmlspecialchars ($inverse, ENT_COMPAT, CHARSET) . '</span>';
 
 			break;
 
 		case 'tree':
-			$output = formatHTML ($render);
+			$output = formatHTML ($print);
+
+			break;
+
+		default:
+			$output = '';
 
 			break;
 	}
@@ -143,12 +148,12 @@ if (isset ($options[$mode]) && isset ($_POST['text']))
 			<div class="head">
 				Output render:
 			</div>
-			<div class="body ' . htmlspecialchars ($option[0], ENT_COMPAT, CHARSET) . '">
+			<div class="body ' . htmlspecialchars ($caption, ENT_COMPAT, CHARSET) . '">
 				' . $output . '
 			</div>
 			<div class="body">
 				<form action="http://validator.w3.org/check" method="POST" target="_blank">
-					<textarea cols="1" name="fragment" rows="1" style="display: none;">' . formatW3C ($render) . '</textarea>
+					<textarea cols="1" name="fragment" rows="1" style="display: none;">' . formatW3C ($print) . '</textarea>
 					<input name="charset" type="hidden" value="' . CHARSET . '" />
 					<input type="submit" value="Submit to w3c validator" />
 				</form>

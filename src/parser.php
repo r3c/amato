@@ -13,35 +13,30 @@ class	UmenParser
 	*/
 	public function	__construct ($markup, $context, $escape)
 	{
-		$lexer = new Lexer ($escape);
+		$this->context = $context;
+		$this->encoder = new UmenEncoder ();
+		$this->limits = array ();
+		$this->scanner = new UmenScanner ($escape);
 
 		foreach ($markup as $name => $rule)
 		{
-			if (isset ($rule['limit']))
-				$limit = (int)$rule['limit'];
-			else
-				$limit = 100;
-
 			if (isset ($rule['tags']))
 			{
 				foreach ($rule['tags'] as $pattern => $options)
 				{
 					$match = array
 					(
-						$name,
-						$limit,
+						(string)$name,
 						$options[0],
-						count ($options) > 1 ? $options[1] : null
+						count ($options) > 1 ? (string)$options[1] : ''
 					);
 
-					$lexer->assign ($pattern, $match);
+					$this->scanner->assign ($pattern, $match);
 				}
 			}
-		}
 
-		$this->context = $context;
-		$this->encoder = new UmenEncoder ();
-		$this->lexer = $lexer;
+			$this->limits[$name] = isset ($rule['limit']) ? (int)$rule['limit'] : 100;
+		}
 	}
 
 	/*
@@ -51,90 +46,70 @@ class	UmenParser
 	*/
 	public function	inverse ($token)
 	{
-		global	$mapaConvert; // FIXME
-return '';
-		throw new Exception ('fuck.');
+		// Parse tokenized string
+		$decoded = $this->encoder->decode ($token);
 
-		$parsed = self::parse ($token);
-
-		if ($parsed === null)
+		if ($decoded === null)
 			return null;
 
-		list ($scopes, $clean) = $parsed;
+		list ($scopes, $plain) = $decoded;
 
-		$decodes =& $codes[1];
-		$index = 0;
+		$offset = 0;
+		$stacks = array ();
 
 		foreach ($scopes as $scope)
 		{
-			list ($delta, $name, $action, $flag, $params) = $scope;
+			list ($delta, $name, $action, $flag, $captures) = $scope;
 
-			$count = count ($params);
-			$index += $delta;
+			// Find valid decoded version of current tag using internal scanner
+			if (!isset ($stacks[$name]))
+				$stacks[$name] = 0;
 
-			// Try to find decoder by reverting action to type
-			if (!isset ($opens[$name]))
-				$opens[$name] = 0;
+			$open = count ($stacks[$name]) > 0 ? 1 : 0;
 
-			$decode = null;
-			$open = count ($opens[$name]) > 0 ? 1 : 0;
-
-			foreach ($mapaConvert as $type => $actions)
+			foreach ($this->context as $type => $actions)
 			{
 				if ($actions[$open] === $action)
 				{
-					$key = $name . '.' . $type . '.' . $count . '.' . $flag;
+					$tag = $this->scanner->decode (array ($name, $type, $flag), $captures);
 
-					if (isset ($decodes[$key]))
-					{
-						$decode = $decodes[$key];
-
-						break;
-					}
-				}
-			}
-
-			if ($decode === null)
-				continue;
-
-			// Generate decoded tag string from decoder
-			$tag = '';
-
-			foreach ($decode as $item)
-			{
-				switch ($item[0])
-				{
-					case MAPA_DECODE_PARAM:
-						$tag .= $item[1] < $count ? $params[$item[1]] : '';
-
-						break;
-
-					case MAPA_DECODE_PLAIN:
-						$tag .= $item[1];
-
+					if ($tag !== null)
 						break;
 				}
 			}
-
-			$clean = substr_replace ($clean, $tag, $index, 0);
-			$index += strlen ($tag);
 
 			// Update opened tags counter
 			switch ($action)
 			{
-				case MAPA_ACTION_START:
-					++$opens[$name];
+				case UMEN_ACTION_START:
+					++$stacks[$name];
 
 					break;
 
-				case MAPA_ACTION_STOP:
-					--$opens[$name];
+				case UMEN_ACTION_STOP:
+					--$stacks[$name];
 
 					break;
 			}
+
+			// Escape skipped plain text and insert tag
+			if ($tag !== null)
+			{
+				$escape = $this->scanner->escape (substr ($plain, $offset, $delta));
+				$plain = substr_replace ($plain, $escape . $tag, $offset, $delta);
+
+				$offset += strlen ($escape) + strlen ($tag);
+			}
 		}
 
-		return $clean;
+		// Escape remaining plain text
+		if ($offset < strlen ($plain))
+		{
+			$escape = $this->scanner->escape (substr ($plain, $offset));
+			$plain = substr_replace ($plain, $escape, $offset);
+		}
+
+		return $plain;
 	}
 
 	/*
@@ -150,15 +125,15 @@ return '';
 		$tags = array ();
 		$usages = array ();
 
-		// Parse original string using internal lexer
-		$plain = $this->lexer->scan ($string, function ($offset, $length, $match, $captures) use (&$chains, &$context, &$literal, &$tags, &$usages)
+		// Parse original string using internal scanner
+		$plain = $this->scanner->scan ($string, function ($offset, $length, $match, $captures) use (&$chains, &$context, &$literal, &$tags, &$usages)
 		{
-			list ($name, $limit, $type, $flag) = $match;
+			list ($name, $type, $flag) = $match;
 
 			// Ensure tag limit has not be reached
 			$usage = isset ($usages[$name]) ? $usages[$name] : 0;
 
-			if ($usage >= $limit)
+			if ($usage >= $this->limits[$name])
 				return false;
 
 			$usages[$name] = $usage + 1;

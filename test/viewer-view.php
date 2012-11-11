@@ -1,14 +1,15 @@
 <?php
 
-require ('../src/converter.php');
+require ('../src/parser.php');
 require ('../src/viewer.php');
+
 include ('../src/formats/html.php');
-include ('../src/rules/yml.php');
+include ('../src/markups/yml.php');
 
-$converter = new Converter ($ymlRules, $ymlActions);
-$token = $converter->convert (file_get_contents ('../res/tag.medium.txt'));
+$parser = new UmenParser ($ymlMarkup, $ymlContext, '\\');
+$token = $parser->parse (file_get_contents ('../res/tag.medium.txt'));
 
-$viewer = new Viewer ($htmlFormats);
+$viewer = new UmenViewer ($htmlFormat);
 $out = $viewer->view ($token);
 
 if (false)

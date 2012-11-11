@@ -8,7 +8,7 @@
 
 include ('../src/encoder.php');
 include ('../src/scanner.php');
-include ('../src/rules/yml.php');
+include ('../src/markups/yml.php');
 
 $files = array
 (
@@ -18,12 +18,12 @@ $files = array
 	'Tagged text - tiny'	=> '../res/tag.tiny.txt'
 );
 
-$lexer = new Lexer ();
+$scanner = new UmenScanner ('\\');
 
-foreach ($ymlRules as $name => $rule)
+foreach ($ymlMarkup as $name => $rule)
 {
 	foreach ($rule['tags'] as $pattern => $options)
-		$lexer->assign ($pattern, $name . ':' . $options[0]);
+		$scanner->assign ($pattern, $name . ':' . $options[0]);
 }
 
 foreach ($files as $name => $path)
@@ -31,7 +31,7 @@ foreach ($files as $name => $path)
 	$plain = file_get_contents ($path);
 	$tags = array ();
 
-	$lexer->scan ($plain, function ($offset, $length, $match, $captures) use (&$tags)
+	$plain = $scanner->scan ($plain, function ($offset, $length, $match, $captures) use (&$tags)
 	{
 		$tags[] = array ($offset, $length, $match, $captures);
 
