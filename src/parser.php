@@ -120,20 +120,21 @@ class	UmenParser
 	public function	parse ($string)
 	{
 		$chains = array ();
-		$context = $this->context;
+		$context =& $this->context;
+		$limits =& $this->limits;
 		$literal = false;
 		$tags = array ();
 		$usages = array ();
 
 		// Parse original string using internal scanner
-		$plain = $this->scanner->scan ($string, function ($offset, $length, $match, $captures) use (&$chains, &$context, &$literal, &$tags, &$usages)
+		$plain = $this->scanner->scan ($string, function ($offset, $length, $match, $captures) use (&$chains, &$context, &$limits, &$literal, &$tags, &$usages)
 		{
 			list ($name, $type, $flag) = $match;
 
 			// Ensure tag limit has not be reached
 			$usage = isset ($usages[$name]) ? $usages[$name] : 0;
 
-			if ($usage >= $this->limits[$name])
+			if ($usage >= $limits[$name])
 				return false;
 
 			$usages[$name] = $usage + 1;
