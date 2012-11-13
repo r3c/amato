@@ -150,7 +150,7 @@ class	UmenParser
 		return $this->encoder->encode ($scopes, $plain);
 	}
 
-	private function	resolve ($offset, $length, $match, $captures)
+	public function	resolve ($offset, $length, $match, $captures)
 	{
 		list ($name, $type, $flag) = $match;
 
