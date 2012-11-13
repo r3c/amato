@@ -277,7 +277,7 @@ class	UmenScanner
 				$captures = isset ($cursor->captures[$accept]) ? $cursor->captures[$accept] : array ();
 				$match = $this->table[$accept][2];
 
-				if ($callback ($cursor->offset, $length, $match, $captures))
+				if (call_user_func ($callback, $cursor->offset, $length, $match, $captures))
 				{
 					// Remove all cursors covered by this one
 					while ($i + 1 < $count && $cursors[$i + 1]->offset < $cursor->offset + $length)

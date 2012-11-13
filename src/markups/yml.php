@@ -31,7 +31,7 @@ $ymlMarkup = array
 //		'limit'	=> 100,
 		'tags'	=> array
 		(
-			"\r\n"	=> array (YML_TYPE_ALONE)
+			"\n"	=> array (YML_TYPE_ALONE)
 		)
 	),
 	'0'		=> array
@@ -213,7 +213,6 @@ $ymlMarkup = array
 	'cmd'	=> array
 	(
 		'decode'	=> false, // FIXME
-		'limit'		=> 10,
 		'tags'		=> array
 		(
 			'[yncMd:159]'	=> array (YML_TYPE_BEGIN),
@@ -424,6 +423,15 @@ $ymlMarkup = array
 		'tags'	=> array
 		(
 			'&amp;#<(a-z0-9){1,}>;'	=> array (YML_TYPE_ALONE)
+		)
+	),
+	'yt'	=> array
+	(
+		'tags'	=> array
+		(
+			'[youtube]<(-0-9A-Za-z_){1,}>[/youtube]'																			=> array (YML_TYPE_ALONE),
+			'[youtube]http://www.youtube.com/watch?v=<(-0-9A-Za-z_){1,}>[/youtube]'												=> array (YML_TYPE_ALONE),
+			'[youtube]http://www.youtube.com/watch?v=<(-0-9A-Za-z_){1,}>(&#)(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){}[/youtube]'	=> array (YML_TYPE_ALONE)
 		)
 	)
 );

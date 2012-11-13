@@ -119,87 +119,13 @@ class	UmenParser
 	*/
 	public function	parse ($string)
 	{
-		$chains = array ();
-		$context =& $this->context;
-		$limits =& $this->limits;
-		$literal = false;
-		$tags = array ();
-		$usages = array ();
-
 		// Parse original string using internal scanner
-		$plain = $this->scanner->scan ($string, function ($offset, $length, $match, $captures) use (&$chains, &$context, &$limits, &$literal, &$tags, &$usages)
-		{
-			list ($name, $type, $flag) = $match;
+		$this->chains = array ();
+		$this->literal = false;
+		$this->tags = array ();
+		$this->usages = array ();
 
-			// Ensure tag limit has not be reached
-			$usage = isset ($usages[$name]) ? $usages[$name] : 0;
-
-			if ($usage >= $limits[$name])
-				return false;
-
-			$usages[$name] = $usage + 1;
-
-			// Convert type to action given context rules
-			if (!isset ($chains[$name]))
-				$chains[$name] = array ();
-
-			$action = $context[$type][count ($chains[$name]) > 0 ? 1 : 0];
-
-			if ($action === null || ($literal && $action !== UMEN_ACTION_LITERAL))
-				return false;
-
-			// Add current match to tags chain
-			$chain =& $chains[$name];
-			$chain[] = array ($offset, $length, $name, $action, $flag, $captures);
-			$flush = count ($chain);
-
-			// Set start of chain to be flushed
-			switch ($action)
-			{
-				case UMEN_ACTION_ALONE:
-					--$flush;
-
-					break;
-
-				case UMEN_ACTION_LITERAL:
-					$literal = !$literal;
-
-					--$flush;
-
-					break;
-
-				case UMEN_ACTION_STEP:
-					for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_START; )
-						--$start;
-
-					if ($start < 0)
-						array_pop ($chain);
-
-					break;
-
-				case UMEN_ACTION_STOP:
-					for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_START; )
-						--$start;
-
-					if ($start < 0)
-						array_pop ($chain);
-					else
-						$flush = $start;
-
-					break;
-			}
-
-			// Push entire chain to tags, sorted by start index
-			for ($from = count ($chain) - 1; $from >= $flush; --$from)
-			{
-				for ($to = count ($tags); $to > 0 && $tags[$to - 1][0] > $chain[$from][0]; )
-					--$to;
-
-				array_splice ($tags, $to, 0, array_splice ($chain, $from, 1));
-			}
-
-			return true;
-		});
+		$plain = $this->scanner->scan ($string, array ($this, 'resolve'));
 
 		// Remove resolved tags from plain string
 		$offset = 0;
@@ -207,7 +133,7 @@ class	UmenParser
 		$scopes = array ();
 		$shift = 0;
 
-		foreach ($tags as $tag)
+		foreach ($this->tags as $tag)
 		{
 			list ($offset, $length, $name, $action, $flag, $params) = $tag;
 
@@ -222,6 +148,80 @@ class	UmenParser
 
 		// Encode into tokenized string and return
 		return $this->encoder->encode ($scopes, $plain);
+	},
+
+	private function	resolve ($offset, $length, $match, $captures)
+	{
+		list ($name, $type, $flag) = $match;
+
+		// Ensure tag limit has not be reached
+		$usage = isset ($this->usages[$name]) ? $this->usages[$name] : 0;
+
+		if ($usage >= $this->limits[$name])
+			return false;
+
+		$this->usages[$name] = $usage + 1;
+
+		// Convert type to action given context rules
+		if (!isset ($this->chains[$name]))
+			$this->chains[$name] = array ();
+
+		$action = $this->context[$type][count ($this->chains[$name]) > 0 ? 1 : 0];
+
+		if ($action === null || ($this->literal && $action !== UMEN_ACTION_LITERAL))
+			return false;
+
+		// Add current match to tags chain
+		$chain =& $this->chains[$name];
+		$chain[] = array ($offset, $length, $name, $action, $flag, $captures);
+		$flush = count ($chain);
+
+		// Set start of chain to be flushed
+		switch ($action)
+		{
+			case UMEN_ACTION_ALONE:
+				--$flush;
+
+				break;
+
+			case UMEN_ACTION_LITERAL:
+				$this->literal = !$this->literal;
+
+				--$flush;
+
+				break;
+
+			case UMEN_ACTION_STEP:
+				for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_START; )
+					--$start;
+
+				if ($start < 0)
+					array_pop ($chain);
+
+				break;
+
+			case UMEN_ACTION_STOP:
+				for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_START; )
+					--$start;
+
+				if ($start < 0)
+					array_pop ($chain);
+				else
+					$flush = $start;
+
+				break;
+		}
+
+		// Push entire chain to tags, sorted by start index
+		for ($from = count ($chain) - 1; $from >= $flush; --$from)
+		{
+			for ($to = count ($this->tags); $to > 0 && $this->tags[$to - 1][0] > $chain[$from][0]; )
+				--$to;
+
+			array_splice ($this->tags, $to, 0, array_splice ($chain, $from, 1));
+		}
+
+		return true;
 	}
 }
 
