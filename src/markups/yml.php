@@ -166,13 +166,13 @@ $ymlMarkup = array
 	(
 		'tags'	=> array
 		(
-			'<https{,1}://(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>'	=> array (YML_TYPE_ALONE, 'h'),
-			'<www.(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>'			=> array (YML_TYPE_ALONE, 'w'),
-			'[url]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\)*){1,}>[/url]'	=> array (YML_TYPE_ALONE),
-			'[url=<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>]'		=> array (YML_TYPE_BEGIN),
-			'[urli=<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>]'		=> array (YML_TYPE_BEGIN, 'i'),
-			'[/url]'												=> array (YML_TYPE_END),
-			'[/urli]'												=> array (YML_TYPE_END, 'i')
+			'<https{,1}://(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>'	=> array (YML_TYPE_ALONE, 'h'),
+			'<www.(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>'			=> array (YML_TYPE_ALONE, 'w'),
+			'[url]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\)*){1,}>[/url]'		=> array (YML_TYPE_ALONE),
+			'[url=<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>]'			=> array (YML_TYPE_BEGIN),
+			'[urli=<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>]'			=> array (YML_TYPE_BEGIN, 'i'),
+			'[/url]'													=> array (YML_TYPE_END),
+			'[/urli]'													=> array (YML_TYPE_END, 'i')
 		)
 	),
 	'align'	=> array
@@ -243,8 +243,8 @@ $ymlMarkup = array
 		'limit'	=> 5,
 		'tags'	=> array
 		(
-			'[flash]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>[/flash]'							=> array (YML_TYPE_ALONE),
-			'[flash=<(0-9){1,}>,<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>[/flash]'	=> array (YML_TYPE_ALONE)
+			'[flash]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'							=> array (YML_TYPE_ALONE),
+			'[flash=<(0-9){1,}>,<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'	=> array (YML_TYPE_ALONE)
 		)
 	),
 	'font'	=> array
@@ -275,8 +275,8 @@ $ymlMarkup = array
 		'limit'	=> 50,
 		'tags'	=> array
 		(
-			'[img=<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>[/img]'	=> array (YML_TYPE_ALONE),
-			'[img]<(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){1,}>[/img]'				=> array (YML_TYPE_ALONE)
+			'[img=<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'	=> array (YML_TYPE_ALONE),
+			'[img]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'				=> array (YML_TYPE_ALONE)
 		)
 	),
 	'list'	=> array
@@ -431,7 +431,7 @@ $ymlMarkup = array
 		(
 			'[youtube]<(-0-9A-Za-z_){1,}>[/youtube]'																			=> array (YML_TYPE_ALONE),
 			'[youtube]http://www.youtube.com/watch?v=<(-0-9A-Za-z_){1,}>[/youtube]'												=> array (YML_TYPE_ALONE),
-			'[youtube]http://www.youtube.com/watch?v=<(-0-9A-Za-z_){1,}>(&#)(-0-9A-Za-z._~:/?#@!$&\'*+,;=(\\)*){}[/youtube]'	=> array (YML_TYPE_ALONE)
+			'[youtube]http://www.youtube.com/watch?v=<(-0-9A-Za-z_){1,}>(&#)(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){}[/youtube]'	=> array (YML_TYPE_ALONE)
 		)
 	)
 );
