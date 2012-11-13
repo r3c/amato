@@ -10,8 +10,9 @@ class	UmenParser
 	** $markup:		markup language definition
 	** $context:	context context
 	** $escape:		escape character
+	** $limit:		default tag limit
 	*/
-	public function	__construct ($markup, $context, $escape)
+	public function	__construct ($markup, $context, $escape, $limit = 100)
 	{
 		$this->context = $context;
 		$this->encoder = new UmenEncoder ();
@@ -35,7 +36,7 @@ class	UmenParser
 				}
 			}
 
-			$this->limits[$name] = isset ($rule['limit']) ? (int)$rule['limit'] : 100;
+			$this->limits[$name] = isset ($rule['limit']) ? (int)$rule['limit'] : $limit;
 		}
 	}
 
