@@ -148,7 +148,7 @@ class	UmenParser
 
 		// Encode into tokenized string and return
 		return $this->encoder->encode ($scopes, $plain);
-	},
+	}
 
 	private function	resolve ($offset, $length, $match, $captures)
 	{
