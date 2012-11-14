@@ -82,12 +82,12 @@ class	UmenParser
 			// Update opened tags counter
 			switch ($action)
 			{
-				case UMEN_ACTION_START:
+				case UMEN_ACTION_BLOCK_START:
 					++$stacks[$name];
 
 					break;
 
-				case UMEN_ACTION_STOP:
+				case UMEN_ACTION_BLOCK_STOP:
 					--$stacks[$name];
 
 					break;
@@ -122,7 +122,7 @@ class	UmenParser
 	{
 		// Parse original string using internal scanner
 		$this->chains = array ();
-		$this->literal = false;
+		$this->literal = null;
 		$this->tags = array ();
 		$this->usages = array ();
 
@@ -169,7 +169,7 @@ class	UmenParser
 
 		$action = $this->context[$type][count ($this->chains[$name]) > 0 ? 1 : 0];
 
-		if ($action === null || ($this->literal && $action !== UMEN_ACTION_LITERAL))
+		if ($action === null || ($this->literal !== null && ($action !== UMEN_ACTION_LITERAL || $name !== $this->literal)))
 			return false;
 
 		// Add current match to tags chain
@@ -185,15 +185,8 @@ class	UmenParser
 
 				break;
 
-			case UMEN_ACTION_LITERAL:
-				$this->literal = !$this->literal;
-
-				--$flush;
-
-				break;
-
-			case UMEN_ACTION_STEP:
-				for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_START; )
+			case UMEN_ACTION_BLOCK_STEP:
+				for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_BLOCK_START; )
 					--$start;
 
 				if ($start < 0)
@@ -201,14 +194,24 @@ class	UmenParser
 
 				break;
 
-			case UMEN_ACTION_STOP:
-				for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_START; )
+			case UMEN_ACTION_BLOCK_STOP:
+				for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_BLOCK_START; )
 					--$start;
 
 				if ($start < 0)
 					array_pop ($chain);
 				else
 					$flush = $start;
+
+				break;
+
+			case UMEN_ACTION_LITERAL:
+				if ($this->literal === null)
+					$this->literal = $name;
+				else
+					$this->literal = null;
+
+				--$flush;
 
 				break;
 		}
