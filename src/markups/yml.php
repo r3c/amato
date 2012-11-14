@@ -21,6 +21,7 @@ $ymlContext = array
 
 /*
 ** String parsing rules for each available tag, as name => properties
+**   .check:	optional tag checking callback ($action, $flag, $captures)
 **   .limit:	optional allowed number of uses of this tag, default is 100
 **   .tags:		tag patterns list, as pattern => (type, flag)
 */
@@ -28,6 +29,7 @@ $ymlMarkup = array
 (
 	'.'		=> array
 	(
+//		'check'	=> 'umenYmlNewLineCheck',
 //		'limit'	=> 100,
 		'tags'	=> array
 		(

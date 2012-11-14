@@ -14,6 +14,7 @@ class	UmenParser
 	*/
 	public function	__construct ($markup, $context, $escape, $limit = 100)
 	{
+		$this->checks = array ();
 		$this->context = $context;
 		$this->encoder = new UmenEncoder ();
 		$this->limits = array ();
@@ -21,6 +22,9 @@ class	UmenParser
 
 		foreach ($markup as $name => $rule)
 		{
+			if (isset ($rule['check']))
+				$this->checks[$name] = $rule['check'];
+
 			if (isset ($rule['tags']))
 			{
 				foreach ($rule['tags'] as $pattern => $options)
@@ -169,55 +173,55 @@ class	UmenParser
 
 		$action = $this->context[$type][count ($this->chains[$name]) > 0 ? 1 : 0];
 
-		if ($action === null || ($this->literal !== null && ($action !== UMEN_ACTION_LITERAL || $name !== $this->literal)))
+		if (($action === null) ||
+		    ($this->literal !== null && ($action !== UMEN_ACTION_LITERAL || $name !== $this->literal)) ||
+			(isset ($this->checks[$name]) && !$this->checks[$name] ($action, $flag, $captures)))
 			return false;
 
 		// Add current match to tags chain
 		$chain =& $this->chains[$name];
-		$chain[] = array ($offset, $length, $name, $action, $flag, $captures);
-		$flush = count ($chain);
+		$first = count ($chain);
 
 		// Set start of chain to be flushed
 		switch ($action)
 		{
-			case UMEN_ACTION_ALONE:
-				--$flush;
+			case UMEN_ACTION_BLOCK_START:
+				++$first;
 
 				break;
 
 			case UMEN_ACTION_BLOCK_STEP:
-				for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_BLOCK_START; )
+				for ($start = $first - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_BLOCK_START; )
 					--$start;
 
 				if ($start < 0)
-					array_pop ($chain);
+					return true;
+
+				++$first;
 
 				break;
 
 			case UMEN_ACTION_BLOCK_STOP:
-				for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_BLOCK_START; )
+				for ($start = $first - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_BLOCK_START; )
 					--$start;
 
 				if ($start < 0)
-					array_pop ($chain);
-				else
-					$flush = $start;
+					return true;
+
+				$first = $start;
 
 				break;
 
 			case UMEN_ACTION_LITERAL:
-				if ($this->literal === null)
-					$this->literal = $name;
-				else
-					$this->literal = null;
-
-				--$flush;
+				$this->literal = $this->literal === null ? $name : null;
 
 				break;
 		}
 
 		// Push entire chain to tags, sorted by start index
-		for ($from = count ($chain) - 1; $from >= $flush; --$from)
+		$chain[] = array ($offset, $length, $name, $action, $flag, $captures);
+
+		for ($from = count ($chain) - 1; $from >= $first; --$from)
 		{
 			for ($to = count ($this->tags); $to > 0 && $this->tags[$to - 1][0] > $chain[$from][0]; )
 				--$to;
