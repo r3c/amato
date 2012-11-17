@@ -1,7 +1,7 @@
 div.umen blockquote
 {
-	padding:		3px 3px 3px 10px;
-	margin:			0px 30px 0px 50px;
+	padding:		4px 8px;
+	margin:			8px 24px;
 	background:		white;
 	border-top:		1px dashed #999999;
 	border-bottom:	1px dashed #999999;
@@ -93,28 +93,29 @@ div.umen div.center
 
 div.umen div.cmd
 {
+	padding-left:	5px;
+	margin-left:	10px;
 	border:			1px solid #003366;
 	border-right:	0;
 	border-top:		0;
 	border-bottom:	0;
-	margin-left:	10px;
-	padding-left:	5px;
 }
 
 div.umen div.modo
 {
-	background:		#FFEBEB;
-	border-top:		1px dashed #CC3300;
-	border-bottom:	1px dashed #CC3300;
-	border-left:	5px solid #CC3300;
 	padding:		3px 3px 3px 10px;
 	margin:			0px 30px 0px 50px;
+	background:		#FFEBEB;
+	border-top:		1px solid #CC3300;
+	border-bottom:	1px solid #CC3300;
+	border-left:	5px solid #CC3300;
+	color:			#993333;
 }
 
 div.umen pre
 {
 	padding:	2px 4px;
-	margin:		8px 16px;
+	margin:		8px 24px;
 	background:	white;
 	border:		1px solid #666666;
 	font:		normal normal normal 11px "Courier New", "fixedsys", Courier, monospace;
@@ -230,4 +231,26 @@ div.umen span.spoil:hover *
 div.umen span.u
 {
 	text-decoration:	underline;
+}
+
+div.umen table.table
+{
+	background:			#EFEFEF;
+	border-collapse:	collapse;
+}
+
+div.umen table.table td
+{
+	padding:		4px 6px;
+	background:		#E0E0E0;
+	border-bottom:	1px solid #C0C0C0;
+	border-top:		1px solid transparent;
+}
+
+div.umen table.table th
+{
+	padding:		4px;
+	background:		#C0C0C0;
+	border-bottom:	1px solid #A0A0A0;
+	border-top:		4px solid #A0A0A0;
 }
