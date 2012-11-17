@@ -104,7 +104,7 @@ if (isset ($actions[$action]) && isset ($_POST['string']))
 	$caption = $actions[$action][0];
 	$string = $_POST['string'];
 
-	$parser = new UmenParser ($ymlMarkup, $ymlContext, '\\');
+	$parser = new UmenParser ($ymlMarkup, '\\');
 	$viewer = new UmenViewer ($htmlFormat);
 
 	$token = $parser->parse (htmlspecialchars ($string, ENT_COMPAT, CHARSET));

@@ -111,6 +111,15 @@ div.umen div.modo
 	margin:			0px 30px 0px 50px;
 }
 
+div.umen pre
+{
+	padding:	2px 4px;
+	margin:		8px 16px;
+	background:	white;
+	border:		1px solid #666666;
+	font:		normal normal normal 11px "Courier New", "fixedsys", Courier, monospace;
+}
+
 div.umen span.color0
 {
 	color:	white;

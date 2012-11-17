@@ -12,8 +12,8 @@ define ('UMEN_ENCODER_VERSION',			1);
 
 class	UmenEncoder
 {
-	private static	$actionsDecode = array ('!' => UMEN_ACTION_LITERAL, '/' => UMEN_ACTION_ALONE, '<' => UMEN_ACTION_BLOCK_START, '-' => UMEN_ACTION_BLOCK_STEP, '>' => UMEN_ACTION_BLOCK_STOP);
-	private static	$actionsEncode = array (UMEN_ACTION_LITERAL => '!', UMEN_ACTION_ALONE => '/', UMEN_ACTION_BLOCK_START => '<', UMEN_ACTION_BLOCK_STEP => '-', UMEN_ACTION_BLOCK_STOP => '>');
+	private static	$actionsDecode = array ('/' => UMEN_ACTION_ALONE, '<' => UMEN_ACTION_START, '-' => UMEN_ACTION_STEP, '>' => UMEN_ACTION_STOP);
+	private static	$actionsEncode = array (UMEN_ACTION_ALONE => '/', UMEN_ACTION_START => '<', UMEN_ACTION_STEP => '-', UMEN_ACTION_STOP => '>');
 	private static	$escapesDecode = array (UMEN_ENCODER_TOKEN_PARAM => true, UMEN_ENCODER_TOKEN_PLAIN => true, UMEN_ENCODER_TOKEN_SCOPE => true, UMEN_ENCODER_TOKEN_FLAG => true);
 	private static	$escapesEncode = array (UMEN_ENCODER_TOKEN_ESCAPE => true, UMEN_ENCODER_TOKEN_PARAM => true, UMEN_ENCODER_TOKEN_PLAIN => true, UMEN_ENCODER_TOKEN_SCOPE => true, UMEN_ENCODER_TOKEN_FLAG => true);
 

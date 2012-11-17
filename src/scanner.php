@@ -181,27 +181,13 @@ class	UmenScanner
 		foreach ($tails as $state)
 			$state[0]->accepts[] = $accept;
 
-		$this->table[] = array ($decode, $order, $match);
+		$this->table[] = array ($decode, $match);
+
+		return count ($this->table) - 1;
 	}
 
-	public function	decode ($match, $captures)
+	public function	decode ($index, $captures)
 	{
-		$count = count ($captures);
-		$index = null;
-
-		foreach ($this->table as $accept => $compare)
-		{
-			if ($compare[1] === $count && $compare[2] === $match)
-			{
-				$index = $accept;
-
-				break;
-			}
-		}
-
-		if ($index === null)
-			return null;
-
 		$decode = $this->table[$index][0];
 		$string = '';
 
@@ -275,7 +261,7 @@ class	UmenScanner
 			foreach ($cursor->accepts as $accept => $length)
 			{
 				$captures = isset ($cursor->captures[$accept]) ? $cursor->captures[$accept] : array ();
-				$match = $this->table[$accept][2];
+				$match = $this->table[$accept][1];
 
 				if (call_user_func ($callback, $cursor->offset, $length, $match, $captures))
 				{

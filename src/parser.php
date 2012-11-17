@@ -7,16 +7,15 @@ class	UmenParser
 {
 	/*
 	** Initialize a new parser.
-	** $markup:		markup language definition
-	** $context:	context context
-	** $escape:		escape character
-	** $limit:		default tag limit
+	** $markup:	markup language definition
+	** $escape:	escape character
+	** $limit:	default tag limit
 	*/
-	public function	__construct ($markup, $context, $escape, $limit = 100)
+	public function	__construct ($markup, $escape, $limit = 100)
 	{
 		$this->checks = array ();
-		$this->context = $context;
 		$this->encoder = new UmenEncoder ();
+		$this->inverses = array ();
 		$this->limits = array ();
 		$this->scanner = new UmenScanner ($escape);
 
@@ -29,14 +28,14 @@ class	UmenParser
 			{
 				foreach ($rule['tags'] as $pattern => $options)
 				{
-					$match = array
-					(
-						(string)$name,
-						$options[0],
-						count ($options) > 1 ? (string)$options[1] : ''
-					);
+					$actions = isset ($options['actions']) ? $options['actions'] : array ();
+					$flag = isset ($options['flag']) ? (string)$options['flag'] : '';
+					$mode = isset ($options['mode']) ? (string)$options['mode'] : null;
 
-					$this->scanner->assign ($pattern, $match);
+					$decode = $this->scanner->assign ($pattern, array ($name, $actions, $flag, $mode));
+
+					foreach ($actions as $context => $action)
+						$this->inverses[$name . ':' . $context . ':' . $action . ':' . $flag] = array ($decode, $mode);
 				}
 			}
 
@@ -59,6 +58,7 @@ class	UmenParser
 
 		list ($scopes, $plain) = $decoded;
 
+		$mode = '';
 		$offset = 0;
 		$stacks = array ();
 
@@ -70,41 +70,40 @@ class	UmenParser
 			if (!isset ($stacks[$name]))
 				$stacks[$name] = 0;
 
-			$open = count ($stacks[$name]) > 0 ? 1 : 0;
+			$lookup = $name . ':' . $mode . ($stacks[$name] > 0 ? '+' : '-') . ':' . $action . ':' . $flag;
 
-			foreach ($this->context as $type => $actions)
+			// Get decoded tag text if possible
+			if (isset ($this->inverses[$lookup]))
 			{
-				if ($actions[$open] === $action)
-				{
-					$tag = $this->scanner->decode (array ($name, $type, $flag), $captures);
+				list ($decode, $switch) = $this->inverses[$lookup];
 
-					if ($tag !== null)
-						break;
-				}
+				if ($switch !== null)
+					$mode = $switch;
+
+				$text = $this->scanner->decode ($decode, $captures);
 			}
+			else
+				$text = null;
 
 			// Update opened tags counter
 			switch ($action)
 			{
-				case UMEN_ACTION_BLOCK_START:
+				case UMEN_ACTION_START:
 					++$stacks[$name];
 
 					break;
 
-				case UMEN_ACTION_BLOCK_STOP:
+				case UMEN_ACTION_STOP:
 					--$stacks[$name];
 
 					break;
 			}
 
-			// Escape skipped plain text and insert tag
-			if ($tag !== null)
-			{
-				$escape = $this->scanner->escape (substr ($plain, $offset, $delta));
-				$plain = substr_replace ($plain, $escape . $tag, $offset, $delta);
+			// Escape skipped plain text and insert tag text
+			$escape = $this->scanner->escape (substr ($plain, $offset, $delta));
+			$plain = substr_replace ($plain, $escape . $text, $offset, $delta);
 
-				$offset += strlen ($escape) + strlen ($tag);
-			}
+			$offset += strlen ($escape) + strlen ($text);
 		}
 
 		// Escape remaining plain text
@@ -126,7 +125,7 @@ class	UmenParser
 	{
 		// Parse original string using internal scanner
 		$this->chains = array ();
-		$this->literal = null;
+		$this->mode = '';
 		$this->tags = array ();
 		$this->usages = array ();
 
@@ -157,7 +156,7 @@ class	UmenParser
 
 	public function	resolve ($offset, $length, $match, $captures)
 	{
-		list ($name, $type, $flag) = $match;
+		list ($name, $actions, $flag, $mode) = $match;
 
 		// Ensure tag limit has not be reached
 		$usage = isset ($this->usages[$name]) ? $this->usages[$name] : 0;
@@ -167,16 +166,19 @@ class	UmenParser
 
 		$this->usages[$name] = $usage + 1;
 
-		// Convert type to action given context rules
+		// Find action from current mode and context
 		if (!isset ($this->chains[$name]))
 			$this->chains[$name] = array ();
 
-		$action = $this->context[$type][count ($this->chains[$name]) > 0 ? 1 : 0];
+		$context = $this->mode . (count ($this->chains[$name]) > 0 ? '+' : '-');
+		$action = isset ($actions[$context]) ? $actions[$context] : null;
 
-		if (($action === null) ||
-		    ($this->literal !== null && ($action !== UMEN_ACTION_LITERAL || $name !== $this->literal)) ||
-			(isset ($this->checks[$name]) && !$this->checks[$name] ($action, $flag, $captures)))
+		if ($action === null || (isset ($this->checks[$name]) && !$this->checks[$name] ($action, $flag, $captures)))
 			return false;
+
+		// Switch mode if requested
+		if ($mode !== null)
+			$this->mode = $mode;
 
 		// Add current match to tags chain
 		$chain =& $this->chains[$name];
@@ -185,13 +187,13 @@ class	UmenParser
 		// Set start of chain to be flushed
 		switch ($action)
 		{
-			case UMEN_ACTION_BLOCK_START:
+			case UMEN_ACTION_START:
 				++$first;
 
 				break;
 
-			case UMEN_ACTION_BLOCK_STEP:
-				for ($start = $first - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_BLOCK_START; )
+			case UMEN_ACTION_STEP:
+				for ($start = $first - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_START; )
 					--$start;
 
 				if ($start < 0)
@@ -201,19 +203,14 @@ class	UmenParser
 
 				break;
 
-			case UMEN_ACTION_BLOCK_STOP:
-				for ($start = $first - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_BLOCK_START; )
+			case UMEN_ACTION_STOP:
+				for ($start = $first - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_START; )
 					--$start;
 
 				if ($start < 0)
 					return true;
 
 				$first = $start;
-
-				break;
-
-			case UMEN_ACTION_LITERAL:
-				$this->literal = $this->literal === null ? $name : null;
 
 				break;
 		}

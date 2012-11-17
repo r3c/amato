@@ -48,7 +48,7 @@ class	UmenViewer
 			switch ($action)
 			{
 				case UMEN_ACTION_ALONE:
-				case UMEN_ACTION_BLOCK_START:
+				case UMEN_ACTION_START:
 					// Get precedence level for this modifier
 					$level = isset ($rule['level']) ? (int)$rule['level'] : 1;
 
@@ -80,8 +80,8 @@ class	UmenViewer
 
 					break;
 
-				case UMEN_ACTION_BLOCK_STEP:
-				case UMEN_ACTION_BLOCK_STOP:
+				case UMEN_ACTION_STEP:
+				case UMEN_ACTION_STOP:
 					// Search for matching tag in pending stack, cancel if none
 					for ($last = count ($stack) - 1; $last >= 0 && $stack[$last][2] != $name; )
 						--$last;
@@ -98,7 +98,7 @@ class	UmenViewer
 					$broken[3] = $flag;
 
 					// Action "step": close all tags before this one, excluded
-					if ($action === UMEN_ACTION_BLOCK_STEP)
+					if ($action === UMEN_ACTION_STEP)
 						$close = $last + 1;
 
 					// Action "stop": close all tags before this one, included
@@ -143,13 +143,13 @@ class	UmenViewer
 					break;
 
 				// Remove closed tag from the stack
-				case UMEN_ACTION_BLOCK_STOP:
+				case UMEN_ACTION_STOP:
 					array_splice ($stack, $last, 1);
 
 					break;
 
 				// Call step function
-				case UMEN_ACTION_BLOCK_STEP:
+				case UMEN_ACTION_STEP:
 					list ($level, $start, $name, $flag, $params) = $stack[$last];
 
 					// Use "step" callback to replace tag body if available

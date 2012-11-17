@@ -2,13 +2,13 @@
 
 define ('CHARSET',	'utf-8');
 
-include ('src/parser.php');
-include ('src/viewer.php');
-include ('src/formats/html.php');
-include ('src/markups/yml.php');
+include ('../src/parser.php');
+include ('../src/viewer.php');
+include ('../src/formats/html.php');
+include ('../src/markups/yml.php');
 
-include ('src/legacy/debug.php');
-include ('src/legacy/regexp.php');
+include ('debug.php');
+include ('yml-regexp.php');
 
 function	bench ($count, $init, $loop, $stop)
 {

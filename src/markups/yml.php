@@ -1,24 +1,5 @@
 <?php
 
-define ('YML_TYPE_ALONE',	0);
-define ('YML_TYPE_BEGIN',	1);
-define ('YML_TYPE_BETWEEN',	2);
-define ('YML_TYPE_END',		3);
-define ('YML_TYPE_LITERAL',	4);
-define ('YML_TYPE_RESUME',	5);
-define ('YML_TYPE_SWITCH',	6);
-
-$ymlContext = array
-(
-	YML_TYPE_ALONE		=> array (UMEN_ACTION_ALONE, UMEN_ACTION_ALONE),
-	YML_TYPE_BEGIN		=> array (UMEN_ACTION_BLOCK_START, UMEN_ACTION_BLOCK_START),
-	YML_TYPE_BETWEEN	=> array (null, UMEN_ACTION_BLOCK_STEP),
-	YML_TYPE_END		=> array (null, UMEN_ACTION_BLOCK_STOP),
-	YML_TYPE_LITERAL	=> array (UMEN_ACTION_LITERAL, UMEN_ACTION_LITERAL),
-	YML_TYPE_RESUME		=> array (UMEN_ACTION_BLOCK_START, UMEN_ACTION_BLOCK_STEP),
-	YML_TYPE_SWITCH		=> array (UMEN_ACTION_BLOCK_START, UMEN_ACTION_BLOCK_STOP)
-);
-
 /*
 ** String parsing rules for each available tag, as name => properties
 **   .check:	optional tag checking callback ($action, $flag, $captures)
@@ -33,166 +14,166 @@ $ymlMarkup = array
 //		'limit'	=> 100,
 		'tags'	=> array
 		(
-			"\n"	=> array (YML_TYPE_ALONE)
+			"\n"	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'0'		=> array
 	(
 		'tags'	=> array
 		(
-			'[0]'	=> array (YML_TYPE_BEGIN),
-			'[/0]'	=> array (YML_TYPE_END)
+			'[0]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/0]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'1'		=> array
 	(
 		'tags'	=> array
 		(
-			'[1]'	=> array (YML_TYPE_BEGIN),
-			'[/1]'	=> array (YML_TYPE_END)
+			'[1]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/1]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'2'		=> array
 	(
 		'tags'	=> array
 		(
-			'[2]'	=> array (YML_TYPE_BEGIN),
-			'[/2]'	=> array (YML_TYPE_END)
+			'[2]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/2]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'3'		=> array
 	(
 		'tags'	=> array
 		(
-			'[3]'	=> array (YML_TYPE_BEGIN),
-			'[/3]'	=> array (YML_TYPE_END)
+			'[3]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/3]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'4'		=> array
 	(
 		'tags'	=> array
 		(
-			'[4]'	=> array (YML_TYPE_BEGIN),
-			'[/4]'	=> array (YML_TYPE_END)
+			'[4]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/4]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'5'		=> array
 	(
 		'tags'	=> array
 		(
-			'[5]'	=> array (YML_TYPE_BEGIN),
-			'[/5]'	=> array (YML_TYPE_END)
+			'[5]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/5]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'6'		=> array
 	(
 		'tags'	=> array
 		(
-			'[6]'	=> array (YML_TYPE_BEGIN),
-			'[/6]'	=> array (YML_TYPE_END)
+			'[6]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/6]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'7'		=> array
 	(
 		'tags'	=> array
 		(
-			'[7]'	=> array (YML_TYPE_BEGIN),
-			'[/7]'	=> array (YML_TYPE_END)
+			'[7]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/7]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'8'		=> array
 	(
 		'tags'	=> array
 		(
-			'[8]'	=> array (YML_TYPE_BEGIN),
-			'[/8]'	=> array (YML_TYPE_END)
+			'[8]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/8]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'9'		=> array
 	(
 		'tags'	=> array
 		(
-			'[9]'	=> array (YML_TYPE_BEGIN),
-			'[/9]'	=> array (YML_TYPE_END)
+			'[9]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/9]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'10'	=> array
 	(
 		'tags'	=> array
 		(
-			'[10]'	=> array (YML_TYPE_BEGIN),
-			'[/10]'	=> array (YML_TYPE_END)
+			'[10]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/10]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'11'	=> array
 	(
 		'tags'	=> array
 		(
-			'[11]'	=> array (YML_TYPE_BEGIN),
-			'[/11]'	=> array (YML_TYPE_END)
+			'[11]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/11]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'12'	=> array
 	(
 		'tags'	=> array
 		(
-			'[12]'	=> array (YML_TYPE_BEGIN),
-			'[/12]'	=> array (YML_TYPE_END)
+			'[12]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/12]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'13'	=> array
 	(
 		'tags'	=> array
 		(
-			'[13]'	=> array (YML_TYPE_BEGIN),
-			'[/13]'	=> array (YML_TYPE_END)
+			'[13]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/13]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'14'	=> array
 	(
 		'tags'	=> array
 		(
-			'[14]'	=> array (YML_TYPE_BEGIN),
-			'[/14]'	=> array (YML_TYPE_END)
+			'[14]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/14]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'15'	=> array
 	(
 		'tags'	=> array
 		(
-			'[15]'	=> array (YML_TYPE_BEGIN),
-			'[/15]'	=> array (YML_TYPE_END)
+			'[15]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/15]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'a'		=> array
 	(
 		'tags'	=> array
 		(
-			'<https{,1}://(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>'	=> array (YML_TYPE_ALONE, 'h'),
-			'<www.(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>'			=> array (YML_TYPE_ALONE, 'w'),
-			'[url]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\)*){1,}>[/url]'		=> array (YML_TYPE_ALONE),
-			'[url=<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>]'			=> array (YML_TYPE_BEGIN),
-			'[urli=<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>]'			=> array (YML_TYPE_BEGIN, 'i'),
-			'[/url]'													=> array (YML_TYPE_END),
-			'[/urli]'													=> array (YML_TYPE_END, 'i')
+			'<https{,1}://(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 'h'),
+			'<www.(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>'			=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 'w'),
+			'[url]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\)*){1,}>[/url]'		=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
+			'[url=<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>]'			=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[urli=<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>]'			=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => 'i'),
+			'[/url]'													=> array ('actions' => array ('+' => UMEN_ACTION_STOP)),
+			'[/urli]'													=> array ('actions' => array ('+' => UMEN_ACTION_STOP), 'flag' => 'i')
 		)
 	),
 	'align'	=> array
 	(
 		'tags'	=> array
 		(
-			'[align=center]'	=> array (YML_TYPE_BEGIN, 'c'),
-			'[align=left]'		=> array (YML_TYPE_BEGIN, 'l'),
-			'[align=right]'		=> array (YML_TYPE_BEGIN, 'r'),
-			'[/align]'			=> array (YML_TYPE_END)
+			'[align=center]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => 'c'),
+			'[align=left]'		=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => 'l'),
+			'[align=right]'		=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => 'r'),
+			'[/align]'			=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'b'		=> array
 	(
 		'tags'	=> array
 		(
-			'[b]'	=> array (YML_TYPE_BEGIN),
-			'[/b]'	=> array (YML_TYPE_END)
+			'[b]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/b]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'box'	=> array
@@ -200,16 +181,16 @@ $ymlMarkup = array
 		'limit'	=> 20,
 		'tags'	=> array
 		(
-			'[box=<(fixme)>]'	=> array (YML_TYPE_BEGIN),
-			'[/box]'			=> array (YML_TYPE_END)
+			'[box=<(fixme)>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/box]'			=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'c'		=> array
 	(
 		'tags'	=> array
 		(
-			'[center]'	=> array (YML_TYPE_BEGIN),
-			'[/center]'	=> array (YML_TYPE_END)
+			'[center]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/center]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'cmd'	=> array
@@ -217,27 +198,27 @@ $ymlMarkup = array
 		'decode'	=> false, // FIXME
 		'tags'		=> array
 		(
-			'[yncMd:159]'	=> array (YML_TYPE_BEGIN),
-			'[/yncMd:159]'	=> array (YML_TYPE_END)
+			'[yncMd:159]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/yncMd:159]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'color'	=> array
 	(
 		'tags'	=> array
 		(
-			'[color=<(0-9A-Fa-f){3}>]'	=> array (YML_TYPE_BEGIN, '3'),
-			'[color=<(0-9A-Fa-f){6}>]'	=> array (YML_TYPE_BEGIN, '6'),
-			'[color=#<(0-9A-Fa-f){3}>]'	=> array (YML_TYPE_BEGIN, '#3'),
-			'[color=#<(0-9A-Fa-f){6}>]'	=> array (YML_TYPE_BEGIN, '#6'),
-			'[/color]'					=> array (YML_TYPE_END)
+			'[color=<(0-9A-Fa-f){3}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => '3'),
+			'[color=<(0-9A-Fa-f){6}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => '6'),
+			'[color=#<(0-9A-Fa-f){3}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => '#3'),
+			'[color=#<(0-9A-Fa-f){6}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => '#6'),
+			'[/color]'					=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'em'	=> array
 	(
 		'tags'	=> array
 		(
-			'[em]'	=> array (YML_TYPE_BEGIN),
-			'[/em]'	=> array (YML_TYPE_END)
+			'[em]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/em]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'flash'	=> array
@@ -245,31 +226,31 @@ $ymlMarkup = array
 		'limit'	=> 5,
 		'tags'	=> array
 		(
-			'[flash]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'							=> array (YML_TYPE_ALONE),
-			'[flash=<(0-9){1,}>,<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'	=> array (YML_TYPE_ALONE)
+			'[flash]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'							=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
+			'[flash=<(0-9){1,}>,<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'font'	=> array
 	(
 		'tags'	=> array
 		(
-			'[font=<(0-9){1,}>]'	=> array (YML_TYPE_BEGIN),
-			'[/font]'				=> array (YML_TYPE_END)
+			'[font=<(0-9){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/font]'				=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'hr'	=> array
 	(
 		'tags'	=> array
 		(
-			'[hr]'	=> array (YML_TYPE_ALONE)
+			'[hr]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'i'		=> array
 	(
 		'tags'	=> array
 		(
-			'[i]'	=> array (YML_TYPE_BEGIN),
-			'[/i]'	=> array (YML_TYPE_END)
+			'[i]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/i]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'img'	=> array
@@ -277,8 +258,8 @@ $ymlMarkup = array
 		'limit'	=> 50,
 		'tags'	=> array
 		(
-			'[img=<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'	=> array (YML_TYPE_ALONE),
-			'[img]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'				=> array (YML_TYPE_ALONE)
+			'[img=<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
+			'[img]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'				=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'list'	=> array
@@ -286,10 +267,10 @@ $ymlMarkup = array
 		'limit'	=> 200,
 		'tags'	=> array
 		(
-			'[list]'	=> array (YML_TYPE_BEGIN),
-			'[#]'		=> array (YML_TYPE_BETWEEN, 'o'),
-			'[*]'		=> array (YML_TYPE_BETWEEN, 'u'),
-			'[/list]'	=> array (YML_TYPE_END)
+			'[list]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[#]'		=> array ('actions' => array ('+' => UMEN_ACTION_STEP), 'flag' => 'o'),
+			'[*]'		=> array ('actions' => array ('+' => UMEN_ACTION_STEP), 'flag' => 'u'),
+			'[/list]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'modo'	=> array
@@ -297,8 +278,8 @@ $ymlMarkup = array
 		'limit'	=> 20,
 		'tags'	=> array
 		(
-			'[modo]'	=> array (YML_TYPE_BEGIN),
-			'[/modo]'	=> array (YML_TYPE_END)
+			'[modo]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/modo]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'poll'	=> array
@@ -306,15 +287,15 @@ $ymlMarkup = array
 		'limit'	=> 5,
 		'tags'	=> array
 		(
-			'[sondage=<(0-9){1,}>]'	=> array (YML_TYPE_ALONE)
+			'[sondage=<(0-9){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'pre'	=> array
 	(
 		'tags'	=> array
 		(
-			'[pre]'		=> array (YML_TYPE_LITERAL, '1'),
-			'[/pre]'	=> array (YML_TYPE_LITERAL, '2')
+			'[pre]'		=> array ('actions' => array ('-' => UMEN_ACTION_START), 'mode' => 'pre'),
+			'[/pre]'	=> array ('actions' => array ('pre+' => UMEN_ACTION_STOP), 'mode' => '')
 		)
 	),
 	'quote'	=> array
@@ -322,58 +303,58 @@ $ymlMarkup = array
 		'limit'	=> 20,
 		'tags'	=> array
 		(
-			'[cite]'	=> array (YML_TYPE_BEGIN, 'c'),
-			'[/cite]'	=> array (YML_TYPE_END, 'c'),
-			'[quote]'	=> array (YML_TYPE_BEGIN),
-			'[/quote]'	=> array (YML_TYPE_END)
+			'[cite]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => 'c'),
+			'[/cite]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP), 'flag' => 'c'),
+			'[quote]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/quote]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'ref'	=> array
 	(
 		'tags'	=> array
 		(
-			'./<(0-9){1,}>'	=> array (YML_TYPE_ALONE)
+			'./<(0-9){1,}>'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	's'		=> array
 	(
 		'tags'	=> array
 		(
-			'[s]'	=> array (YML_TYPE_BEGIN),
-			'[/s]'	=> array (YML_TYPE_END)
+			'[s]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/s]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'slap'	=> array
 	(
 		'tags'	=> array
 		(
-			'!slap <(fixme)>'	=> array (YML_TYPE_ALONE)
+			'!slap <(fixme)>'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'smile'	=> array
 	(
 		'tags'	=> array
 		(
-			':D'					=> array (YML_TYPE_ALONE, '0'),
-			':\\('					=> array (YML_TYPE_ALONE, '1'),
-			':o'					=> array (YML_TYPE_ALONE, '2'),
-			':)'					=> array (YML_TYPE_ALONE, '3'),
-			':p'					=> array (YML_TYPE_ALONE, '4'),
-			';)'					=> array (YML_TYPE_ALONE, '5'),
-			'=)'					=> array (YML_TYPE_ALONE, '6'),
-			'%)'					=> array (YML_TYPE_ALONE, '7'),
-			':|'					=> array (YML_TYPE_ALONE, '8'),
-			':S'					=> array (YML_TYPE_ALONE, '9'),
-			'##<(0-9A-Za-z){1,}>##'	=> array (YML_TYPE_ALONE, 'c'),
-			'#<(0-9A-Za-z){1,}>#'	=> array (YML_TYPE_ALONE, 'n')
+			':D'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '0'),
+			':\\('					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '1'),
+			':o'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '2'),
+			':)'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '3'),
+			':p'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '4'),
+			';)'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '5'),
+			'=)'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '6'),
+			'%)'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '7'),
+			':|'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '8'),
+			':S'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '9'),
+			'##<(0-9A-Za-z){1,}>##'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 'c'),
+			'#<(0-9A-Za-z){1,}>#'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 'n')
 		)
 	),
 	'spoil'	=> array
 	(
 		'tags'	=> array
 		(
-			'[spoiler]'		=> array (YML_TYPE_BEGIN),
-			'[/spoiler]'	=> array (YML_TYPE_END)
+			'[spoiler]'		=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/spoiler]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'src'	=> array
@@ -381,23 +362,23 @@ $ymlMarkup = array
 		'limit'	=> 10,
 		'tags'	=> array
 		(
-			'[source=<(0-9){1,}>]'	=> array (YML_TYPE_ALONE)
+			'[source=<(0-9){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'sub'	=> array
 	(
 		'tags'	=> array
 		(
-			'[sub]'		=> array (YML_TYPE_BEGIN),
-			'[/sub]'	=> array (YML_TYPE_END)
+			'[sub]'		=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/sub]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'sup'	=> array
 	(
 		'tags'	=> array
 		(
-			'[sup]'		=> array (YML_TYPE_BEGIN),
-			'[/sup]'	=> array (YML_TYPE_END)
+			'[sup]'		=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/sup]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'table'	=> array
@@ -405,35 +386,35 @@ $ymlMarkup = array
 		'limit'	=> 200,
 		'tags'	=> array
 		(
-			'[table]'	=> array (YML_TYPE_BEGIN),
-			'[^]'		=> array (YML_TYPE_BETWEEN, 'h'),
-			'[|]'		=> array (YML_TYPE_BETWEEN, 'c'),
-			'[-]'		=> array (YML_TYPE_BETWEEN, 'r'),
-			'[/table]'	=> array (YML_TYPE_END)
+			'[table]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[^]'		=> array ('actions' => array ('+' => UMEN_ACTION_STEP), 'flag' => 'h'),
+			'[|]'		=> array ('actions' => array ('+' => UMEN_ACTION_STEP), 'flag' => 'c'),
+			'[-]'		=> array ('actions' => array ('+' => UMEN_ACTION_STEP), 'flag' => 'r'),
+			'[/table]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'u'		=> array
 	(
 		'tags'	=> array
 		(
-			'[u]'	=> array (YML_TYPE_BEGIN),
-			'[/u]'	=> array (YML_TYPE_END)
+			'[u]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/u]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'uni'	=> array
 	(
 		'tags'	=> array
 		(
-			'&amp;#<(a-z0-9){1,}>;'	=> array (YML_TYPE_ALONE)
+			'&amp;#<(a-z0-9){1,}>;'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'yt'	=> array
 	(
 		'tags'	=> array
 		(
-			'[youtube]<(-0-9A-Za-z_){1,}>[/youtube]'																			=> array (YML_TYPE_ALONE),
-			'[youtube]http://www.youtube.com/watch?v=<(-0-9A-Za-z_){1,}>[/youtube]'												=> array (YML_TYPE_ALONE),
-			'[youtube]http://www.youtube.com/watch?v=<(-0-9A-Za-z_){1,}>(&#)(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){}[/youtube]'	=> array (YML_TYPE_ALONE)
+			'[youtube]<(-0-9A-Za-z_){1,}>[/youtube]'																			=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
+			'[youtube]http://www.youtube.com/watch?v=<(-0-9A-Za-z_){1,}>[/youtube]'												=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
+			'[youtube]http://www.youtube.com/watch?v=<(-0-9A-Za-z_){1,}>(&#)(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){}[/youtube]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	)
 );
