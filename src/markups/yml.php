@@ -2,7 +2,7 @@
 
 /*
 ** String parsing rules for each available tag, as name => properties
-**   .check:	optional tag checking callback ($action, $flag, $captures)
+**   .check:	optional check callback ($context, $action, $flag, $captures)
 **   .limit:	optional allowed number of uses of this tag, default is 100
 **   .tags:		tag patterns list, as pattern => (type, flag)
 */
@@ -294,8 +294,8 @@ $ymlMarkup = array
 	(
 		'tags'	=> array
 		(
-			'[pre]'		=> array ('actions' => array ('-' => UMEN_ACTION_START), 'mode' => 'pre'),
-			'[/pre]'	=> array ('actions' => array ('pre+' => UMEN_ACTION_STOP), 'mode' => '')
+			'[pre]'		=> array ('actions' => array ('-' => UMEN_ACTION_START), 'switch' => 'pre'),
+			'[/pre]'	=> array ('actions' => array ('pre+' => UMEN_ACTION_STOP), 'switch' => '')
 		)
 	),
 	'quote'	=> array
