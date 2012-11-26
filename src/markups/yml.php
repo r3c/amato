@@ -2,17 +2,21 @@
 
 /*
 ** String parsing rules for each available tag, as name => properties
-**   .check:	optional check callback ($context, $action, $flag, $captures)
-**   .limit:	optional allowed number of uses of this tag, default is 100
-**   .tags:		tag patterns list, as pattern => (type, flag)
+**   .limit:		optional allowed number of uses of this tag, default is 100
+**   .onConvert:	optional conversion callback ($context, $action, $flag,
+**					$captures)
+**   .onInverse:	optional inversion callback ($context, $action, $flag,
+**					$captures)
+**   .tags:			tag patterns list, as pattern => (type, flag)
 */
 $ymlMarkup = array
 (
 	'.'		=> array
 	(
-//		'check'	=> 'umenYmlNewLineCheck',
-//		'limit'	=> 100,
-		'tags'	=> array
+//		'limit'		=> 100,
+//		'onConvert'	=> 'umenYmlNewLineConvert',
+//		'onInverse'	=> 'umenYmlNewLineInverse,
+		'tags'		=> array
 		(
 			"\n"	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
@@ -195,7 +199,7 @@ $ymlMarkup = array
 	),
 	'cmd'	=> array
 	(
-		'decode'	=> false, // FIXME
+		'onInverse'	=> function () { return false; },
 		'tags'		=> array
 		(
 			'[yncMd:159]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),

@@ -14,7 +14,7 @@ class	UmenParser
 	*/
 	public function	__construct ($markup, $context, $escape = '\\', $limit = 100)
 	{
-		$this->checks = array ();
+		$this->callbacks = array ();
 		$this->context = $context;
 		$this->encoder = new UmenEncoder ();
 		$this->inverses = array ();
@@ -23,8 +23,11 @@ class	UmenParser
 
 		foreach ($markup as $name => $rule)
 		{
-			if (isset ($rule['check']))
-				$this->checks[$name] = $rule['check'];
+			if (isset ($rule['onConvert']))
+				$this->callbacks[$name . '+'] = $rule['onConvert'];
+
+			if (isset ($rule['onInverse']))
+				$this->callbacks[$name . '-'] = $rule['onInverse'];
 
 			if (isset ($rule['tags']))
 			{
@@ -68,24 +71,30 @@ class	UmenParser
 		{
 			list ($delta, $name, $action, $flag, $captures) = $scope;
 
-			// Find valid decoded version of current tag using internal scanner
-			if (!isset ($stacks[$name]))
-				$stacks[$name] = 0;
-
-			$lookup = $name . ':' . $current . ($stacks[$name] > 0 ? '+' : '-') . ':' . $action . ':' . $flag;
-
-			// Get decoded tag text if possible
-			if (isset ($this->inverses[$lookup]))
-			{
-				list ($decode, $switch) = $this->inverses[$lookup];
-
-				if ($switch !== null)
-					$current = $switch;
-
-				$text = $this->scanner->decode ($decode, $captures);
-			}
+			// Decode current tag
+			if (isset ($this->callbacks[$name . '-']) && !$this->callbacks[$name . '-'] ($this->context, $action, $flag, $captures))
+				$tag = '';
 			else
-				$text = null;
+			{
+				// Find valid decoded version of current tag using internal scanner
+				if (!isset ($stacks[$name]))
+					$stacks[$name] = 0;
+
+				$lookup = $name . ':' . $current . ($stacks[$name] > 0 ? '+' : '-') . ':' . $action . ':' . $flag;
+
+				// Get decoded tag text if exists
+				if (!isset ($this->inverses[$lookup]))
+					$tag = '';
+				else
+				{
+					list ($decode, $switch) = $this->inverses[$lookup];
+
+					if ($switch !== null)
+						$current = $switch;
+
+					$tag = $this->scanner->decode ($decode, $captures);
+				}
+			}
 
 			// Update opened tags counter
 			switch ($action)
@@ -101,11 +110,11 @@ class	UmenParser
 					break;
 			}
 
-			// Escape skipped plain text and insert tag text
+			// Escape skipped plain text and insert tag
 			$escape = $this->scanner->escape (substr ($plain, $offset, $delta));
-			$plain = substr_replace ($plain, $escape . $text, $offset, $delta);
+			$plain = substr_replace ($plain, $escape . $tag, $offset, $delta);
 
-			$offset += strlen ($escape) + strlen ($text);
+			$offset += strlen ($escape) + strlen ($tag);
 		}
 
 		// Escape remaining plain text
@@ -175,7 +184,7 @@ class	UmenParser
 		$condition = $this->mode . (count ($this->chains[$name]) > 0 ? '+' : '-');
 		$action = isset ($actions[$condition]) ? $actions[$condition] : null;
 
-		if ($action === null || (isset ($this->checks[$name]) && !$this->checks[$name] ($this->context, $action, $flag, $captures)))
+		if ($action === null || (isset ($this->callbacks[$name . '+']) && !$this->callbacks[$name . '+'] ($this->context, $action, $flag, $captures)))
 			return false;
 
 		// Switch mode if requested

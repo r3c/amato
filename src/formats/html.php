@@ -8,223 +8,223 @@
 
 /*
 ** String format modifiers for each available tag, as name => properties
-**   .alone:	optional tag alone callback, undefined if none
 **   .level:	optional nesting level (a tag can only enclose tags of lower or
 **				equal levels), default is 1
-**   .start:	optional tag begin callback, undefined if none
-**   .step:		optional tag break callback, undefined if none
-**   .stop:		optional tag end callback, undefined if none
+**   .onAlone:	optional tag alone callback, undefined if none
+**   .onStart:	optional tag begin callback, undefined if none
+**   .onStep:	optional tag break callback, undefined if none
+**   .onStop:	optional tag end callback, undefined if none
 */
 $htmlFormat = array
 (
 	'.'		=> array
 	(
-		'alone'	=> 'umenHTMLNewLineAlone'
-//		'level'	=> 1,
-//		'start'	=> 'umenHTMLNewLineStart',
-//		'step'	=> 'umenHTMLNewLineStep',
-//		'stop'	=> 'umenHTMLNewLinetop'
+//		'level'		=> 1,
+		'onAlone'	=> 'umenHTMLNewLineAlone'
+//		'onStart'	=> 'umenHTMLNewLineStart',
+//		'onStep'	=> 'umenHTMLNewLineStep',
+//		'onStop'	=> 'umenHTMLNewLinetop'
 	),
 	'0'		=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'1'		=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'2'		=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'3'		=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'4'		=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'5'		=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'6'		=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'7'		=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'8'		=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'9'		=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'10'	=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'11'	=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'12'	=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'13'	=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'14'	=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'15'	=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'a'		=> array
 	(
-		'alone'	=> 'umenHTMLAnchorAlone',
-		'stop'	=> 'umenHTMLAnchorStop',
+		'onAlone'	=> 'umenHTMLAnchorAlone',
+		'onStop'	=> 'umenHTMLAnchorStop',
 	),
 	'align'	=> array
 	(
-		'level'	=> 2,
-		'start'	=> 'umenHTMLAlignStart',
-		'stop'	=> 'umenHTMLAlignStop'
+		'level'		=> 2,
+		'onStart'	=> 'umenHTMLAlignStart',
+		'onStop'	=> 'umenHTMLAlignStop'
 	),
 	'b'		=> array
 	(
-		'stop'	=> 'umenHTMLTagStop'
+		'onStop'	=> 'umenHTMLTagStop'
 	),
 	'box'	=> array
 	(
-		'level'	=> 2,
-		'stop'	=> 'umenHTMLBoxStop'
+		'level'		=> 2,
+		'onStop'	=> 'umenHTMLBoxStop'
 	),
 	'c'		=> array
 	(
-		'level'	=> 2,
-		'stop'	=> 'umenHTMLCenterStop'
+		'level'		=> 2,
+		'onStop'	=> 'umenHTMLCenterStop'
 	),
 	'cmd'	=> array
 	(
-		'level'	=> 2,
-		'stop'	=> 'umenHTMLCommandStop'
+		'level'		=> 2,
+		'onStop'	=> 'umenHTMLCommandStop'
 	),
 	'color'	=> array
 	(
-		'stop'	=> 'umenHTMLColorStop'
+		'onStop'	=> 'umenHTMLColorStop'
 	),
 	'em'	=> array
 	(
-		'stop'	=> 'umenHTMLTagStop'
+		'onStop'	=> 'umenHTMLTagStop'
 	),
 	'flash'	=> array
 	(
-		'alone'	=> 'umenHTMLFlashAlone'
+		'onAlone'	=> 'umenHTMLFlashAlone'
 	),
 	'font'	=> array
 	(
-		'stop'	=> 'umenHTMLFontStop'
+		'onStop'	=> 'umenHTMLFontStop'
 	),
 	'hr'	=> array
 	(
-		'alone'	=> 'umenHTMLHorizontalAlone',
-		'level'	=> 2
+		'level'		=> 2,
+		'onAlone'	=> 'umenHTMLHorizontalAlone'
 	),
 	'i'		=> array
 	(
-		'stop'	=> 'umenHTMLTagStop'
+		'onStop'	=> 'umenHTMLTagStop'
 	),
 	'img'	=> array
 	(
-		'alone'	=> 'umenHTMLImageAlone'
+		'onAlone'	=> 'umenHTMLImageAlone'
 	),
 	'list'	=> array
 	(
-		'level'	=> 2,
-		'start'	=> 'umenHTMLListStart',
-		'step'	=> 'umenHTMLListStep',
-		'stop'	=> 'umenHTMLListStop'
+		'level'		=> 2,
+		'onStart'	=> 'umenHTMLListStart',
+		'onStep'	=> 'umenHTMLListStep',
+		'onStop'	=> 'umenHTMLListStop'
 	),
 	'modo'	=> array
 	(
-		'level'	=> 2,
-		'stop'	=> 'umenHTMLDivStop'
+		'level'		=> 2,
+		'onStop'	=> 'umenHTMLDivStop'
 	),
 	'poll'	=> array
 	(
-		'alone'	=> 'umenHTMLPollAlone',
-		'level'	=> 2
+		'level'		=> 2,
+		'onAlone'	=> 'umenHTMLPollAlone'
 	),
 	'pre'	=> array
 	(
-		'level'	=> 2,
-		'stop'	=> 'umenHTMLPreStop'
+		'level'		=> 2,
+		'onStop'	=> 'umenHTMLPreStop'
 	),
 	'quote'	=> array
 	(
-		'level'	=> 2,
-		'stop'	=> 'umenHTMLQuoteStop'
+		'level'		=> 2,
+		'onStop'	=> 'umenHTMLQuoteStop'
 	),
 	'ref'	=> array
 	(
-		'alone'	=> 'umenHTMLRefStop'
+		'onAlone'	=> 'umenHTMLRefStop'
 	),
 	's'		=> array
 	(
-		'stop'	=> 'umenHTMLSpanStop'
+		'onStop'	=> 'umenHTMLSpanStop'
 	),
 	'slap'	=> array
 	(
-		'alone'	=> 'umenHTMLSlapStop'
+		'onAlone'	=> 'umenHTMLSlapStop'
 	),
 	'smile'	=> array
 	(
-		'alone'	=> 'umenHTMLSmileyAlone'
+		'onAlone'	=> 'umenHTMLSmileyAlone'
 	),
 	'spoil'	=> array
 	(
-		'stop'	=> 'umenHTMLSpanStop'
+		'onStop'	=> 'umenHTMLSpanStop'
 	),
 	'src'	=> array
 	(
-		'alone'	=> 'umenHTMLSourceAlone',
+		'onAlone'	=> 'umenHTMLSourceAlone',
 	),
 	'sub'	=> array
 	(
-		'stop'	=> 'umenHTMLTagStop'
+		'onStop'	=> 'umenHTMLTagStop'
 	),
 	'sup'	=> array
 	(
-		'stop'	=> 'umenHTMLTagStop'
+		'onStop'	=> 'umenHTMLTagStop'
 	),
 	'table'	=> array
 	(
-		'level'	=> 2,
-		'start'	=> 'umenHTMLTableStart',
-		'step'	=> 'umenHTMLTableStep',
-		'stop'	=> 'umenHTMLTableStop'
+		'level'		=> 2,
+		'onStart'	=> 'umenHTMLTableStart',
+		'onStep'	=> 'umenHTMLTableStep',
+		'onStop'	=> 'umenHTMLTableStop'
 	),
 	'u'		=> array
 	(
-		'stop'	=> 'umenHTMLSpanStop',
+		'onStop'	=> 'umenHTMLSpanStop',
 	),
 	'uni'	=> array
 	(
-		'alone'	=> 'umenHTMLUnicodeAlone'
+		'onAlone'	=> 'umenHTMLUnicodeAlone'
 	),
 	'yt'	=> array
 	(
-		'alone'	=> 'umenHTMLYoutubeAlone'
+		'onAlone'	=> 'umenHTMLYoutubeAlone'
 	)
 );
 

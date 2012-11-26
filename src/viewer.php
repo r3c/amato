@@ -65,8 +65,8 @@ class	UmenViewer
 					{
 						$close = $last + 1;
 
-						if (isset ($rule['start']))
-							$rule['start'] ($name, $flag, $params);
+						if (isset ($rule['onStart']))
+							$rule['onStart'] ($name, $flag, $params);
 
 						array_splice ($stack, $last, 0, array (array
 						(
@@ -116,10 +116,10 @@ class	UmenViewer
 			{
 				list ($level, $start, $name, $flag, $params) = $stack[$i];
 
-				if (isset ($this->format[$name]['stop']))
+				if (isset ($this->format[$name]['onStop']))
 				{
 					$length = $index - $start;
-					$result = $this->format[$name]['stop'] ($name, $flag, $params, substr ($plain, $start, $length));
+					$result = $this->format[$name]['onStop'] ($name, $flag, $params, substr ($plain, $start, $length));
 
 					$plain = substr_replace ($plain, $result, $start, $length);
 					$index = $start + strlen ($result);
@@ -132,9 +132,9 @@ class	UmenViewer
 				// Generate body and insert to string
 				case UMEN_ACTION_ALONE:
 					// Use "alone" callback to generate tag body if available
-					if (isset ($rule['alone']))
+					if (isset ($rule['onAlone']))
 					{
-						$result = $rule['alone'] ($name, $flag, $params);
+						$result = $rule['onAlone'] ($name, $flag, $params);
 
 						$plain = substr_replace ($plain, $result, $index, 0);
 						$index += strlen ($result);
@@ -153,10 +153,10 @@ class	UmenViewer
 					list ($level, $start, $name, $flag, $params) = $stack[$last];
 
 					// Use "step" callback to replace tag body if available
-					if (isset ($this->format[$name]['step']))
+					if (isset ($this->format[$name]['onStep']))
 					{
 						$length = $index - $start;
-						$result = $this->format[$name]['step'] ($name, $flag, $params, substr ($plain, $start, $length));
+						$result = $this->format[$name]['onStep'] ($name, $flag, $params, substr ($plain, $start, $length));
 
 						$plain = substr_replace ($plain, $result, $start, $length);
 						$index = $start + strlen ($result);
