@@ -51,7 +51,7 @@ function	html ($string)
 	return htmlspecialchars ($string, ENT_COMPAT, CHARSET);
 }
 
-$parser = new UmenParser ($ymlMarkup, $ymlContext, '\\');
+$parser = new UmenParser ($ymlMarkup, null, '\\');
 $viewer = new UmenViewer ($htmlFormat);
 
 mysql_connect ('localhost', 'yaronet', 'yaronet') or die ('connect');

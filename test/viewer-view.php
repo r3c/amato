@@ -6,7 +6,7 @@ require ('../src/viewer.php');
 include ('../src/formats/html.php');
 include ('../src/markups/yml.php');
 
-$parser = new UmenParser ($ymlMarkup, $ymlContext, '\\');
+$parser = new UmenParser ($ymlMarkup, null, '\\');
 $token = $parser->parse (file_get_contents ('../res/tag.medium.txt'));
 
 $viewer = new UmenViewer ($htmlFormat);
