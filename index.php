@@ -104,10 +104,10 @@ if (isset ($actions[$action]) && isset ($_POST['string']))
 	$caption = $actions[$action][0];
 	$string = str_replace (array ("\n\r", "\r\n"), "\n", $_POST['string']);
 
-	$parser = new UmenParser ($ymlMarkup, null, '\\');
+	$parser = new UmenParser ($ymlMarkup, '\\');
 	$viewer = new UmenViewer ($htmlFormat);
 
-	$token = $parser->parse (htmlspecialchars ($string, ENT_COMPAT, CHARSET));
+	$token = $parser->parse (null, htmlspecialchars ($string, ENT_COMPAT, CHARSET));
 	$print = $viewer->view ($token);
 
 	switch ($action)
@@ -118,7 +118,7 @@ if (isset ($actions[$action]) && isset ($_POST['string']))
 			break;
 
 		case 'test':
-			$inverse = htmlspecialchars_decode ($parser->inverse ($token), ENT_COMPAT);
+			$inverse = htmlspecialchars_decode ($parser->inverse (null, $token), ENT_COMPAT);
 
 			$output =
 				'<b>string (' . strlen ($string) . ' characters):</b><br />' . 

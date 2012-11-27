@@ -8,14 +8,12 @@ class	UmenParser
 	/*
 	** Initialize a new parser.
 	** $markup:		markup language definition
-	** $context:	custom parsing context
 	** $escape:		escape character
 	** $limit:		default tag limit
 	*/
-	public function	__construct ($markup, $context, $escape = '\\', $limit = 100)
+	public function	__construct ($markup, $escape = '\\', $limit = 100)
 	{
 		$this->callbacks = array ();
-		$this->context = $context;
 		$this->encoder = new UmenEncoder ();
 		$this->inverses = array ();
 		$this->limits = array ();
@@ -50,10 +48,11 @@ class	UmenParser
 
 	/*
 	** Convert tokenized string back to original format.
-	** $token:	tokenized string
-	** return:	original string
+	** $context:	custom inversion context
+	** $token:		tokenized string
+	** return:		original string
 	*/
-	public function	inverse ($token)
+	public function	inverse ($context, $token)
 	{
 		// Parse tokenized string
 		$decoded = $this->encoder->decode ($token);
@@ -72,7 +71,7 @@ class	UmenParser
 			list ($delta, $name, $action, $flag, $captures) = $scope;
 
 			// Decode current tag
-			if (isset ($this->callbacks[$name . '-']) && !$this->callbacks[$name . '-'] ($this->context, $action, $flag, $captures))
+			if (isset ($this->callbacks[$name . '-']) && !$this->callbacks[$name . '-'] ($context, $action, $flag, $captures))
 				$tag = '';
 			else
 			{
@@ -129,13 +128,15 @@ class	UmenParser
 
 	/*
 	** Convert original string to tokenized format.
-	** $string:	original string
-	** return:	tokenized string
+	** $context:	custom parsing context
+	** $string:		original string
+	** return:		tokenized string
 	*/
-	public function	parse ($string)
+	public function	parse ($context, $string)
 	{
 		// Parse original string using internal scanner
 		$this->chains = array ();
+		$this->context = $context;
 		$this->mode = '';
 		$this->tags = array ();
 		$this->usages = array ();

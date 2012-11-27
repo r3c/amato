@@ -15,12 +15,12 @@ include ('../src/markups/yml.php');
 
 function	check ($parser, $viewer, $string)
 {
-	$token1 = $parser->parse ($string);
+	$token1 = $parser->parse (null, $string);
 	$print1 = $viewer->view ($token1);
-	$plain1 = $parser->inverse ($token1);
-	$token2 = $parser->parse ($plain1);
+	$plain1 = $parser->inverse (null, $token1);
+	$token2 = $parser->parse (null, $plain1);
 	$print2 = $viewer->view ($token2);
-	$plain2 = $parser->inverse ($token2);
+	$plain2 = $parser->inverse (null, $token2);
 
 	if ($token1 !== $token2)
 		return '<li class="ko">Tokenized strings are different:<ul class="diff"><li>[' . html ($string) . ']</li><li>[' . html ($token1) . ']</li><li>[' . html ($token2) . ']</li></ul></li>';
@@ -51,7 +51,7 @@ function	html ($string)
 	return htmlspecialchars ($string, ENT_COMPAT, CHARSET);
 }
 
-$parser = new UmenParser ($ymlMarkup, null, '\\');
+$parser = new UmenParser ($ymlMarkup, '\\');
 $viewer = new UmenViewer ($htmlFormat);
 
 mysql_connect ('localhost', 'yaronet', 'yaronet') or die ('connect');
