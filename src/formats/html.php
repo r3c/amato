@@ -197,7 +197,7 @@ $htmlFormat = array
 	),
 	'src'	=> array
 	(
-		'onAlone'	=> 'umenHTMLSourceAlone',
+		'onStop'	=> 'umenHTMLSourceStop',
 	),
 	'sub'	=> array
 	(
@@ -416,7 +416,11 @@ function	umenHTMLRefStop ($name, $flag, $params)
 
 function	umenHTMLSlapStop ($name, $flag, $params)
 {
-	return '!slap ' . $params[0] . ($params[0] ? '<br /><span style="color: #990099;">&bull; FIXME slaps ' . $params[0] . ' around a bit with a large trout !</span>' : '');
+	global	$config, $mbI;
+
+	$login = htmlspecialchars ((isset ($mbI) && isset ($mbI['login']) ? $mbI['login'] : '?'), ENT_COMPAT, $config['render.charset']);
+
+	return '!slap ' . $params[0] . ($params[0] ? '<br /><span style="color: #990099;">&bull; ' . $login . ' slaps ' . $params[0] . ' around a bit with a large trout !</span><br />' : '');
 }
 
 function	umenHTMLSmileyAlone ($name, $flag, $params)
@@ -519,16 +523,37 @@ function	umenHTMLSmileyAlone ($name, $flag, $params)
 	return '<img alt="' . $alt . '" src="' . $src . '" />';
 }
 
-function	umenHTMLSourceAlone ($name, $flag, $params)
+function	umenHTMLSourceStop ($name, $flag, $params, $body)
 {
+	static	$brushes;
+	global	$includeSH;
+/*
+	global	$config;
 	global	$db;
 
-	$source = $db->getFirst ('SELECT code FROM sources WHERE id = ?', $params, null);
+	if (is_numeric ($params[0]))
+	{
+		$source = $db->getFirst ('SELECT code FROM sources WHERE id = ?', $params, null);
 
-	if ($source !== null)
-		return '<pre>' . stripslashes (gzuncompress ($source['code'])) . '</pre>';
+		if ($source !== null)
+			return '<pre>' . stripslashes (gzuncompress ($source['code'])) . '</pre>';
 
-	return '<center><b>' . $GLOBALS['_LANG_num_src'] . $params[0] . ' N/A</b></center>';
+		return '<center><b>' . $GLOBALS['_LANG_num_src'] . $params[0] . ' N/A</b></center>';
+	}
+
+	return '<a href="#" onclick="popup(\'source.php?s=' . (int)$params[0] . '\', \'800\', \'600\'); return false;"><img align="middle" alt="source" src="' . $config['static.url'] . '/sprite/source.gif">Source $source[type]</a>
+*/
+	if (!isset ($brushes))
+		$brushes = array_flip (array ('as3', 'bash', 'csharp', 'c', 'cpp', 'css', 'delphi', 'diff', 'groovy', 'js', 'java', 'jfx', 'm68k', 'perl', 'php', 'plain', 'ps', 'py', 'rails', 'scala', 'sql', 'vb', 'xml'));
+
+	if (isset ($brushes[$params[0]]))
+	{
+		$includeSH = true;
+
+		return '<pre class="brush: ' . $params[0] . '">' . str_replace ('<br />', "\n", $body) . '</pre>';
+	}
+
+	return $body;
 }
 
 function	umenHTMLSpanStop ($name, $flag, $params, $body)
@@ -544,22 +569,26 @@ function	umenHTMLTableStart ($name, $flag, &$params)
 		'head'	=> false,
 		'rows'	=> array (array ()),
 		'size'	=> 0,
-		'span'	=> 0
+		'span'	=> 1
 	);
 }
 
 function	umenHTMLTableStep ($name, $flag, &$params, $body)
 {
-	if ($body !== '')
+	$body = preg_replace ('#^([[:blank:]]*)(<br />)?(.*)(<br />)?([[:blank:]]*)$#', '$1$3$5', $body);
+
+	if ($params['span'] === 1 && trim ($body) === '')
+		;
+	else if ($body === '')
+		++$params['span'];
+	else
 	{
-		$span = max ($params['span'], 1);
+		$span = $params['span'];
 
 		$params['rows'][count ($params['rows']) - 1][] = array ($params['head'], $span, $body);
 		$params['size'] += $span;
 		$params['span'] = 1;
 	}
-	else
-		++$params['span'];
 
 	switch ($flag)
 	{
@@ -578,7 +607,7 @@ function	umenHTMLTableStep ($name, $flag, &$params, $body)
 			$params['head'] = false;
 			$params['rows'][] = array ();
 			$params['size'] = 0;
-			$params['span'] = 0;
+			$params['span'] = 1;
 
 			break;
 	}
@@ -615,7 +644,7 @@ function	umenHTMLTableStop ($name, $flag, $params, $body)
 
 			$rows .=
 				'<' . $tag . ($span > 1 ? ' colspan="' . $span . '"' : '') . ($align !== '' ? (' style="text-align: ' . $align . ';">') : '>') .
-				preg_replace ('#^[[:blank:]]*(<br />)?(.*)(<br />)?[[:blank:]]*$#', '$2', $text) .
+				$text .
 				'</' . $tag . '>';
 
 			$i += $span;
@@ -627,7 +656,7 @@ function	umenHTMLTableStop ($name, $flag, $params, $body)
 		$rows .= '</tr>';
 	}
 
-	return '<table>' . $rows . '</table>';
+	return '<table class="table">' . $rows . '</table>';
 }
 
 function	umenHTMLTagStop ($name, $flag, $params, $body)

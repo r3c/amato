@@ -102,7 +102,7 @@ echo '
 if (isset ($actions[$action]) && isset ($_POST['string']))
 {
 	$caption = $actions[$action][0];
-	$string = $_POST['string'];
+	$string = str_replace (array ("\n\r", "\r\n"), "\n", $_POST['string']);
 
 	$parser = new UmenParser ($ymlMarkup, null, '\\');
 	$viewer = new UmenViewer ($htmlFormat);

@@ -2,21 +2,15 @@
 
 /*
 ** String parsing rules for each available tag, as name => properties
-**   .limit:		optional allowed number of uses of this tag, default is 100
-**   .onConvert:	optional conversion callback ($context, $action, $flag,
-**					$captures)
-**   .onInverse:	optional inversion callback ($context, $action, $flag,
-**					$captures)
-**   .tags:			tag patterns list, as pattern => (type, flag)
+**   .limit:	optional allowed number of uses of this tag, default is 100
+**   .tags:		tag patterns list, as pattern => (type, flag)
 */
 $ymlMarkup = array
 (
 	'.'		=> array
 	(
-//		'limit'		=> 100,
-//		'onConvert'	=> 'umenYmlNewLineConvert',
-//		'onInverse'	=> 'umenYmlNewLineInverse,
-		'tags'		=> array
+//		'limit'	=> 100,
+		'tags'	=> array
 		(
 			"\n"	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
@@ -185,8 +179,8 @@ $ymlMarkup = array
 		'limit'	=> 20,
 		'tags'	=> array
 		(
-			'[box=<(fixme)>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
-			'[/box]'			=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
+			'[box=<(0-9A-Za-zÀ-ÿ ){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/box]'						=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'c'		=> array
@@ -199,7 +193,7 @@ $ymlMarkup = array
 	),
 	'cmd'	=> array
 	(
-		'onInverse'	=> function () { return false; },
+		'onInverse'	=> 'umenMarkupCmdInverse',
 		'tags'		=> array
 		(
 			'[yncMd:159]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
@@ -259,7 +253,7 @@ $ymlMarkup = array
 	),
 	'img'	=> array
 	(
-		'limit'	=> 50,
+		'limit'	=> 100,
 		'tags'	=> array
 		(
 			'[img=<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
@@ -279,8 +273,9 @@ $ymlMarkup = array
 	),
 	'modo'	=> array
 	(
-		'limit'	=> 20,
-		'tags'	=> array
+		'limit'		=> 20,
+		'onConvert'	=> 'umenMarkupModoConvert',
+		'tags'		=> array
 		(
 			'[modo]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
 			'[/modo]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
@@ -332,7 +327,7 @@ $ymlMarkup = array
 	(
 		'tags'	=> array
 		(
-			'!slap <(fixme)>'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
+			'!slap <(0-9A-Za-zÀ-ÿ ){1,}>'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'smile'	=> array
@@ -366,7 +361,8 @@ $ymlMarkup = array
 		'limit'	=> 10,
 		'tags'	=> array
 		(
-			'[source=<(0-9){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
+			'[source=<(0-9a-zA-Z){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/source]'						=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'sub'	=> array
@@ -422,5 +418,18 @@ $ymlMarkup = array
 		)
 	)
 );
+
+function	umenMarkupCmdInverse ($context, $action, $flag, $captures)
+{
+	return false;
+}
+
+function	umenMarkupModoConvert ($context, $action, $flag, $captures)
+{
+	if ($action !== UMEN_ACTION_STOP)
+		return true;
+
+	return $context['user']['level'] >= 2;
+}
 
 ?>
