@@ -8,19 +8,19 @@
 
 define ('CHARSET',	'iso-8859-1');
 
-include ('../src/parser.php');
-include ('../src/viewer.php');
+include ('../src/converter.php');
+include ('../src/renderer.php');
 include ('../src/formats/html.php');
 include ('../src/markups/yml.php');
 
-function	check ($parser, $viewer, $string)
+function	check ($converter, $renderer, $string)
 {
-	$token1 = $parser->parse (null, $string);
-	$print1 = $viewer->view ($token1);
-	$plain1 = $parser->inverse (null, $token1);
-	$token2 = $parser->parse (null, $plain1);
-	$print2 = $viewer->view ($token2);
-	$plain2 = $parser->inverse (null, $token2);
+	$token1 = $converter->convert (null, $string);
+	$print1 = $renderer->render ($token1);
+	$plain1 = $converter->inverse (null, $token1);
+	$token2 = $converter->convert (null, $plain1);
+	$print2 = $renderer->render ($token2);
+	$plain2 = $converter->inverse (null, $token2);
 
 	if ($token1 !== $token2)
 		return '<li class="ko">Tokenized strings are different:<ul class="diff"><li>[' . html ($string) . ']</li><li>[' . html ($token1) . ']</li><li>[' . html ($token2) . ']</li></ul></li>';
@@ -51,8 +51,8 @@ function	html ($string)
 	return htmlspecialchars ($string, ENT_COMPAT, CHARSET);
 }
 
-$parser = new UmenParser ($ymlMarkup, '\\');
-$viewer = new UmenViewer ($htmlFormat);
+$converter = new UmenConverter ($ymlMarkup, '\\');
+$renderer = new UmenRenderer ($htmlFormat);
 
 mysql_connect ('localhost', 'yaronet', 'yaronet') or die ('connect');
 mysql_select_db ('yaronet') or die ('select');
@@ -66,7 +66,7 @@ while (($row = mysql_fetch_assoc ($q)))
 {
 	$href = 'http://www.yaronet.com/posts.php?s=' . $row['sujet'] . '&p=' . (int)((($row['num'] - 1) / 30) + 1) . '&h=' . ($row['num'] - 1) . '#' . ($row['num'] - 1);
 
-	echo '<li>Topic ' . $row['sujet'] . ' post <a href="' . html ($href) . '">#' . ($row['num'] - 1) . '</a>:<ul>' . check ($parser, $viewer, $row['post']) . '</ul></li>';
+	echo '<li>Topic ' . $row['sujet'] . ' post <a href="' . html ($href) . '">#' . ($row['num'] - 1) . '</a>:<ul>' . check ($converter, $renderer, $row['post']) . '</ul></li>';
 }
 
 ?>

@@ -2,8 +2,8 @@
 
 define ('CHARSET',	'utf-8');
 
-include ('src/parser.php');
-include ('src/viewer.php');
+include ('src/converter.php');
+include ('src/renderer.php');
 
 include ('src/formats/html.php');
 include ('src/markups/yml.php');
@@ -104,11 +104,11 @@ if (isset ($actions[$action]) && isset ($_POST['string']))
 	$caption = $actions[$action][0];
 	$string = str_replace (array ("\n\r", "\r\n"), "\n", $_POST['string']);
 
-	$parser = new UmenParser ($ymlMarkup, '\\');
-	$viewer = new UmenViewer ($htmlFormat);
+	$converter = new UmenConverter ($ymlMarkup, '\\');
+	$renderer = new UmenRenderer ($htmlFormat);
 
-	$token = $parser->parse (null, htmlspecialchars ($string, ENT_COMPAT, CHARSET));
-	$print = $viewer->view ($token);
+	$token = $converter->convert (null, htmlspecialchars ($string, ENT_COMPAT, CHARSET));
+	$print = $renderer->render ($token);
 
 	switch ($action)
 	{
@@ -118,7 +118,7 @@ if (isset ($actions[$action]) && isset ($_POST['string']))
 			break;
 
 		case 'test':
-			$inverse = htmlspecialchars_decode ($parser->inverse (null, $token), ENT_COMPAT);
+			$inverse = htmlspecialchars_decode ($converter->inverse (null, $token), ENT_COMPAT);
 
 			$output =
 				'<b>string (' . strlen ($string) . ' characters):</b><br />' . 

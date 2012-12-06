@@ -2,10 +2,10 @@
 
 require_once (dirname (__FILE__) . '/encoder.php');
 
-class	UmenViewer
+class	UmenRenderer
 {
 	/*
-	** Initialize a new viewer.
+	** Initialize a new renderer.
 	** $format:	render format definition
 	*/
 	public function	__construct ($format)
@@ -16,10 +16,10 @@ class	UmenViewer
 
 	/*
 	** Render tokenized string.
-	** $token:		tokenized string
-	** return:		rendered string
+	** $token:	tokenized string
+	** return:	rendered string
 	*/
-	public function	view ($token)
+	public function	render ($token)
 	{
 		// Parse tokenized string
 		$decoded = $this->encoder->decode ($token);

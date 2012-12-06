@@ -3,7 +3,7 @@
 require_once (dirname (__FILE__) . '/encoder.php');
 require_once (dirname (__FILE__) . '/scanner.php');
 
-class	UmenParser
+class	UmenConverter
 {
 	/*
 	** Initialize a new parser.
@@ -35,15 +35,60 @@ class	UmenParser
 					$flag = isset ($options['flag']) ? (string)$options['flag'] : '';
 					$switch = isset ($options['switch']) ? (string)$options['switch'] : null;
 
-					$decode = $this->scanner->assign ($pattern, array ($name, $actions, $flag, $switch));
+					$index = $this->scanner->assign ($pattern, array ($name, $actions, $flag, $switch));
 
 					foreach ($actions as $condition => $action)
-						$this->inverses[$name . ':' . $condition . ':' . $action . ':' . $flag] = array ($decode, $switch);
+					{
+						$key = $name . ':' . $condition . ':' . $action . ':' . $flag;
+
+						if (!isset ($this->inverses[$key]))
+							$this->inverses[$key] = array ($index, $switch);
+					}
 				}
 			}
 
 			$this->limits[$name] = isset ($rule['limit']) ? (int)$rule['limit'] : $limit;
 		}
+	}
+
+	/*
+	** Convert original string to tokenized format.
+	** $context:	custom parsing context
+	** $string:		original string
+	** return:		tokenized string
+	*/
+	public function	convert ($context, $string)
+	{
+		// Parse original string using internal scanner
+		$this->chains = array ();
+		$this->context = $context;
+		$this->mode = '';
+		$this->tags = array ();
+		$this->usages = array ();
+
+		$plain = $this->scanner->scan ($string, array ($this, 'resolve'));
+
+		// Remove resolved tags from plain string
+		$offset = 0;
+		$origin = 0;
+		$scopes = array ();
+		$shift = 0;
+
+		foreach ($this->tags as $tag)
+		{
+			list ($offset, $length, $name, $action, $flag, $params) = $tag;
+
+			$offset -= $shift;
+			$shift += $length;
+
+			$scopes[] = array ($offset - $origin, $name, $action, $flag, $params);
+
+			$plain = substr_replace ($plain, '', $offset, $length);
+			$origin = $offset;
+		}
+
+		// Encode into tokenized string and return
+		return $this->encoder->encode ($scopes, $plain);
 	}
 
 	/*
@@ -79,14 +124,14 @@ class	UmenParser
 				if (!isset ($stacks[$name]))
 					$stacks[$name] = 0;
 
-				$lookup = $name . ':' . $current . ($stacks[$name] > 0 ? '+' : '-') . ':' . $action . ':' . $flag;
+				$key = $name . ':' . $current . ($stacks[$name] > 0 ? '+' : '-') . ':' . $action . ':' . $flag;
 
 				// Get decoded tag text if exists
-				if (!isset ($this->inverses[$lookup]))
+				if (!isset ($this->inverses[$key]))
 					$tag = '';
 				else
 				{
-					list ($decode, $switch) = $this->inverses[$lookup];
+					list ($decode, $switch) = $this->inverses[$key];
 
 					if ($switch !== null)
 						$current = $switch;
@@ -124,46 +169,6 @@ class	UmenParser
 		}
 
 		return $plain;
-	}
-
-	/*
-	** Convert original string to tokenized format.
-	** $context:	custom parsing context
-	** $string:		original string
-	** return:		tokenized string
-	*/
-	public function	parse ($context, $string)
-	{
-		// Parse original string using internal scanner
-		$this->chains = array ();
-		$this->context = $context;
-		$this->mode = '';
-		$this->tags = array ();
-		$this->usages = array ();
-
-		$plain = $this->scanner->scan ($string, array ($this, 'resolve'));
-
-		// Remove resolved tags from plain string
-		$offset = 0;
-		$origin = 0;
-		$scopes = array ();
-		$shift = 0;
-
-		foreach ($this->tags as $tag)
-		{
-			list ($offset, $length, $name, $action, $flag, $params) = $tag;
-
-			$offset -= $shift;
-			$shift += $length;
-
-			$scopes[] = array ($offset - $origin, $name, $action, $flag, $params);
-
-			$plain = substr_replace ($plain, '', $offset, $length);
-			$origin = $offset;
-		}
-
-		// Encode into tokenized string and return
-		return $this->encoder->encode ($scopes, $plain);
 	}
 
 	public function	resolve ($offset, $length, $match, $captures)

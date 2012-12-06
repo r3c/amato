@@ -3,7 +3,10 @@
 /*
 ** String parsing rules for each available tag, as name => properties
 **   .limit:	optional allowed number of uses of this tag, default is 100
-**   .tags:		tag patterns list, as pattern => (type, flag)
+**   .tags:		tag patterns list, as pattern => options
+**		.actions:	actions for context conditions as condition => action
+**		.flag:		tag flag
+**		.switch:	context switch name
 */
 $ymlMarkup = array
 (
@@ -224,8 +227,8 @@ $ymlMarkup = array
 		'limit'	=> 5,
 		'tags'	=> array
 		(
-			'[flash]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'							=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
-			'[flash=<(0-9){1,}>,<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
+			'[flash=<(0-9){1,}>,<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 's'),
+			'[flash]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'							=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'font'	=> array
@@ -256,7 +259,7 @@ $ymlMarkup = array
 		'limit'	=> 100,
 		'tags'	=> array
 		(
-			'[img=<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
+			'[img=<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 's'),
 			'[img]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'				=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
@@ -302,10 +305,10 @@ $ymlMarkup = array
 		'limit'	=> 20,
 		'tags'	=> array
 		(
-			'[cite]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => 'c'),
-			'[/cite]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP), 'flag' => 'c'),
 			'[quote]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
-			'[/quote]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
+			'[/quote]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP)),
+			'[cite]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[/cite]'	=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'ref'	=> array
@@ -361,8 +364,8 @@ $ymlMarkup = array
 		'limit'	=> 10,
 		'tags'	=> array
 		(
-			'[source=<(0-9a-zA-Z){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
-			'[/source]'						=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
+			'[source=<(0-9a-zA-Z){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'switch' => 'src'),
+			'[/source]'						=> array ('actions' => array ('src+' => UMEN_ACTION_STOP), 'switch' => '')
 		)
 	),
 	'sub'	=> array

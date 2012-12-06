@@ -23,7 +23,7 @@ function	debug ($scanner, $state, &$known)
 		$out .= ', captures = ' . implode (', ', array_map (function ($k, $v) { return "$k:$v"; }, array_keys ($state->captures), $state->captures));
 
 	if (count ($state->accepts) > 0)
-		$out .= ', accepts = ' . implode (', ', array_map (function ($index) use ($scanner) { return $scanner->table[$index][2]; }, $state->accepts));
+		$out .= ', accepts = ' . implode (', ', array_map (function ($index) use ($scanner) { return $scanner->table[$index][1]; }, $state->accepts));
 
 	$out .= ')<ul>';
 
@@ -85,7 +85,7 @@ function	test ($rules, $checks)
 		}
 
 		if ($state !== null)
-			$results = array_map (function ($index) use ($scanner) { return $scanner->table[$index][2]; }, $state->accepts);
+			$results = array_map (function ($index) use ($scanner) { return $scanner->table[$index][1]; }, $state->accepts);
 		else
 			$results = array ();
 
