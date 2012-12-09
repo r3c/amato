@@ -1,6 +1,7 @@
 <?php
 
-include ('../src/scanner.php');
+include ('../src/umen.php');
+include ('../src/scanners/default.php');
 
 function	debug ($group)
 {

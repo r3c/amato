@@ -6,7 +6,8 @@
 
 <?php
 
-include ('../src/scanner.php');
+include ('../src/umen.php');
+include ('../src/scanners/default.php');
 
 function	debug ($scanner, $state, &$known)
 {
@@ -37,7 +38,7 @@ function	debug ($scanner, $state, &$known)
 
 function	test ($rules, $checks)
 {
-	$scanner = new UmenScanner ('\\');
+	$scanner = new Umen\DefaultScanner ('\\');
 
 	echo '<ul class="tree"><li>Rules:<ul>';
 
@@ -100,7 +101,7 @@ function	test ($rules, $checks)
 
 // Run some unit tests
 
-test (array ('#<a{}>#' => 1),
+test (array ('#a{}#' => 1),
 array ());
 
 test (array ('a' => 1, 'b' => 2),
@@ -120,7 +121,7 @@ array
 	'aa'	=> array (2)
 ));
 
-test (array ('[c=<(0-9A-Fa-f){2}>]' => 'c2', '[c=<(0-9A-Fa-f){4}>]' => 'c4'),
+test (array ('[c=(0-9A-Fa-f){2}]' => 'c2', '[c=(0-9A-Fa-f){4}]' => 'c4'),
 array
 (
 	'[c=AB]'	=> array ('c2'),
@@ -132,7 +133,7 @@ array
 	'[c=ABCDE]'	=> array ()
 ));
 
-test (array ('x<(abc)>y' => 1, 'xaz' => 2),
+test (array ('x(abc)y' => 1, 'xaz' => 2),
 array
 (
 	'xay'	=> array (1),

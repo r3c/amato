@@ -8,10 +8,14 @@
 
 define ('CHARSET',	'iso-8859-1');
 
-include ('../src/converter.php');
-include ('../src/renderer.php');
-include ('../src/formats/html.php');
-include ('../src/markups/yml.php');
+include ('../src/umen.php');
+include ('../src/converters/default.php');
+include ('../src/encoders/compact.php');
+include ('../src/renderers/default.php');
+include ('../src/scanners/default.php');
+
+include ('formats/html.php');
+include ('markups/yml.php');
 
 function	check ($converter, $renderer, $string)
 {
@@ -51,8 +55,10 @@ function	html ($string)
 	return htmlspecialchars ($string, ENT_COMPAT, CHARSET);
 }
 
-$converter = new UmenConverter ($ymlMarkup, '\\');
-$renderer = new UmenRenderer ($htmlFormat);
+$encoder = new Umen\CompactEncoder ();
+$scanner = new Umen\DefaultScanner ('\\');
+$converter = new Umen\DefaultConverter ($encoder, $scanner, $ymlMarkup);
+$renderer = new Umen\DefaultRenderer ($encoder, $htmlFormat);
 
 mysql_connect ('localhost', 'yaronet', 'yaronet') or die ('connect');
 mysql_select_db ('yaronet') or die ('select');

@@ -1,7 +1,12 @@
 <?php
 
+namespace Umen;
+
+defined ('UMEN') or die;
+
 define ('UMEN_SCANNER_CAPTURE_BEGIN',	'<');
 define ('UMEN_SCANNER_CAPTURE_END',		'>');
+define ('UMEN_SCANNER_CAPTURE_NAME',	':');
 define ('UMEN_SCANNER_DECODE_CAPTURE',	0);
 define ('UMEN_SCANNER_DECODE_STRING',	1);
 define ('UMEN_SCANNER_GROUP_BEGIN',		'(');
@@ -12,9 +17,9 @@ define ('UMEN_SCANNER_REPEAT_BEGIN',	'{');
 define ('UMEN_SCANNER_REPEAT_END',		'}');
 define ('UMEN_SCANNER_REPEAT_SPLIT',	',');
 
-class	UmenScanner
+class	DefaultScanner extends Scanner
 {
-	public function	__construct ($escape)
+	public function	__construct ($escape = '\\')
 	{
 		$this->escape = $escape;
 		$this->start = new UmenScannerState ();
@@ -27,7 +32,6 @@ class	UmenScanner
 		$capture = null;
 		$decode = array ();
 		$length = strlen ($pattern);
-		$order = 0;
 		$tails = array (array ($this->start, false)); // FIXME: ugly
 
 		for ($i = 0; $i < $length; )
@@ -35,7 +39,13 @@ class	UmenScanner
 			// Parse capture instructions
 			if ($i < $length && $pattern[$i] === UMEN_SCANNER_CAPTURE_BEGIN)
 			{
-				$capture = $order++;
+				$capture = '';
+
+				++$i;
+
+				while ($i < $length && $pattern[$i] !== UMEN_SCANNER_CAPTURE_NAME)
+					$capture .= $pattern[$i++];
+
 				$decode[] = array (UMEN_SCANNER_DECODE_CAPTURE, $capture);
 
 				++$i;
@@ -193,10 +203,10 @@ class	UmenScanner
 
 		foreach ($decode as $segment)
 		{
-			if ($segment[0] === UMEN_SCANNER_DECODE_CAPTURE)
-				$string .= $captures[$segment[1]];
-			else
+			if ($segment[0] === UMEN_SCANNER_DECODE_STRING)
 				$string .= $segment[1];
+			else if (isset ($captures[$segment[1]]))
+				$string .= $captures[$segment[1]];
 		}
 
 		return $string;
@@ -389,15 +399,15 @@ class	UmenScannerCursor
 		$this->state = $state;
 
 		// Append character to captures
-		foreach ($state->captures as $accept => $order)
+		foreach ($state->captures as $accept => $capture)
 		{
 			if (!isset ($this->captures[$accept]))
 				$this->captures[$accept] = array ();
 
-			if (!isset ($this->captures[$accept][$order]))
-				$this->captures[$accept][$order] = '';
+			if (!isset ($this->captures[$accept][$capture]))
+				$this->captures[$accept][$capture] = '';
 
-			$this->captures[$accept][$order] .= $character;
+			$this->captures[$accept][$capture] .= $character;
 		}
 
 		// Store accepted indices and sort by length descending order

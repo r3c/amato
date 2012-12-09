@@ -6,9 +6,9 @@
 
 <?php
 
-include ('../src/encoder.php');
-include ('../src/scanner.php');
-include ('../src/markups/yml.php');
+include ('../src/umen.php');
+include ('../src/scanners/default.php');
+include ('markups/yml.php');
 
 $files = array
 (
@@ -18,12 +18,12 @@ $files = array
 	'Tagged text - tiny'	=> '../res/tag.tiny.txt'
 );
 
-$scanner = new UmenScanner ('\\');
+$scanner = new Umen\DefaultScanner ('\\');
 
 foreach ($ymlMarkup as $name => $rule)
 {
 	foreach ($rule['tags'] as $pattern => $options)
-		$scanner->assign ($pattern, $name . ':' . $options[0]);
+		$scanner->assign ($pattern, $name);
 }
 
 foreach ($files as $name => $path)
@@ -45,7 +45,7 @@ foreach ($files as $name => $path)
 		$hint = 'tag: ' . htmlspecialchars ($match);
 
 		if (count ($captures) > 0)
-			$hint .= ', captures: ' . htmlspecialchars (implode (', ', $captures));
+			$hint .= ', captures: ' . htmlspecialchars (implode (', ', array_map (function ($k, $v) { return "$k = $v"; }, array_keys ($captures), $captures)));
 
 		$plain = substr ($plain, 0, $offset) . '<span class="tag"><span class="hint">' . $hint . '</span>' . substr ($plain, $offset, $length) . '</span>' . substr ($plain, $offset + $length);
 	}

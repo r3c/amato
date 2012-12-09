@@ -1,15 +1,21 @@
 <?php
 
-require ('../src/converter.php');
-require ('../src/renderer.php');
+include ('../src/umen.php');
+include ('../src/converters/default.php');
+include ('../src/encoders/compact.php');
+include ('../src/renderers/default.php');
+include ('../src/scanners/default.php');
 
-include ('../src/formats/html.php');
-include ('../src/markups/yml.php');
+include ('formats/html.php');
+include ('markups/yml.php');
 
-$converter = new UmenConverter ($ymlMarkup, '\\');
+$encoder = new Umen\CompactEncoder ();
+$scanner = new Umen\DefaultScanner ('\\');
+
+$converter = new Umen\DefaultConverter ($encoder, $scanner, $ymlMarkup);
 $token = $converter->convert (null, file_get_contents ('../res/tag.medium.txt'));
 
-$renderer = new UmenRenderer ($htmlFormat);
+$renderer = new Umen\DefaultRenderer ($encoder, $htmlFormat);
 $out = $renderer->render ($token);
 
 if (false)

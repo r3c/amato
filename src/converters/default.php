@@ -1,23 +1,25 @@
 <?php
 
-require_once (dirname (__FILE__) . '/encoder.php');
-require_once (dirname (__FILE__) . '/scanner.php');
+namespace Umen;
 
-class	UmenConverter
+defined ('UMEN') or die;
+
+class	DefaultConverter extends Converter
 {
 	/*
-	** Initialize a new parser.
+	** Initialize a new default converter.
+	** $encoder:	encoder instance
+	** $scanner:	scanner instance
 	** $markup:		markup language definition
-	** $escape:		escape character
 	** $limit:		default tag limit
 	*/
-	public function	__construct ($markup, $escape = '\\', $limit = 100)
+	public function	__construct ($encoder, $scanner, $markup, $limit = 100)
 	{
 		$this->callbacks = array ();
-		$this->encoder = new UmenEncoder ();
+		$this->encoder = $encoder;
 		$this->inverses = array ();
 		$this->limits = array ();
-		$this->scanner = new UmenScanner ($escape);
+		$this->scanner = $scanner;
 
 		foreach ($markup as $name => $rule)
 		{
@@ -51,12 +53,6 @@ class	UmenConverter
 		}
 	}
 
-	/*
-	** Convert original string to tokenized format.
-	** $context:	custom parsing context
-	** $string:		original string
-	** return:		tokenized string
-	*/
 	public function	convert ($context, $string)
 	{
 		// Parse original string using internal scanner
@@ -76,12 +72,12 @@ class	UmenConverter
 
 		foreach ($this->tags as $tag)
 		{
-			list ($offset, $length, $name, $action, $flag, $params) = $tag;
+			list ($offset, $length, $name, $action, $flag, $captures) = $tag;
 
 			$offset -= $shift;
 			$shift += $length;
 
-			$scopes[] = array ($offset - $origin, $name, $action, $flag, $params);
+			$scopes[] = array ($offset - $origin, $name, $action, $flag, $captures);
 
 			$plain = substr_replace ($plain, '', $offset, $length);
 			$origin = $offset;
@@ -91,12 +87,6 @@ class	UmenConverter
 		return $this->encoder->encode ($scopes, $plain);
 	}
 
-	/*
-	** Convert tokenized string back to original format.
-	** $context:	custom inversion context
-	** $token:		tokenized string
-	** return:		original string
-	*/
 	public function	inverse ($context, $token)
 	{
 		// Parse tokenized string

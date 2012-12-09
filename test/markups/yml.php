@@ -150,11 +150,11 @@ $ymlMarkup = array
 	(
 		'tags'	=> array
 		(
-			'<https{,1}://(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 'h'),
-			'<www.(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>'			=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 'w'),
-			'[url]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\)*){1,}>[/url]'		=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
-			'[url=<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>]'			=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
-			'[urli=<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>]'			=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => 'i'),
+			'<u:https{,1}://(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 'h'),
+			'<u:www.(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>'			=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 'w'),
+			'[url]<u:(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\)*){1,}>[/url]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
+			'[url=<u:(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>]'		=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[urli=<u:(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>]'		=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => 'i'),
 			'[/url]'													=> array ('actions' => array ('+' => UMEN_ACTION_STOP)),
 			'[/urli]'													=> array ('actions' => array ('+' => UMEN_ACTION_STOP), 'flag' => 'i')
 		)
@@ -182,7 +182,7 @@ $ymlMarkup = array
 		'limit'	=> 20,
 		'tags'	=> array
 		(
-			'[box=<(0-9A-Za-zÀ-ÿ ){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[box=<t:(0-9A-Za-zÀ-ÿ ){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
 			'[/box]'						=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
@@ -207,11 +207,11 @@ $ymlMarkup = array
 	(
 		'tags'	=> array
 		(
-			'[color=<(0-9A-Fa-f){3}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => '3'),
-			'[color=<(0-9A-Fa-f){6}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => '6'),
-			'[color=#<(0-9A-Fa-f){3}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => '#3'),
-			'[color=#<(0-9A-Fa-f){6}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => '#6'),
-			'[/color]'					=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
+			'[color=<h:(0-9A-Fa-f){3}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => '3'),
+			'[color=<h:(0-9A-Fa-f){6}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => '6'),
+			'[color=#<h:(0-9A-Fa-f){3}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => '#3'),
+			'[color=#<h:(0-9A-Fa-f){6}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'flag' => '#6'),
+			'[/color]'						=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
 	'em'	=> array
@@ -227,15 +227,15 @@ $ymlMarkup = array
 		'limit'	=> 5,
 		'tags'	=> array
 		(
-			'[flash=<(0-9){1,}>,<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 's'),
-			'[flash]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'							=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
+			'[flash=<x:(0-9){1,}>,<y:(0-9){1,}>]<u:(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 's'),
+			'[flash]<u:(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/flash]'								=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'font'	=> array
 	(
 		'tags'	=> array
 		(
-			'[font=<(0-9){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
+			'[font=<p:(0-9){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START)),
 			'[/font]'				=> array ('actions' => array ('+' => UMEN_ACTION_STOP))
 		)
 	),
@@ -259,8 +259,8 @@ $ymlMarkup = array
 		'limit'	=> 100,
 		'tags'	=> array
 		(
-			'[img=<(0-9){1,}>]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 's'),
-			'[img]<(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'				=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
+			'[img=<p:(0-9){1,}>]<u:(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 's'),
+			'[img]<u:(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]'				=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'list'	=> array
@@ -289,7 +289,7 @@ $ymlMarkup = array
 		'limit'	=> 5,
 		'tags'	=> array
 		(
-			'[sondage=<(0-9){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
+			'[sondage=<i:(0-9){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'pre'	=> array
@@ -315,7 +315,7 @@ $ymlMarkup = array
 	(
 		'tags'	=> array
 		(
-			'./<(0-9){1,}>'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
+			'./<n:(0-9){1,}>'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	's'		=> array
@@ -330,25 +330,25 @@ $ymlMarkup = array
 	(
 		'tags'	=> array
 		(
-			'!slap <(0-9A-Za-zÀ-ÿ ){1,}>'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
+			'!slap <u:(0-9A-Za-zÀ-ÿ ){1,}>'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'smile'	=> array
 	(
 		'tags'	=> array
 		(
-			':D'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '0'),
-			':\\('					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '1'),
-			':o'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '2'),
-			':)'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '3'),
-			':p'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '4'),
-			';)'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '5'),
-			'=)'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '6'),
-			'%)'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '7'),
-			':|'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '8'),
-			':S'					=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '9'),
-			'##<(0-9A-Za-z){1,}>##'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 'c'),
-			'#<(0-9A-Za-z){1,}>#'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 'n')
+			':D'						=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '0'),
+			':\\('						=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '1'),
+			':o'						=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '2'),
+			':)'						=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '3'),
+			':p'						=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '4'),
+			';)'						=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '5'),
+			'=)'						=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '6'),
+			'%)'						=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '7'),
+			':|'						=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '8'),
+			':S'						=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => '9'),
+			'##<n:(0-9A-Za-z){1,}>##'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 'c'),
+			'#<n:(0-9A-Za-z){1,}>#'		=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE), 'flag' => 'n')
 		)
 	),
 	'spoil'	=> array
@@ -364,7 +364,7 @@ $ymlMarkup = array
 		'limit'	=> 10,
 		'tags'	=> array
 		(
-			'[source=<(0-9a-zA-Z){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'switch' => 'src'),
+			'[source=<l:(0-9a-zA-Z){1,}>]'	=> array ('actions' => array ('-' => UMEN_ACTION_START, '+' => UMEN_ACTION_START), 'switch' => 'src'),
 			'[/source]'						=> array ('actions' => array ('src+' => UMEN_ACTION_STOP), 'switch' => '')
 		)
 	),
@@ -408,16 +408,16 @@ $ymlMarkup = array
 	(
 		'tags'	=> array
 		(
-			'&amp;#<(a-z0-9){1,}>;'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
+			'&amp;#<c:(a-z0-9){1,}>;'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	),
 	'yt'	=> array
 	(
 		'tags'	=> array
 		(
-			'[youtube]<(-0-9A-Za-z_){1,}>[/youtube]'																			=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
-			'[youtube]http://www.youtube.com/watch?v=<(-0-9A-Za-z_){1,}>[/youtube]'												=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
-			'[youtube]http://www.youtube.com/watch?v=<(-0-9A-Za-z_){1,}>(&#)(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){}[/youtube]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
+			'[youtube]<i:(-0-9A-Za-z_){1,}>[/youtube]'																			=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
+			'[youtube]http://www.youtube.com/watch?v=<i:(-0-9A-Za-z_){1,}>[/youtube]'												=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE)),
+			'[youtube]http://www.youtube.com/watch?v=<i:(-0-9A-Za-z_){1,}>(&#)(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){}[/youtube]'	=> array ('actions' => array ('-' => UMEN_ACTION_ALONE, '+' => UMEN_ACTION_ALONE))
 		)
 	)
 );

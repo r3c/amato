@@ -18,8 +18,8 @@ X Limits should be verified by scanner, not renderer
 X Allow multiple matches for same tag
 X Implement tokenized string un-parsing
 X Escape sequences should be restored by "inverse", not saved
+X Empty cycles creates holes in captures
+X Add missing yAronet tags and formats (see format.yn.php)
 - Empty cycles cause captures to be assigned to a wrong state
-- Parameters capture should be reset only when appropriate (FIXMEs in viewer)
+- Parameters capture should be reset only when appropriate (see FIXMEs in default renderer)
 - Implement negative character groups
-- Add missing yAronet tags and formats (see format.yn.php)
-- Empty cycles creates holes in captures

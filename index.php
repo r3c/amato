@@ -2,11 +2,16 @@
 
 define ('CHARSET',	'utf-8');
 
-include ('src/converter.php');
-include ('src/renderer.php');
+include ('src/umen.php');
+include ('src/converters/default.php');
+include ('src/encoders/compact.php');
+include ('src/encoders/json.php');
+include ('src/encoders/serialize.php');
+include ('src/renderers/default.php');
+include ('src/scanners/default.php');
 
-include ('src/formats/html.php');
-include ('src/markups/yml.php');
+include ('test/formats/html.php');
+include ('test/markups/yml.php');
 
 function	formatHTML ($str)
 {
@@ -76,25 +81,49 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 			<div class="body">
 				<form action="" method="POST">
 					<textarea name="string" rows="10" style="box-sizing: border-box; width: 100%;">' . htmlspecialchars (isset ($_POST['string']) ? $_POST['string'] : file_get_contents ('res/sample.txt'), ENT_COMPAT, CHARSET) . '</textarea>
-					<select name="mode">';
+					<div class="buttons" id="actions">
+						<select name="mode">';
 
 foreach ($actions as $name => $attributes)
 {
 	echo '
-						<option' . ($action === $name ? ' selected="selected"' : '') . ' value="' . htmlspecialchars ($name, ENT_COMPAT, CHARSET) . '">' . htmlspecialchars ($attributes[1], ENT_COMPAT, CHARSET) . '</option>';
+							<option' . ($action === $name ? ' selected="selected"' : '') . ' value="' . htmlspecialchars ($name, ENT_COMPAT, CHARSET) . '">' . htmlspecialchars ($attributes[1], ENT_COMPAT, CHARSET) . '</option>';
 }
 
 echo '
-					</select>
-					using
-					<select name="markups">
-						<option value="yml">yML</option>
-					</select>
-					to
-					<select name="formats">
-						<option value="html">HTML</option>
-					</select>
-					<input type="submit" value="Format" />
+						</select>
+						using
+						<select name="markups">
+							<option value="yml">yML</option>
+						</select>
+						to
+						<select name="formats">
+							<option value="html">HTML</option>
+						</select>
+						<input type="submit" value="Format" />
+						<input onclick="var e = document.getElementById(\'options\'); e.style.display = (e.style.display != \'block\' ? \'block\' : \'none\');" type="button" value="Options" />
+					</div>
+					<div class="buttons" id="options" style="display: none;">
+						Parse using
+						<select name="scanner">
+							<option value="default">default</option>
+						</select>
+						scanner and
+						<select name="converter">
+							<option value="default">default</option>
+						</select>
+						converter, encode as
+						<select name="encoder">
+							<option value="compact">compact</option>
+							<option value="json">JSON</option>
+							<option value="serialize">serialize</option>
+						</select>
+						format, render with
+						<select name="renderer">
+							<option value="default">default</option>
+						</select>
+						renderer
+					</div>
 				</form>
 			</div>
 		</div>';
@@ -104,8 +133,27 @@ if (isset ($actions[$action]) && isset ($_POST['string']))
 	$caption = $actions[$action][0];
 	$string = str_replace (array ("\n\r", "\r\n"), "\n", $_POST['string']);
 
-	$converter = new UmenConverter ($ymlMarkup, '\\');
-	$renderer = new UmenRenderer ($htmlFormat);
+	switch (isset ($_POST['encoder']) ? $_POST['encoder'] : '')
+	{
+		case 'json':
+			$encoder = new Umen\JSONEncoder ();
+
+			break;
+
+		case 'serialize':
+			$encoder = new Umen\SerializeEncoder ();
+
+			break;
+
+		default:
+			$encoder = new Umen\CompactEncoder ();
+
+			break;
+	}
+
+	$scanner = new Umen\DefaultScanner ('\\');
+	$converter = new Umen\DefaultConverter ($encoder, $scanner, $ymlMarkup);
+	$renderer = new Umen\DefaultRenderer ($encoder, $htmlFormat);
 
 	$token = $converter->convert (null, htmlspecialchars ($string, ENT_COMPAT, CHARSET));
 	$print = $renderer->render ($token);

@@ -1,24 +1,22 @@
 <?php
 
-require_once (dirname (__FILE__) . '/encoder.php');
+namespace Umen;
 
-class	UmenRenderer
+defined ('UMEN') or die;
+
+class	DefaultRenderer extends Renderer
 {
 	/*
 	** Initialize a new renderer.
-	** $format:	render format definition
+	** $encoder:	encoder instance
+	** $format:		render format definition
 	*/
-	public function	__construct ($format)
+	public function	__construct ($encoder, $format)
 	{
-		$this->encoder = new UmenEncoder ();
+		$this->encoder = $encoder;
 		$this->format = $format;
 	}
 
-	/*
-	** Render tokenized string.
-	** $token:	tokenized string
-	** return:	rendered string
-	*/
 	public function	render ($token)
 	{
 		// Parse tokenized string
@@ -35,7 +33,7 @@ class	UmenRenderer
 
 		foreach ($scopes as $scope)
 		{
-			list ($delta, $name, $action, $flag, $params) = $scope;
+			list ($delta, $name, $action, $flag, $captures) = $scope;
 
 			$index += $delta;
 
@@ -66,7 +64,7 @@ class	UmenRenderer
 						$close = $last + 1;
 
 						if (isset ($rule['onStart']))
-							$rule['onStart'] ($name, $flag, $params);
+							$rule['onStart'] ($name, $flag, $captures);
 
 						array_splice ($stack, $last, 0, array (array
 						(
@@ -74,7 +72,7 @@ class	UmenRenderer
 							$index,
 							$name,
 							$flag,
-							$params
+							$captures
 						)));
 					}
 
@@ -92,8 +90,8 @@ class	UmenRenderer
 					// Update tag flag and parameters
 					$broken =& $stack[$last];
 
-					foreach ($params as $paramKey => $paramValue) // FIXME: hack to save params modifications
-						$broken[4][$paramKey] = $paramValue;
+					foreach ($captures as $cName => $cValue) // FIXME: hack to save captures modifications
+						$broken[4][$cName] = $cValue;
 
 					$broken[3] = $flag;
 
@@ -114,12 +112,12 @@ class	UmenRenderer
 			// Close crossed modifiers
 			for ($i = count ($stack) - 1; $i >= $close; --$i)
 			{
-				list ($level, $start, $name, $flag, $params) = $stack[$i];
+				list ($level, $start, $name, $flag, $captures) = $stack[$i];
 
 				if (isset ($this->format[$name]['onStop']))
 				{
 					$length = $index - $start;
-					$result = $this->format[$name]['onStop'] ($name, $flag, $params, substr ($plain, $start, $length));
+					$result = $this->format[$name]['onStop'] ($name, $flag, $captures, substr ($plain, $start, $length));
 
 					$plain = substr_replace ($plain, $result, $start, $length);
 					$index = $start + strlen ($result);
@@ -134,7 +132,7 @@ class	UmenRenderer
 					// Use "alone" callback to generate tag body if available
 					if (isset ($rule['onAlone']))
 					{
-						$result = $rule['onAlone'] ($name, $flag, $params);
+						$result = $rule['onAlone'] ($name, $flag, $captures);
 
 						$plain = substr_replace ($plain, $result, $index, 0);
 						$index += strlen ($result);
@@ -150,18 +148,18 @@ class	UmenRenderer
 
 				// Call step function
 				case UMEN_ACTION_STEP:
-					list ($level, $start, $name, $flag, $params) = $stack[$last];
+					list ($level, $start, $name, $flag, $captures) = $stack[$last];
 
 					// Use "step" callback to replace tag body if available
 					if (isset ($this->format[$name]['onStep']))
 					{
 						$length = $index - $start;
-						$result = $this->format[$name]['onStep'] ($name, $flag, $params, substr ($plain, $start, $length));
+						$result = $this->format[$name]['onStep'] ($name, $flag, $captures, substr ($plain, $start, $length));
 
 						$plain = substr_replace ($plain, $result, $start, $length);
 						$index = $start + strlen ($result);
 
-						$stack[$last][4] = $params; // FIXME: hack to save params modifications
+						$stack[$last][4] = $captures; // FIXME: hack to save captures modifications
 					}
 
 					break;

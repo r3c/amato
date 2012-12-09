@@ -242,12 +242,12 @@ function	umenHTMLAlignStop ($name, $flag, $params, $body)
 
 function	umenHTMLAnchorAlone ($name, $flag, $params)
 {
-	return umenHTMLAnchorStop ($name, $flag, $params, $params[0]);
+	return umenHTMLAnchorStop ($name, $flag, $params, $params['u']);
 }
 
 function	umenHTMLAnchorStop ($name, $flag, $params, $body)
 {
-	if (!preg_match ('#^([0-9A-Za-z+]+://)?(([^:@]+(:[^@]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $params[0], $matches))
+	if (!preg_match ('#^([0-9A-Za-z+]+://)?(([^:@]+(:[^@]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $params['u'], $matches))
 		return $body;
 
 	$href = ($matches[1] ? $matches[1] : 'http://') . $matches[2];
@@ -257,7 +257,7 @@ function	umenHTMLAnchorStop ($name, $flag, $params, $body)
 
 function	umenHTMLBoxStop ($name, $flag, $params, $body)
 {
-	return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') &gt;= 0 ? \'box box_0\' : \'box box_1\';">' . $params[0] . '</h1><div>' . $body . '</div></div>';
+	return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') &gt;= 0 ? \'box box_0\' : \'box box_1\';">' . $params['t'] . '</h1><div>' . $body . '</div></div>';
 }
 
 function	umenHTMLCenterStop ($name, $flag, $params, $body)
@@ -267,8 +267,8 @@ function	umenHTMLCenterStop ($name, $flag, $params, $body)
 
 function	umenHTMLColorStop ($name, $flag, $params, $body)
 {
-	if (isset ($params[0]))
-		$attr = 'style="color: #' . $params[0] . ';"';
+	if (isset ($params['h']))
+		$attr = 'style="color: #' . $params['h'] . ';"';
 	else
 		$attr = 'class="color' . $name . '"';
 
@@ -287,15 +287,15 @@ function	umenHTMLDivStop ($name, $flag, $params, $body)
 
 function	umenHTMLFlashAlone ($name, $flag, $params)
 {
-	if (isset ($params[0]) && isset ($params[1]))
+	if (isset ($params['x']) && isset ($params['y']))
 	{
-		$size = array (max (min ((int)$params[0], 1024), 32), max (min ((int)$params[1], 1024), 32));
-		$url = $params[2];
+		$size = array (max (min ((int)$params['x'], 1024), 32), max (min ((int)$params['y'], 1024), 32));
+		$url = $params['u'];
 	}
 	else
 	{
 		$size = array (550, 400);
-		$url = $params[0];
+		$url = $params['u'];
 	}
 
 	if (!preg_match ('#^([0-9A-Za-z+]+://)?(([^:@]+(:[^@]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $url, $matches))
@@ -307,7 +307,7 @@ function	umenHTMLFlashAlone ($name, $flag, $params)
 
 function	umenHTMLFontStop ($name, $flag, $params, $body)
 {
-	return $body ? '<span style="font-size: ' . max (min ((int)$params[0], 300), 50) . '%; line-height: 100%;">' . $body . '</span>' : '';
+	return $body ? '<span style="font-size: ' . max (min ((int)$params['p'], 300), 50) . '%; line-height: 100%;">' . $body . '</span>' : '';
 }
 
 function	umenHTMLHorizontalAlone ($name, $flag, $params)
@@ -317,15 +317,15 @@ function	umenHTMLHorizontalAlone ($name, $flag, $params)
 
 function	umenHTMLImageAlone ($name, $flag, $params)
 {
-	if (isset ($params[1]))
+	if (isset ($params['p']))
 	{
-		$size = round (max (min (intval ($params[0]), 200), 20) * 0.01, 2);
-		$src = $params[1];
+		$size = round (max (min (intval ($params['p']), 200), 20) * 0.01, 2);
+		$src = $params['u'];
 	}
 	else
 	{
 		$size = null;
-		$src = $params[0];
+		$src = $params['u'];
 	}
 
 	if (!preg_match ('#^([0-9A-Za-z+]+://)?([-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $src, $matches))
@@ -392,7 +392,7 @@ function	umenHTMLNewLineAlone ($name, $flag, $params)
 
 function	umenHTMLPollAlone ($name, $flag, $params)
 {
-	$s = (int)$params[0];
+	$s = (int)$params['i'];
 
 	include ("sond.php");
 
@@ -411,7 +411,7 @@ function	umenHTMLQuoteStop ($name, $flag, $params, $body)
 
 function	umenHTMLRefStop ($name, $flag, $params)
 {
-	return '<a href="" onclick="getPost(event, ' . (int)$GLOBALS['s'] . ', ' . $params[0] . '); return false;">./' . $params[0] . '</a>';
+	return '<a href="" onclick="getPost(event, ' . (int)$GLOBALS['s'] . ', ' . $params['n'] . '); return false;">./' . $params['n'] . '</a>';
 }
 
 function	umenHTMLSlapStop ($name, $flag, $params)
@@ -420,7 +420,7 @@ function	umenHTMLSlapStop ($name, $flag, $params)
 
 	$login = htmlspecialchars ((isset ($mbI) && isset ($mbI['login']) ? $mbI['login'] : '?'), ENT_COMPAT, $config['render.charset']);
 
-	return '!slap ' . $params[0] . ($params[0] ? '<br /><span style="color: #990099;">&bull; ' . $login . ' slaps ' . $params[0] . ' around a bit with a large trout !</span><br />' : '');
+	return '!slap ' . $params['u'] . ($params['u'] ? '<br /><span style="color: #990099;">&bull; ' . $login . ' slaps ' . $params['u'] . ' around a bit with a large trout !</span><br />' : '');
 }
 
 function	umenHTMLSmileyAlone ($name, $flag, $params)
@@ -491,11 +491,11 @@ function	umenHTMLSmileyAlone ($name, $flag, $params)
 			break;
 
 		case 'c':
-			$alt = $params[0];
-			$src = 'sp/img/' . $params[0] . '.img';
+			$alt = $params['n'];
+			$src = 'sp/img/' . $alt . '.img';
 
 			if (!file_exists ($src))
-				return '##' . $params[0] . '##';
+				return '##' . $alt . '##';
 
 			break;
 
@@ -511,11 +511,11 @@ function	umenHTMLSmileyAlone ($name, $flag, $params)
 				));
 			}
 
-			if (!isset ($names[$params[0]]))
-				return '#' . $params[0] . '#';
+			$alt = $params['n'];
+			$src = $config['static.url'] . '/sprite/smile/' . $alt . '.gif';
 
-			$alt = $params[0];
-			$src = $config['static.url'] . '/sprite/smile/' . $params[0] . '.gif';
+			if (!isset ($names[$alt]))
+				return '#' . $alt . '#';
 
 			break;
 	}
@@ -546,11 +546,11 @@ function	umenHTMLSourceStop ($name, $flag, $params, $body)
 	if (!isset ($brushes))
 		$brushes = array_flip (array ('as3', 'bash', 'csharp', 'c', 'cpp', 'css', 'delphi', 'diff', 'groovy', 'js', 'java', 'jfx', 'm68k', 'perl', 'php', 'plain', 'ps', 'py', 'rails', 'scala', 'sql', 'vb', 'xml'));
 
-	if (isset ($brushes[$params[0]]))
+	if (isset ($brushes[$params['l']]))
 	{
 		$includeSH = true;
 
-		return '<pre class="brush: ' . $params[0] . '">' . str_replace ('<br />', "\n", $body) . '</pre>';
+		return '<pre class="brush: ' . $params['l'] . '">' . str_replace ('<br />', "\n", $body) . '</pre>';
 	}
 
 	return $body;
@@ -666,12 +666,12 @@ function	umenHTMLTagStop ($name, $flag, $params, $body)
 
 function	umenHTMLUnicodeAlone ($name, $flag, $params)
 {
-	return '&#' . $params[0] . ';';
+	return '&#' . $params['c'] . ';';
 }
 
 function	umenHTMLYoutubeAlone ($name, $flag, $params)
 {
-	return '<iframe class="youtube-player" type="text/html" width="640" height="385" src="http://www.youtube.com/embed/' . rawurlencode ($params[0]) . '" frameborder="0"></iframe>';
+	return '<iframe class="youtube-player" type="text/html" width="640" height="385" src="http://www.youtube.com/embed/' . rawurlencode ($params['i']) . '" frameborder="0"></iframe>';
 }
 
 ?>
