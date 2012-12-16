@@ -56,20 +56,22 @@ class	DefaultConverter extends Converter
 	public function	convert ($string, $escape, $custom = null)
 	{
 		// Parse original string using internal scanner
+		$callbacks =& $this->callbacks;
 		$chains = array ();
 		$context = '';
 		$custom = $custom;
+		$limits =& $this->limits;
 		$tags = array ();
 		$usages = array ();
 
-		$string = $this->scanner->scan ($string, function ($offset, $length, $match, $captures) use (&$chains, &$context, &$custom, &$tags, &$usages)
+		$string = $this->scanner->scan ($string, function ($offset, $length, $match, $captures) use (&$callbacks, &$chains, &$context, &$custom, &$limits, &$tags, &$usages)
 		{
 			list ($name, $actions, $flag, $switch) = $match;
 
 			// Ensure tag limit has not be reached
 			$usage = isset ($usages[$name]) ? $usages[$name] : 0;
 
-			if ($usage >= $this->limits[$name])
+			if ($usage >= $limits[$name])
 				return false;
 
 			$usages[$name] = $usage + 1;
@@ -81,7 +83,7 @@ class	DefaultConverter extends Converter
 			$condition = $context . (count ($chains[$name]) > 0 ? '+' : '-');
 			$action = isset ($actions[$condition]) ? $actions[$condition] : null;
 
-			if ($action === null || (isset ($this->callbacks[$name . '+']) && !$this->callbacks[$name . '+'] ($custom, $action, $flag, $captures)))
+			if ($action === null || (isset ($callbacks[$name . '+']) && !$callbacks[$name . '+'] ($custom, $action, $flag, $captures)))
 				return false;
 
 			// Switch context if requested
