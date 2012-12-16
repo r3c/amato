@@ -10,10 +10,10 @@ Passons à des tests plus utiles. [b][s][u]Beaucoup de balises imbriquées[/u][/
 
 [hr]
 [list]
-* Liste avec
-*# [b]Un item en gras, non fermé
-*# Suivi d'un second, et la fermeture[/b]
-* Le tout théoriquement sans erreur XHTML, c'est merveilleux.
+[*] Liste avec
+[*][#] [b]Un item en gras, non fermé
+[*][#] Suivi d'un second, et la fermeture[/b]
+[*] Le tout théoriquement sans erreur XHTML, c'est merveilleux.
 [/list]
 [hr]
 [table]

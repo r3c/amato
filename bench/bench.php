@@ -3,9 +3,9 @@
 define ('CHARSET',	'utf-8');
 
 include ('../src/umen.php');
-include ('../src/converters/default.php');
+include ('../src/converters/markup.php');
 include ('../src/encoders/compact.php');
-include ('../src/renderers/default.php');
+include ('../src/renderers/format.php');
 include ('../src/scanners/default.php');
 
 include ('../test/formats/html.php');
@@ -25,8 +25,8 @@ function	bench ($count, $init, $loop, $stop)
 
 $encoder = new Umen\CompactEncoder ();
 $scanner = new Umen\DefaultScanner ('\\');
-$converter = new Umen\DefaultConverter ($encoder, $scanner, $ymlMarkup);
-$renderer = new Umen\DefaultRenderer ($encoder, $htmlFormat);
+$converter = new Umen\MarkupConverter ($encoder, $scanner, $ymlMarkup);
+$renderer = new Umen\FormatRenderer ($encoder, $htmlFormat);
 
 $out = '';
 $i = 1;

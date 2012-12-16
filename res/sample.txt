@@ -5,9 +5,9 @@
 [7][pre]Literal [b]text[/7][/pre] should [b][pre][/7]prevent[/b][/pre] any tag[/b] from being used.[/7]
 
 [list]
-* Liste:[b]
-*# Gras 1
-*# Gras 2[/b]
+[*] Liste:[b]
+[*][#] Gras 1
+[*][#] Gras 2[/b]
 [/list]
 
 [s]Strike[hr]Strike[/s]

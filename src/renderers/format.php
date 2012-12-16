@@ -4,7 +4,7 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-class	DefaultRenderer extends Renderer
+class	FormatRenderer extends Renderer
 {
 	/*
 	** Initialize a new renderer.
@@ -50,7 +50,7 @@ class	DefaultRenderer extends Renderer
 					// Get precedence level for this modifier
 					$level = isset ($rule['level']) ? (int)$rule['level'] : 1;
 
-					// Browse pending tags with lower precedence
+					// Jump over pending tags with lower precedence
 					for ($last = count ($stack); $last > 0 && $level > $stack[$last - 1][0]; )
 						--$last;
 
@@ -89,19 +89,11 @@ class	DefaultRenderer extends Renderer
 
 					// Update tag flag and parameters
 					$broken =& $stack[$last];
-
-					foreach ($captures as $cName => $cValue) // FIXME: hack to save captures modifications
-						$broken[4][$cName] = $cValue;
-
 					$broken[3] = $flag;
+					$broken[4] = array_merge ($broken[4], $captures);
 
-					// Action "step": close all tags before this one, excluded
-					if ($action === UMEN_ACTION_STEP)
-						$close = $last + 1;
-
-					// Action "stop": close all tags before this one, included
-					else
-						$close = $last;
+					// Close tags before current, included for "stop" action
+					$close = $action === UMEN_ACTION_STEP ? $last + 1 : $last;
 
 					break;
 
@@ -148,18 +140,16 @@ class	DefaultRenderer extends Renderer
 
 				// Call step function
 				case UMEN_ACTION_STEP:
-					list ($level, $start, $name, $flag, $captures) = $stack[$last];
+					list ($level, $start, $name, $flag) = $stack[$last];
 
 					// Use "step" callback to replace tag body if available
 					if (isset ($this->format[$name]['onStep']))
 					{
 						$length = $index - $start;
-						$result = $this->format[$name]['onStep'] ($name, $flag, $captures, substr ($plain, $start, $length));
+						$result = $this->format[$name]['onStep'] ($name, $flag, $stack[$last][4], substr ($plain, $start, $length));
 
 						$plain = substr_replace ($plain, $result, $start, $length);
 						$index = $start + strlen ($result);
-
-						$stack[$last][4] = $captures; // FIXME: hack to save captures modifications
 					}
 
 					break;

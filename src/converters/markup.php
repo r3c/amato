@@ -4,7 +4,7 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-class	DefaultConverter extends Converter
+class	MarkupConverter extends Converter
 {
 	/*
 	** Initialize a new default converter.

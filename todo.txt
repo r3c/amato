@@ -22,6 +22,6 @@ X Empty cycles creates holes in captures
 X Add missing yAronet tags and formats (see format.yn.php)
 X Plain text escaping should be handled internally: >) should not become &gt;) them &gt[smile]
 X Don't add useless escape sequences when using invert conversion
+X Parameters capture should be reset only when appropriate
 - Empty cycles cause captures to be assigned to a wrong state
-- Parameters capture should be reset only when appropriate (see FIXMEs in default renderer)
 - Implement negative character groups

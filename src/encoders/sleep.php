@@ -4,7 +4,7 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-class	SerializeEncoder extends Encoder
+class	SleepEncoder extends Encoder
 {
 	public function	decode ($token)
 	{

@@ -9,9 +9,9 @@
 define ('CHARSET',	'iso-8859-1');
 
 include ('../src/umen.php');
-include ('../src/converters/default.php');
+include ('../src/converters/markup.php');
 include ('../src/encoders/compact.php');
-include ('../src/renderers/default.php');
+include ('../src/renderers/format.php');
 include ('../src/scanners/default.php');
 
 include ('formats/html.php');
@@ -62,8 +62,8 @@ function	html_encode ($string)
 
 $encoder = new Umen\CompactEncoder ();
 $scanner = new Umen\DefaultScanner ('\\');
-$converter = new Umen\DefaultConverter ($encoder, $scanner, $ymlMarkup);
-$renderer = new Umen\DefaultRenderer ($encoder, $htmlFormat);
+$converter = new Umen\MarkupConverter ($encoder, $scanner, $ymlMarkup);
+$renderer = new Umen\FormatRenderer ($encoder, $htmlFormat);
 
 mysql_connect ('localhost', 'yaronet', 'yaronet') or die ('connect');
 mysql_select_db ('yaronet') or die ('select');

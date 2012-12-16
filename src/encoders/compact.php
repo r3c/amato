@@ -41,10 +41,10 @@ class	CompactEncoder extends Encoder
 	private static	$escapesEncode = array
 	(
 		UMEN_ENCODER_COMPACT_TOKEN_ESCAPE	=> true,
-		UMEN_ENCODER_COMPACT_TOKEN_PARAM		=> true,
-		UMEN_ENCODER_COMPACT_TOKEN_PLAIN		=> true,
-		UMEN_ENCODER_COMPACT_TOKEN_SCOPE		=> true,
-		UMEN_ENCODER_COMPACT_TOKEN_VALUE		=> true
+		UMEN_ENCODER_COMPACT_TOKEN_PARAM	=> true,
+		UMEN_ENCODER_COMPACT_TOKEN_PLAIN	=> true,
+		UMEN_ENCODER_COMPACT_TOKEN_SCOPE	=> true,
+		UMEN_ENCODER_COMPACT_TOKEN_VALUE	=> true
 	);
 
 	public function	decode ($token)
@@ -107,7 +107,9 @@ class	CompactEncoder extends Encoder
 			}
 
 			// Read tag captures
-			for ($captures = array (); $i < $length && $token[$i] === UMEN_ENCODER_COMPACT_TOKEN_PARAM; )
+			$captures = array ();
+
+			while ($i < $length && $token[$i] === UMEN_ENCODER_COMPACT_TOKEN_PARAM)
 			{
 				$cName = '';
 
