@@ -90,7 +90,7 @@ class	DefaultScanner extends Scanner
 				}
 
 				if ($i >= $length || $pattern[$i] !== UMEN_SCANNER_GROUP_END)
-					throw new Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . UMEN_SCANNER_GROUP_END . '"');
+					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . UMEN_SCANNER_GROUP_END . '"');
 			}
 			else
 			{
@@ -121,7 +121,7 @@ class	DefaultScanner extends Scanner
 					$max = $min;
 
 				if ($i >= $length || $pattern[$i] !== UMEN_SCANNER_REPEAT_END)
-					throw new Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . UMEN_SCANNER_REPEAT_END . '"');
+					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . UMEN_SCANNER_REPEAT_END . '"');
 
 				++$i;
 			}
@@ -193,26 +193,10 @@ class	DefaultScanner extends Scanner
 
 		$this->table[] = array ($decode, $match);
 
-		return count ($this->table) - 1;
+		return $accept;
 	}
 
-	public function	decode ($index, $captures)
-	{
-		$decode = $this->table[$index][0];
-		$string = '';
-
-		foreach ($decode as $segment)
-		{
-			if ($segment[0] === UMEN_SCANNER_DECODE_STRING)
-				$string .= $segment[1];
-			else if (isset ($captures[$segment[1]]))
-				$string .= $captures[$segment[1]];
-		}
-
-		return $string;
-	}
-
-	public function	escape ($string)
+	public function	escape ($string, $callback)
 	{
 		$cursors = array ();
 		$length = strlen ($string);
@@ -228,16 +212,19 @@ class	DefaultScanner extends Scanner
 				$cursors[] = new UmenScannerCursor ($this->start, $offset);
 				$insert = null;
 
-				for ($i = count ($cursors) - 1; $i >= 0; --$i)
+				for ($i = count ($cursors) - 1; $insert === null && $i >= 0; --$i)
 				{
 					$cursor = $cursors[$i];
 					$keep = $cursor->move ($character);
 
-					if (count ($cursor->accepts) > 0)
+					foreach ($cursor->accepts as $accept => $dummy)
 					{
-						$insert = $cursor->offset;
+						if ($callback ($this->table[$accept][1]))
+						{
+							$insert = $cursor->offset;
 
-						break;
+							break;
+						}
 					}
 
 					if (!$keep)
@@ -253,6 +240,22 @@ class	DefaultScanner extends Scanner
 				++$length;
 				++$offset;
 			}
+		}
+
+		return $string;
+	}
+
+	public function	make ($accept, $captures)
+	{
+		$decode = $this->table[$accept][0];
+		$string = '';
+
+		foreach ($decode as $segment)
+		{
+			if ($segment[0] === UMEN_SCANNER_DECODE_STRING)
+				$string .= $segment[1];
+			else if (isset ($captures[$segment[1]]))
+				$string .= $captures[$segment[1]];
 		}
 
 		return $string;
@@ -289,13 +292,6 @@ class	DefaultScanner extends Scanner
 		}
 	}
 
-	/*
-	** Search given string for known patterns, invoke callback for all matches
-	** and return cleaned up string (with escape characters removed).
-	** $string:		input string
-	** $callback:	matching callback (offset, length, match, captures) -> bool
-	** return:		cleaned up string
-	*/
 	public function	scan ($string, $callback)
 	{
 		$cursors = array ();
@@ -430,17 +426,17 @@ class	UmenScannerGroup
 
 	public function	contains ($character)
 	{
-		throw new Exception ('not implemented');
+		throw new \Exception ('not implemented');
 	}
 
 	public function	getExcept ($group)
 	{
-		throw new Exception ('not implemented');
+		throw new \Exception ('not implemented');
 	}
 
 	public function	getShare ($group)
 	{
-		throw new Exception ('not implemented');
+		throw new \Exception ('not implemented');
 	}
 
 	public function	merge ($lower, $upper)
@@ -480,7 +476,7 @@ echo "bounds: $i, $j ($l_over, $u_over)<br />";
 
 	public function	size ()
 	{
-		throw new Exception ('not implemented');
+		throw new \Exception ('not implemented');
 	}
 }
 
@@ -526,7 +522,7 @@ class	UmenScannerState
 //			if ($share->size () !== 0)
 			{
 				if ($branch->to === $this)
-					throw new Exception ('can\'t exit from cycle with one of cycle\'s characters');
+					throw new \Exception ('can\'t exit from cycle with one of cycle\'s characters');
 
 				// Remove shared characters from those to be branched
 				$hash = array_diff_key ($hash, $shares);

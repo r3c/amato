@@ -6,7 +6,7 @@
 
 namespace Umen;
 
-define ('UMEN',					'1.0.0.0');
+define ('UMEN',					'1.0.1.0');
 
 define ('UMEN_ACTION_ALONE',	0);
 define ('UMEN_ACTION_START',	1);
@@ -17,19 +17,21 @@ abstract class	Converter
 {
 	/*
 	** Convert original string to tokenized format.
-	** $context:	custom parsing context
-	** $string:		original string
-	** return:		tokenized string
+	** $string:	original string
+	** $escape:	plain text escaping callback (string) -> string
+	** $custom:	custom conversion information
+	** return:	tokenized string
 	*/
-	public abstract function	convert ($context, $string);
+	public abstract function	convert ($string, $escape, $custom = null);
 
 	/*
 	** Convert tokenized string back to original format.
-	** $context:	custom inversion context
 	** $token:		tokenized string
+	** $unescape:	plain text unescaping callback (string) -> string
+	** $custom:		custom inversion information
 	** return:		original string
 	*/
-	public abstract function	inverse ($context, $token);
+	public abstract function	inverse ($token, $unescape, $custom = null);
 }
 
 abstract class	Encoder
@@ -66,30 +68,31 @@ abstract class	Scanner
 	** Register a new pattern into this scanner instance.
 	** $pattern:	registered pattern
 	** $match:		associated matching object
-	** return:		assignation identifier
+	** return:		pattern accept identifier
 	*/
 	public abstract function	assign ($pattern, $match);
 
 	/*
-	** Decode matched pattern back into plain text format.
-	** $id:			assignation identifier
-	** $captures:	captures array
-	** return:		decoded plain string
-	*/
-	public abstract function	decode ($id, $captures);
-
-	/*
 	** Escape given string so it doesn't match any of currently assigned
 	** patterns.
-	** $string:	raw input string
-	** return:	escaped string
+	** $string:		plain text string
+	** $callback:	escape requirement verification callback (match) -> bool
+	** return:		escaped string
 	*/
-	public abstract function	escape ($string);
+	public abstract function	escape ($string, $callback);
+
+	/*
+	** Make plain text string compatible with given pattern.
+	** $accept:		pattern accept identifier
+	** $captures:	captures array
+	** return:		plain text string
+	*/
+	public abstract function	make ($accept, $captures);
 
 	/*
 	** Search given string for known patterns, invoke callback for all matches
 	** and return cleaned up string (with escape characters removed).
-	** $string:		input string
+	** $string:		plain text string
 	** $callback:	matching callback (offset, length, match, captures) -> bool
 	** return:		cleaned up string
 	*/

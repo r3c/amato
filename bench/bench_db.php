@@ -2,10 +2,14 @@
 
 define ('CHARSET',	'iso-8859-1');
 
-include ('../src/parser.php');
-include ('../src/viewer.php');
-include ('../src/formats/html.php');
-include ('../src/markups/yml.php');
+include ('../src/umen.php');
+include ('../src/converters/default.php');
+include ('../src/encoders/compact.php');
+include ('../src/renderers/default.php');
+include ('../src/scanners/default.php');
+
+include ('../test/formats/html.php');
+include ('../test/markups/yml.php');
 
 include ('debug.php');
 include ('yml-regexp.php');
@@ -19,8 +23,10 @@ function	bench ($count, $init, $loop, $stop)
 	return (int)((microtime (true) - $time) * 1000);
 }
 
-$parser = new UmenParser ($ymlMarkup, $ymlContext, '\\');
-$viewer = new UmenViewer ($htmlFormat);
+$encoder = new Umen\CompactEncoder ();
+$scanner = new Umen\DefaultScanner ('\\');
+$converter = new Umen\DefaultConverter ($encoder, $scanner, $ymlMarkup);
+$renderer = new Umen\DefaultRenderer ($encoder, $htmlFormat);
 
 $out = '';
 $i = 1;
@@ -35,18 +41,18 @@ while (($row = mysql_fetch_assoc ($q)))
 	$count = 50;
 
 	$plain = $row['post'];
-	$token = $parser->parse (htmlspecialchars ($plain, ENT_COMPAT, CHARSET));
+	$token = $converter->convert ($plain, function ($string) { return htmlspecialchars ($string, ENT_COMPAT, CHARSET); });
 
-	$time1 = bench ($count, 'global $token, $viewer;', '$viewer->view ($token);', '');
+	$time1 = bench ($count, 'global $renderer, $token;', '$renderer->render ($token);', '');
 	$time2 = bench ($count, 'global $plain;', 'formatRegexp ($plain);', '');
 
 	$out .= '
 		<div class="box">
 			<div class="head">
-				#' . $i++ . ' - Post (' . strlen ($plain) . ' bytes, ' . $count . ' loops): mapa = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[1]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a>
+				#' . $i++ . ' - Post (' . strlen ($plain) . ' bytes, ' . $count . ' loops): umen = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[1]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a>
 			</div>
-			<div class="body mapa" style="display: none;">
-				' . $viewer->view ($token) . '
+			<div class="body umen" style="display: none;">
+				' . $renderer->render ($token) . '
 			</div>
 		</div>';
 }
@@ -54,10 +60,10 @@ while (($row = mysql_fetch_assoc ($q)))
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
-		<link href="res/style.css" rel="stylesheet" type="text/css" />
-		<link href="res/mapa.css" rel="stylesheet" type="text/css" />
+		<link href="../res/style.css" rel="stylesheet" type="text/css" />
+		<link href="../res/umen.css" rel="stylesheet" type="text/css" />
 		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . CHARSET . '" />
-		<title>MaPa Format Test</title>
+		<title>Umen Bench</title>
 	</head>
 	<body>' . $out . '
 	</body>

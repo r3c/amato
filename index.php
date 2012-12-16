@@ -9,6 +9,7 @@ include ('src/encoders/json.php');
 include ('src/encoders/serialize.php');
 include ('src/renderers/default.php');
 include ('src/scanners/default.php');
+include ('src/scanners/regexp.php');
 
 include ('test/formats/html.php');
 include ('test/markups/yml.php');
@@ -56,14 +57,15 @@ function	formatW3C ($str)
 </html>', ENT_COMPAT, CHARSET);
 }
 
-$actions = array
-(
-	'print'	=> array ('umen', 'Show actual rendering'),
-	'tree'	=> array ('code', 'Display syntax tree'),
-	'test'	=> array ('code', 'Render and reverse')
-);
+function	getOptions ($options, $selected)
+{
+	$html = '';
 
-$action = isset ($_POST['mode']) ? $_POST['mode'] : 'html';
+	foreach ($options as $value => $caption)
+		$html .= '<option' . ($selected === $value ? ' selected="selected"' : '') . ' value="' . htmlspecialchars ($value, ENT_COMPAT, CHARSET) . '">' . htmlspecialchars ($caption, ENT_COMPAT, CHARSET) . '</option>';
+
+	return $html;
+}
 
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -82,58 +84,43 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 				<form action="" method="POST">
 					<textarea name="string" rows="10" style="box-sizing: border-box; width: 100%;">' . htmlspecialchars (isset ($_POST['string']) ? $_POST['string'] : file_get_contents ('res/sample.txt'), ENT_COMPAT, CHARSET) . '</textarea>
 					<div class="buttons" id="actions">
-						<select name="mode">';
-
-foreach ($actions as $name => $attributes)
-{
-	echo '
-							<option' . ($action === $name ? ' selected="selected"' : '') . ' value="' . htmlspecialchars ($name, ENT_COMPAT, CHARSET) . '">' . htmlspecialchars ($attributes[1], ENT_COMPAT, CHARSET) . '</option>';
-}
-
-echo '
-						</select>
+						Display
+						<select name="action">' . getOptions (array ('print' => 'actual rendering', 'tree' => 'syntax tree', 'debug' => 'debug mode'), isset ($_POST['action']) ? $_POST['action'] : 'html') . '</select>
 						using
-						<select name="markups">
-							<option value="yml">yML</option>
-						</select>
+						<select name="markups">' . getOptions (array ('yml' => 'yML'), isset ($_POST['markups']) ? $_POST['markups'] : null) . '</select>
 						to
-						<select name="formats">
-							<option value="html">HTML</option>
-						</select>
+						<select name="formats">' . getOptions (array ('html' => 'HTML'), isset ($_POST['formats']) ? $_POST['formats'] : null) . '</select>
 						<input type="submit" value="Format" />
 						<input onclick="var e = document.getElementById(\'options\'); e.style.display = (e.style.display != \'block\' ? \'block\' : \'none\');" type="button" value="Options" />
 					</div>
 					<div class="buttons" id="options" style="display: none;">
 						Parse using
-						<select name="scanner">
-							<option value="default">default</option>
-						</select>
+						<select name="scanner">' . getOptions (array ('default' => 'default', 'regex' => 'regular expression'), isset ($_POST['scanner']) ? $_POST['scanner'] : null) . '</select>
 						scanner and
-						<select name="converter">
-							<option value="default">default</option>
-						</select>
+						<select name="converter">' . getOptions (array ('default' => 'default'), isset ($_POST['converter']) ? $_POST['converter'] : null) . '</select>
 						converter, encode as
-						<select name="encoder">
-							<option value="compact">compact</option>
-							<option value="json">JSON</option>
-							<option value="serialize">serialize</option>
-						</select>
+						<select name="encoder">' . getOptions (array ('compact' => 'compact', 'json' => 'json', 'serialize' => 'serialize'), isset ($_POST['encoder']) ? $_POST['encoder'] : null) . '</select>
 						format, render with
-						<select name="renderer">
-							<option value="default">default</option>
-						</select>
+						<select name="renderer">' . getOptions (array ('default' => 'default'), isset ($_POST['renderer']) ? $_POST['renderer'] : null) . '</select>
 						renderer
 					</div>
 				</form>
 			</div>
 		</div>';
 
-if (isset ($actions[$action]) && isset ($_POST['string']))
+if (isset ($_POST['action']) && isset ($_POST['string']))
 {
-	$caption = $actions[$action][0];
-	$string = str_replace (array ("\n\r", "\r\n"), "\n", $_POST['string']);
+	$styles = array
+	(
+		'print'	=> 'umen',
+		'tree'	=> 'code',
+		'debug'	=> 'code'
+	);
 
-	switch (isset ($_POST['encoder']) ? $_POST['encoder'] : '')
+	$string = str_replace (array ("\n\r", "\r\n"), "\n", $_POST['string']);
+	$style = isset ($styles[$_POST['action']]) ? $styles[$_POST['action']] : '';
+
+	switch (isset ($_POST['encoder']) ? $_POST['encoder'] : null)
 	{
 		case 'json':
 			$encoder = new Umen\JSONEncoder ();
@@ -151,22 +138,29 @@ if (isset ($actions[$action]) && isset ($_POST['string']))
 			break;
 	}
 
-	$scanner = new Umen\DefaultScanner ('\\');
-	$converter = new Umen\DefaultConverter ($encoder, $scanner, $ymlMarkup);
-	$renderer = new Umen\DefaultRenderer ($encoder, $htmlFormat);
-
-	$token = $converter->convert (null, htmlspecialchars ($string, ENT_COMPAT, CHARSET));
-	$print = $renderer->render ($token);
-
-	switch ($action)
+	switch (isset ($_POST['scanner']) ? $_POST['scanner'] : null)
 	{
-		case 'print':
-			$output = $print;
+		case 'regex':
+			$scanner = new Umen\RegExpScanner ('\\');
 
 			break;
 
-		case 'test':
-			$inverse = htmlspecialchars_decode ($converter->inverse (null, $token), ENT_COMPAT);
+		default:
+			$scanner = new Umen\DefaultScanner ('\\');
+
+			break;
+	}
+
+	$converter = new Umen\DefaultConverter ($encoder, $scanner, $ymlMarkup);
+	$renderer = new Umen\DefaultRenderer ($encoder, $htmlFormat);
+
+	$token = $converter->convert ($string, function ($plain) { return htmlspecialchars ($plain, ENT_COMPAT, CHARSET); });
+	$print = $renderer->render ($token);
+
+	switch ($_POST['action'])
+	{
+		case 'debug':
+			$inverse = $converter->inverse ($token, function ($plain) { return htmlspecialchars_decode ($plain, ENT_COMPAT); });
 
 			$output =
 				'<b>string (' . strlen ($string) . ' characters):</b><br />' . 
@@ -177,6 +171,11 @@ if (isset ($actions[$action]) && isset ($_POST['string']))
 				htmlspecialchars ($print, ENT_COMPAT, CHARSET) . '<hr />' .
 				'<b>inverse (' . strlen ($inverse) . ' characters):</b><br />' .
 				'<span style="color: ' . (str_replace ('\\', '', $inverse) === str_replace ('\\', '', $string) ? 'green' : 'red') . ';">' . htmlspecialchars ($inverse, ENT_COMPAT, CHARSET) . '</span>';
+
+			break;
+
+		case 'print':
+			$output = $print;
 
 			break;
 
@@ -196,7 +195,7 @@ if (isset ($actions[$action]) && isset ($_POST['string']))
 			<div class="head">
 				Output render:
 			</div>
-			<div class="body ' . htmlspecialchars ($caption, ENT_COMPAT, CHARSET) . '">
+			<div class="body ' . htmlspecialchars ($style, ENT_COMPAT, CHARSET) . '">
 				' . $output . '
 			</div>
 			<div class="body">

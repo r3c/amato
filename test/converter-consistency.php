@@ -19,19 +19,19 @@ include ('markups/yml.php');
 
 function	check ($converter, $renderer, $string)
 {
-	$token1 = $converter->convert (null, $string);
+	$token1 = $converter->convert ($string, 'html_encode');
 	$print1 = $renderer->render ($token1);
-	$plain1 = $converter->inverse (null, $token1);
-	$token2 = $converter->convert (null, $plain1);
+	$plain1 = $converter->inverse ($token1, 'html_decode');
+	$token2 = $converter->convert ($plain1, 'html_encode');
 	$print2 = $renderer->render ($token2);
-	$plain2 = $converter->inverse (null, $token2);
+	$plain2 = $converter->inverse ($token2, 'html_decode');
 
 	if ($token1 !== $token2)
-		return '<li class="ko">Tokenized strings are different:<ul class="diff"><li>[' . html ($string) . ']</li><li>[' . html ($token1) . ']</li><li>[' . html ($token2) . ']</li></ul></li>';
+		return '<li class="ko">Tokenized strings are different:<ul class="diff"><li>[' . html_encode ($string) . ']</li><li>[' . html_encode ($token1) . ']</li><li>[' . html_encode ($token2) . ']</li></ul></li>';
 	else if ($print1 !== $print2)
-		return '<li class="ko">Rendered strings are different:<ul class="diff"><li>[' . html ($string) . ']</li><li>[' . html ($print1) . ']</li><li>[' . html ($print2) . ']</li></ul></li>';
+		return '<li class="ko">Rendered strings are different:<ul class="diff"><li>[' . html_encode ($string) . ']</li><li>[' . html_encode ($print1) . ']</li><li>[' . html_encode ($print2) . ']</li></ul></li>';
 	else if ($plain1 !== $plain2)
-		return '<li class="ko">Decoded strings are different:<ul class="diff"><li>[' . html ($string) . ']</li><li>[' . html ($plain1) . ']</li><li>[' . html ($plain2) . ']</li></ul></li>';
+		return '<li class="ko">Decoded strings are different:<ul class="diff"><li>[' . html_encode ($string) . ']</li><li>[' . html_encode ($plain1) . ']</li><li>[' . html_encode ($plain2) . ']</li></ul></li>';
 
 	$xml = xml_parser_create (CHARSET);
 
@@ -45,12 +45,17 @@ function	check ($converter, $renderer, $string)
 	xml_parser_free ($xml);
 
 	if ($error !== '')
-		return '<li class="ko">Rendered string is not a valid XML (' . $error . '):<ul class="diff"><li>[' . html ($string) . ']</li><li>[' . html ($print1) . ']</li></ul></li>';
+		return '<li class="ko">Rendered string is not a valid XML (' . $error . '):<ul class="diff"><li>[' . html_encode ($string) . ']</li><li>[' . html_encode ($print1) . ']</li></ul></li>';
 
 	return '<li class="ok">OK</li>';
 }
 
-function	html ($string)
+function	html_decode ($string)
+{
+	return htmlspecialchars_decode ($string, ENT_COMPAT);
+}
+
+function	html_encode ($string)
 {
 	return htmlspecialchars ($string, ENT_COMPAT, CHARSET);
 }
@@ -72,7 +77,7 @@ while (($row = mysql_fetch_assoc ($q)))
 {
 	$href = 'http://www.yaronet.com/posts.php?s=' . $row['sujet'] . '&p=' . (int)((($row['num'] - 1) / 30) + 1) . '&h=' . ($row['num'] - 1) . '#' . ($row['num'] - 1);
 
-	echo '<li>Topic ' . $row['sujet'] . ' post <a href="' . html ($href) . '">#' . ($row['num'] - 1) . '</a>:<ul>' . check ($converter, $renderer, $row['post']) . '</ul></li>';
+	echo '<li>Topic ' . $row['sujet'] . ' post <a href="' . html_encode ($href) . '">#' . ($row['num'] - 1) . '</a>:<ul>' . check ($converter, $renderer, $row['post']) . '</ul></li>';
 }
 
 ?>
