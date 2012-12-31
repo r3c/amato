@@ -4,28 +4,31 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-define ('UMEN_SCANNER_REGEXP_CAPTURE_BEGIN',	'<');
-define ('UMEN_SCANNER_REGEXP_CAPTURE_END',		'>');
-define ('UMEN_SCANNER_REGEXP_CAPTURE_NAME',		':');
-define ('UMEN_SCANNER_REGEXP_DECODE_CAPTURE',	0);
-define ('UMEN_SCANNER_REGEXP_DECODE_STRING',	1);
-define ('UMEN_SCANNER_REGEXP_GROUP_BEGIN',		'(');
-define ('UMEN_SCANNER_REGEXP_GROUP_END',		')');
-define ('UMEN_SCANNER_REGEXP_GROUP_ESCAPE',		'\\');
-define ('UMEN_SCANNER_REGEXP_GROUP_NEGATE',		'!');
-define ('UMEN_SCANNER_REGEXP_GROUP_RANGE',		'-');
-define ('UMEN_SCANNER_REGEXP_REPEAT_BEGIN',		'{');
-define ('UMEN_SCANNER_REGEXP_REPEAT_END',		'}');
-define ('UMEN_SCANNER_REGEXP_REPEAT_SPLIT',		',');
-
 class	RegExpScanner extends Scanner
 {
+	const CAPTURE_BEGIN		= '<';
+	const CAPTURE_END		= '>';
+	const CAPTURE_NAME		= ':';
+	const DECODE_CAPTURE	= 0;
+	const DECODE_STRING		= 1;
+	const GROUP_BEGIN		= '(';
+	const GROUP_END			= ')';
+	const GROUP_ESCAPE		= '\\';
+	const GROUP_NEGATE		= '!';
+	const GROUP_RANGE		= '-';
+	const REPEAT_BEGIN		= '{';
+	const REPEAT_END		= '}';
+	const REPEAT_SPLIT		= ',';
+
 	public function	__construct ($escape = '\\')
 	{
 		$this->escape = $escape;
 		$this->table = array ();
 	}
 
+	/*
+	** Override for Scanner::assign.
+	*/
 	public function	assign ($pattern, $match)
 	{
 		$capture = null;
@@ -37,19 +40,19 @@ class	RegExpScanner extends Scanner
 		for ($i = 0; $i < $length; )
 		{
 			// Parse capture instructions
-			if ($i < $length && $pattern[$i] === UMEN_SCANNER_REGEXP_CAPTURE_BEGIN)
+			if ($i < $length && $pattern[$i] === self::CAPTURE_BEGIN)
 			{
-				for ($start = ++$i; $i < $length && $pattern[$i] !== UMEN_SCANNER_REGEXP_CAPTURE_NAME; )
+				for ($start = ++$i; $i < $length && $pattern[$i] !== self::CAPTURE_NAME; )
 					++$i;
 
 				$capture = substr ($pattern, $start, $i - $start);
-				$decode[] = array (UMEN_SCANNER_REGEXP_DECODE_CAPTURE, $capture);
+				$decode[] = array (self::DECODE_CAPTURE, $capture);
 				$names[] = $capture;
 				$regexp .= '(';
 				$i += 1;
 			}
 
-			if ($i < $length && $pattern[$i] === UMEN_SCANNER_REGEXP_CAPTURE_END)
+			if ($i < $length && $pattern[$i] === self::CAPTURE_END)
 			{
 				$capture = null;
 				$regexp .= ')';
@@ -61,26 +64,26 @@ class	RegExpScanner extends Scanner
 
 			if ($i < $length)
 			{
-				if ($pattern[$i] === UMEN_SCANNER_REGEXP_GROUP_BEGIN)
+				if ($pattern[$i] === self::GROUP_BEGIN)
 				{
 					$regexp .= '[';
 					$i += 1;
 
-					if ($i < $length && $pattern[$i] === UMEN_SCANNER_REGEXP_GROUP_NEGATE)
+					if ($i < $length && $pattern[$i] === self::GROUP_NEGATE)
 					{
 						$regexp .= '!';
 						$i += 1;
 					}
 
-					while ($i < $length && $pattern[$i] !== UMEN_SCANNER_REGEXP_GROUP_END)
+					while ($i < $length && $pattern[$i] !== self::GROUP_END)
 					{
-						if ($i + 1 < $length && $pattern[$i] === UMEN_SCANNER_REGEXP_GROUP_ESCAPE)
+						if ($i + 1 < $length && $pattern[$i] === self::GROUP_ESCAPE)
 						{
 							$character = $pattern[$i + 1];
 							$regexp .= preg_quote ($character, '/');
 							$i += 2;
 						}
-						else if ($i + 2 < $length && $pattern[$i + 1] === UMEN_SCANNER_REGEXP_GROUP_RANGE)
+						else if ($i + 2 < $length && $pattern[$i + 1] === self::GROUP_RANGE)
 						{
 							$character = $pattern[$i];
 							$regexp .= preg_quote ($character, '/') . '-' . preg_quote ($pattern[$i + 2], '/');
@@ -94,15 +97,15 @@ class	RegExpScanner extends Scanner
 						}
 					}
 
-					if ($i >= $length || $pattern[$i] !== UMEN_SCANNER_REGEXP_GROUP_END)
-						throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . UMEN_SCANNER_REGEXP_GROUP_END . '"');
+					if ($i >= $length || $pattern[$i] !== self::GROUP_END)
+						throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . self::GROUP_END . '"');
 
 					$regexp .= ']';
 					$i += 1;
 				}
 				else
 				{
-					if ($i + 1 < $length && $pattern[$i] === UMEN_SCANNER_REGEXP_GROUP_ESCAPE)
+					if ($i + 1 < $length && $pattern[$i] === self::GROUP_ESCAPE)
 						++$i;
 
 					$character = $pattern[$i++];
@@ -111,14 +114,14 @@ class	RegExpScanner extends Scanner
 			}
 
 			// Parse repeat modifiers
-			if ($i < $length && $pattern[$i] === UMEN_SCANNER_REGEXP_REPEAT_BEGIN)
+			if ($i < $length && $pattern[$i] === self::REPEAT_BEGIN)
 			{
 				for ($j = ++$i; $i < $length && $pattern[$i] >= '0' && $pattern[$i] <= '9'; )
 					++$i;
 
 				$min = $i > $j ? (int)substr ($pattern, $j, $i - $j) : 0;
 
-				if ($i < $length && $pattern[$i] == UMEN_SCANNER_REGEXP_REPEAT_SPLIT)
+				if ($i < $length && $pattern[$i] == self::REPEAT_SPLIT)
 				{
 					for ($j = ++$i; $i < $length && $pattern[$i] >= '0' && $pattern[$i] <= '9'; )
 						++$i;
@@ -128,8 +131,8 @@ class	RegExpScanner extends Scanner
 				else
 					$max = $min;
 
-				if ($i >= $length || $pattern[$i] !== UMEN_SCANNER_REGEXP_REPEAT_END)
-					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . UMEN_SCANNER_REGEXP_REPEAT_END . '"');
+				if ($i >= $length || $pattern[$i] !== self::REPEAT_END)
+					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . self::REPEAT_END . '"');
 
 				$regexp .= '{' . ($min > 0 ? $min : '') . ',' . ($max > 0 ? $max : '') . '}';
 				$i += 1;
@@ -143,10 +146,10 @@ class	RegExpScanner extends Scanner
 				$constant = str_repeat ($character, $min);
 				$count = count ($decode);
 
-				if ($count > 0 && $decode[$count - 1][0] === UMEN_SCANNER_REGEXP_DECODE_STRING)
+				if ($count > 0 && $decode[$count - 1][0] === self::DECODE_STRING)
 					$decode[$count - 1][1] .= $constant;
 				else
-					$decode[] = array (UMEN_SCANNER_REGEXP_DECODE_STRING, $constant);
+					$decode[] = array (self::DECODE_STRING, $constant);
 			}
 		}
 
@@ -157,11 +160,17 @@ class	RegExpScanner extends Scanner
 		return count ($this->table) - 1;
 	}
 
+	/*
+	** Override for Scanner::escape.
+	*/
 	public function	escape ($string, $callback)
 	{
 throw new \Exception ('not implemented');
 	}
 
+	/*
+	** Override for Scanner::make.
+	*/
 	public function	make ($accept, $captures)
 	{
 		$decode = $this->table[$accept][1];
@@ -169,7 +178,7 @@ throw new \Exception ('not implemented');
 
 		foreach ($decode as $segment)
 		{
-			if ($segment[0] === UMEN_SCANNER_DECODE_STRING)
+			if ($segment[0] === self::DECODE_STRING)
 				$string .= $segment[1];
 			else if (isset ($captures[$segment[1]]))
 				$string .= $captures[$segment[1]];
@@ -178,6 +187,9 @@ throw new \Exception ('not implemented');
 		return $string;
 	}
 
+	/*
+	** Override for Scanner::scan.
+	*/
 	public function	scan ($string, $callback)
 	{
 echo "FIXME: no escape sequence!<br />";
@@ -203,21 +215,20 @@ echo "FIXME: no escape sequence!<br />";
 		}
 
 		// Sort candidates by start offset
-		uasort ($candidates, function ($a, $b)
+		usort ($candidates, function ($a, $b)
 		{
 			return $a[0] < $b[0] ? -1 : 1;
 		});
 
-		// Send found candidates to matching callback
+		// Send candidates to matching callback
 		for ($i = 0; $i < count ($candidates); ++$i)
 		{
 			list ($offset, $length, $match, $captures) = $candidates[$i];
 
 			if (call_user_func ($callback, $offset, $length, $match, $captures))
 			{
-
-				while ($i + 1 < count ($candidates) && $candidates[$i + 1] < $offset + $length)
-					array_splice ($candidates, $i + 1, 1);
+				for ($j = $i + 1; $j < count ($candidates) && $candidates[$j][0] < $offset + $length; )
+					array_splice ($candidates, $j, 1);
 			}
 		}
 

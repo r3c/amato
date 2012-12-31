@@ -7,8 +7,10 @@
 <?php
 
 include ('../src/umen.php');
-include ('../src/scanners/default.php');
+
 include ('markups/yml.php');
+
+Umen\autoload ();
 
 $files = array
 (

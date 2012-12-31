@@ -3,16 +3,10 @@
 define ('CHARSET',	'utf-8');
 
 include ('src/umen.php');
-include ('src/converters/markup.php');
-include ('src/encoders/compact.php');
-include ('src/encoders/json.php');
-include ('src/encoders/sleep.php');
-include ('src/renderers/format.php');
-include ('src/scanners/default.php');
-include ('src/scanners/regexp.php');
-
 include ('test/formats/html.php');
 include ('test/markups/yml.php');
+
+Umen\autoload ();
 
 function	formatHTML ($str)
 {
@@ -73,7 +67,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 		<link href="res/style.css" rel="stylesheet" type="text/css" />
 		<link href="res/umen.css" rel="stylesheet" type="text/css" />
 		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . CHARSET . '" />
-		<title>Universal Markup Engine Test Page</title>
+		<title>Universal Markup Engine v' . htmlspecialchars (UMEN, ENT_COMPAT, CHARSET) . ' - Test Page</title>
 	</head>
 	<body>
 		<div class="box">
@@ -89,15 +83,16 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 						to
 						<select name="formats">' . getOptions (array ('html' => 'HTML'), isset ($_POST['formats']) ? $_POST['formats'] : null) . '</select>
 						<input type="submit" value="Submit" />
-						<input onclick="var e = document.getElementById(\'options\'); e.style.display = (e.style.display != \'block\' ? \'block\' : \'none\');" type="button" value="Options" />
+						<input onclick="var i = document.getElementById(\'options_input\'), p = document.getElementById(\'options_panel\'); if (i.value) { i.value = \'\'; p.style.display = \'none\'; } else { i.value = \'1\'; p.style.display = \'block\'; }" type="button" value="Options" />
+						<input id="options_input" name="options" type="hidden" value="' . htmlspecialchars (isset ($_POST['options']) ? $_POST['options'] : '', ENT_COMPAT, CHARSET)  . '" />
 					</div>
-					<div class="buttons" id="options" style="display: none;">
+					<div class="buttons" id="options_panel" style="display: ' . (isset ($_POST['options']) && $_POST['options'] ? 'block' : 'none') . ';">
 						Parse using
 						<select name="scanner">' . getOptions (array ('default' => 'default', 'regex' => 'regexp'), isset ($_POST['scanner']) ? $_POST['scanner'] : null) . '</select>
 						scanner and
 						<select name="converter">' . getOptions (array ('markup' => 'markup'), isset ($_POST['converter']) ? $_POST['converter'] : null) . '</select>
 						converter, store using
-						<select name="encoder">' . getOptions (array ('compact' => 'compact', 'json' => 'json', 'sleep' => 'sleep'), isset ($_POST['encoder']) ? $_POST['encoder'] : null) . '</select>
+						<select name="encoder">' . getOptions (array ('compact' => 'compact', 'concat' => 'concat', 'json' => 'json', 'sleep' => 'sleep'), isset ($_POST['encoder']) ? $_POST['encoder'] : null) . '</select>
 						encoding, render with
 						<select name="renderer">' . getOptions (array ('format' => 'format'), isset ($_POST['renderer']) ? $_POST['renderer'] : null) . '</select>
 						renderer
@@ -114,6 +109,11 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 	{
 		case 'compact':
 			$encoder = new Umen\CompactEncoder ();
+
+			break;
+
+		case 'concat':
+			$encoder = new Umen\ConcatEncoder ();
 
 			break;
 
@@ -169,13 +169,13 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 			throw new Exception ('invalid renderer');
 	}
 
-	$token = $converter->convert ($string, function ($plain) { return htmlspecialchars ($plain, ENT_COMPAT, CHARSET); });
-	$print = $renderer->render ($token);
+	$token = $converter->convert ($string);
+	$print = $renderer->render ($token, function ($plain) { return htmlspecialchars ($plain, ENT_COMPAT, CHARSET); });
 
 	switch ($_POST['action'])
 	{
 		case 'debug':
-			$inverse = $converter->inverse ($token, function ($plain) { return htmlspecialchars_decode ($plain, ENT_COMPAT); });
+			$inverse = $converter->revert ($token);
 
 			$output =
 				'<h2>string (' . strlen ($string) . ' characters):</h2>' . 

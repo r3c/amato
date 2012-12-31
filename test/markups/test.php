@@ -2,22 +2,51 @@
 
 /*
 ** String parsing rules for each available tag, as name => properties
-**   .limit:	optional allowed number of uses of this tag, default is 100
-**   .tags:		tag patterns list, as pattern => options
-**		.actions:	actions for context conditions as condition => action
-**		.flag:		tag flag
-**		.switch:	context switch name
+**   .limit:		optional allowed number of uses of this tag, default is 100
+**   .onConvert:	optional conversion callback as ($custom, $action, $flag,
+**					$captures) => bool, ignore conversion if false is returned
+**   .onInverse:	optional inversion callback as ($custom, $action, $flag,
+**					$captures) => bool, ignore inversion if false is returned
+**   .tags:			tag patterns list, as pattern => rules list
+**     [rules as context => (action, flag, switch)]
+**	     $action:	tag action type
+**	     $flag:		optional tag flag identifier, null if none
+**	     $switch:	optional context switch instructions
 */
-$ymlMarkup = array
+$markup = array
 (
 	'.'		=> array
 	(
 //		'limit'	=> 100,
 		'tags'	=> array
 		(
-			"\n"	=> array ('actions' => array ('-' => Umen\Action::ALONE))
+			"\n\n"	=> array ('' => array (Umen\Action::ALONE))
 		)
 	),
+	'b'		=> array
+	(
+		'tags'	=> array
+		(
+			'**'	=> array ('b' => array (Umen\Action::STOP, null, '-b'), '' => array (Umen\Action::START, null, '+b'))
+		)
+	),
+	'i'		=> array
+	(
+		'tags'	=> array
+		(
+			'//'	=> array ('i' => array (Umen\Action::STOP, null, '-i'), '' => array (Umen\Action::START, null, '+i'))
+		)
+	)
+	'pre'	=> array
+	(
+		'tags'	=> array
+		(
+			'{{{'	=> array ('' => array (Umen\Action::START, null, '-+pre')),
+			'}}}'	=> array ('pre' => array (Umen\Action::STOP, null, '-pre+'))
+		)
+	),
+
+/*
 	'0'		=> array
 	(
 		'tags'	=> array
@@ -196,7 +225,7 @@ $ymlMarkup = array
 	),
 	'cmd'	=> array
 	(
-		'onRevert'	=> 'umenMarkupCmdRevert',
+		'onInverse'	=> 'umenMarkupCmdInverse',
 		'tags'		=> array
 		(
 			'[yncMd:159]'	=> array ('actions' => array ('-' => Umen\Action::START)),
@@ -420,19 +449,12 @@ $ymlMarkup = array
 			'[youtube]http://www.youtube.com/watch?v=<i:(-0-9A-Za-z_){1,}>(&#)(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){}[/youtube]'	=> array ('actions' => array ('-' => Umen\Action::ALONE))
 		)
 	)
+*/
 );
 
-function	umenMarkupCmdRevert ($action, $flag, $captures, $context)
+function	umenMarkupTestSometagConvert ($action, $flag, $captures, $custom)
 {
 	return false;
-}
-
-function	umenMarkupModoConvert ($action, $flag, $captures, $context)
-{
-	if ($action !== Umen\Action::STOP)
-		return true;
-
-	return $context['user']['level'] >= 2;
 }
 
 ?>

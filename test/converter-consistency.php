@@ -9,22 +9,20 @@
 define ('CHARSET',	'iso-8859-1');
 
 include ('../src/umen.php');
-include ('../src/converters/markup.php');
-include ('../src/encoders/compact.php');
-include ('../src/renderers/format.php');
-include ('../src/scanners/default.php');
 
 include ('formats/html.php');
 include ('markups/yml.php');
 
+Umen\autoload ();
+
 function	check ($converter, $renderer, $string)
 {
-	$token1 = $converter->convert ($string, 'html_encode');
-	$print1 = $renderer->render ($token1);
-	$plain1 = $converter->inverse ($token1, 'html_decode');
-	$token2 = $converter->convert ($plain1, 'html_encode');
-	$print2 = $renderer->render ($token2);
-	$plain2 = $converter->inverse ($token2, 'html_decode');
+	$token1 = $converter->convert ($string);
+	$print1 = $renderer->render ($token1, 'html_encode');
+	$plain1 = $converter->revert ($token1);
+	$token2 = $converter->convert ($plain1);
+	$print2 = $renderer->render ($token2, 'html_encode');
+	$plain2 = $converter->revert ($token2);
 
 	if ($token1 !== $token2)
 		return '<li class="ko">Tokenized strings are different:<ul class="diff"><li>[' . html_encode ($string) . ']</li><li>[' . html_encode ($token1) . ']</li><li>[' . html_encode ($token2) . ']</li></ul></li>';
@@ -48,11 +46,6 @@ function	check ($converter, $renderer, $string)
 		return '<li class="ko">Rendered string is not a valid XML (' . $error . '):<ul class="diff"><li>[' . html_encode ($string) . ']</li><li>[' . html_encode ($print1) . ']</li></ul></li>';
 
 	return '<li class="ok">OK</li>';
-}
-
-function	html_decode ($string)
-{
-	return htmlspecialchars_decode ($string, ENT_COMPAT);
 }
 
 function	html_encode ($string)

@@ -3,13 +3,11 @@
 define ('CHARSET',	'iso-8859-1');
 
 include ('../src/umen.php');
-include ('../src/converters/markup.php');
-include ('../src/encoders/compact.php');
-include ('../src/renderers/format.php');
-include ('../src/scanners/default.php');
 
 include ('../test/formats/html.php');
 include ('../test/markups/yml.php');
+
+Umen\autoload ();
 
 include ('debug.php');
 include ('yml-regexp.php');
@@ -41,18 +39,16 @@ while (($row = mysql_fetch_assoc ($q)))
 	$count = 50;
 
 	$plain = $row['post'];
-	$token = $converter->convert ($plain, function ($string) { return htmlspecialchars ($string, ENT_COMPAT, CHARSET); });
+	$token = $converter->convert ($plain);
 
 	$time1 = bench ($count, 'global $renderer, $token;', '$renderer->render ($token);', '');
 	$time2 = bench ($count, 'global $plain;', 'formatRegexp ($plain);', '');
 
 	$out .= '
 		<div class="box">
-			<div class="head">
-				#' . $i++ . ' - Post (' . strlen ($plain) . ' bytes, ' . $count . ' loops): umen = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[1]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a>
-			</div>
+			<h1>#' . $i++ . ' - Post (' . strlen ($plain) . ' bytes, ' . $count . ' loops): umen = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[0]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a></h1>
 			<div class="body umen" style="display: none;">
-				' . $renderer->render ($token) . '
+				' . $renderer->render ($token, function ($string) { return htmlspecialchars ($string, ENT_COMPAT, CHARSET); }) . '
 			</div>
 		</div>';
 }

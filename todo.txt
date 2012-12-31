@@ -23,5 +23,8 @@ X Add missing yAronet tags and formats (see format.yn.php)
 X Plain text escaping should be handled internally: >) should not become &gt;) them &gt[smile]
 X Don't add useless escape sequences when using invert conversion
 X Parameters capture should be reset only when appropriate
+X Escape plain text at rendering only (no need for unescape callback)
 - Empty cycles cause captures to be assigned to a wrong state
 - Implement negative character groups
+? Allow multiple contexts as a replacement to "+" and "-" suffixes ?
+	? Start with fixed contexts, move \n to its own one and disable it from table & lists

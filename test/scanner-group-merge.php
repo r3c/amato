@@ -1,7 +1,8 @@
 <?php
 
 include ('../src/umen.php');
-include ('../src/scanners/default.php');
+
+Umen\autoload ();
 
 function	debug ($group)
 {

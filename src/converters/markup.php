@@ -10,28 +10,28 @@ class	MarkupConverter extends Converter
 	** Initialize a new default converter.
 	** $encoder:	encoder instance
 	** $scanner:	scanner instance
-	** $markup:		markup language definition
-	** $limit:		default tag limit
+	** $markup:		markup language definitions
+	** $limit:		optional default tag limit, 0 for no limit
 	*/
-	public function	__construct ($encoder, $scanner, $markup, $limit = 100)
+	public function	__construct ($encoder, $scanner, $markup, $limit = 0)
 	{
 		$this->callbacks = array ();
 		$this->encoder = $encoder;
-		$this->inverses = array ();
 		$this->limits = array ();
+		$this->reverts = array ();
 		$this->scanner = $scanner;
 
-		foreach ($markup as $name => $rule)
+		foreach ($markup as $name => $definition)
 		{
-			if (isset ($rule['onConvert']))
-				$this->callbacks[$name . '+'] = $rule['onConvert'];
+			if (isset ($definition['onConvert']))
+				$this->callbacks[$name . '+'] = $definition['onConvert'];
 
-			if (isset ($rule['onInverse']))
-				$this->callbacks[$name . '-'] = $rule['onInverse'];
+			if (isset ($definition['onRevert']))
+				$this->callbacks[$name . '-'] = $definition['onRevert'];
 
-			if (isset ($rule['tags']))
+			if (isset ($definition['tags']))
 			{
-				foreach ($rule['tags'] as $pattern => $options)
+				foreach ($definition['tags'] as $pattern => $options)
 				{
 					$actions = isset ($options['actions']) ? $options['actions'] : array ();
 					$flag = isset ($options['flag']) ? (string)$options['flag'] : '';
@@ -43,35 +43,37 @@ class	MarkupConverter extends Converter
 					{
 						$key = $name . ':' . $condition . ':' . $action . ':' . $flag;
 
-						if (!isset ($this->inverses[$key]))
-							$this->inverses[$key] = array ($accept, $switch);
+						if (!isset ($this->reverts[$key]))
+							$this->reverts[$key] = array ($accept, $switch);
 					}
 				}
 			}
 
-			$this->limits[$name] = isset ($rule['limit']) ? (int)$rule['limit'] : $limit;
+			$this->limits[$name] = isset ($definition['limit']) ? (int)$definition['limit'] : $limit;
 		}
 	}
 
-	public function	convert ($string, $escape, $custom = null)
+	/*
+	** Override for Converter::convert.
+	*/
+	public function	convert ($text, $custom = null)
 	{
 		// Parse original string using internal scanner
 		$callbacks =& $this->callbacks;
 		$chains = array ();
 		$context = '';
-		$custom = $custom;
 		$limits =& $this->limits;
 		$tags = array ();
 		$usages = array ();
 
-		$string = $this->scanner->scan ($string, function ($offset, $length, $match, $captures) use (&$callbacks, &$chains, &$context, &$custom, &$limits, &$tags, &$usages)
+		$text = $this->scanner->scan ($text, function ($offset, $length, $match, $captures) use (&$callbacks, &$chains, &$context, &$custom, &$limits, &$tags, &$usages)
 		{
 			list ($name, $actions, $flag, $switch) = $match;
 
 			// Ensure tag limit has not be reached
 			$usage = isset ($usages[$name]) ? $usages[$name] : 0;
 
-			if ($usage >= $limits[$name])
+			if ($limits[$name] > 0 && $usage >= $limits[$name])
 				return false;
 
 			$usages[$name] = $usage + 1;
@@ -83,7 +85,7 @@ class	MarkupConverter extends Converter
 			$condition = $context . (count ($chains[$name]) > 0 ? '+' : '-');
 			$action = isset ($actions[$condition]) ? $actions[$condition] : null;
 
-			if ($action === null || (isset ($callbacks[$name . '+']) && !$callbacks[$name . '+'] ($custom, $action, $flag, $captures)))
+			if ($action === null || (isset ($callbacks[$name . '+']) && call_user_func ($callbacks[$name . '+'], $action, $flag, $captures, $custom) === false))
 				return false;
 
 			// Switch context if requested
@@ -97,13 +99,13 @@ class	MarkupConverter extends Converter
 			// Set start of chain to be flushed
 			switch ($action)
 			{
-				case UMEN_ACTION_START:
+				case Action::START:
 					++$first;
 
 					break;
 
-				case UMEN_ACTION_STEP:
-					for ($start = $first - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_START; )
+				case Action::STEP:
+					for ($start = $first - 1; $start >= 0 && $chain[$start][3] != Action::START; )
 						--$start;
 
 					if ($start < 0)
@@ -113,8 +115,8 @@ class	MarkupConverter extends Converter
 
 					break;
 
-				case UMEN_ACTION_STOP:
-					for ($start = $first - 1; $start >= 0 && $chain[$start][3] != UMEN_ACTION_START; )
+				case Action::STOP:
+					for ($start = $first - 1; $start >= 0 && $chain[$start][3] != Action::START; )
 						--$start;
 
 					if ($start < 0)
@@ -141,27 +143,28 @@ class	MarkupConverter extends Converter
 
 		// Remove resolved tags from string
 		$origin = 0;
-		$plain = '';
 		$scopes = array ();
+		$shift = 0;
 
 		foreach ($tags as $tag)
 		{
 			list ($offset, $length, $name, $action, $flag, $captures) = $tag;
 
-			$chunk = $escape (substr ($string, $origin, $offset - $origin));
-			$scopes[] = array (strlen ($chunk), $name, $action, $flag, $captures);
-			$plain .= $chunk;
+			$scopes[] = array ($offset - $origin, $name, $action, $flag, $captures);
+			$text = substr_replace ($text, '', $offset - $shift, $length);
 
 			$origin = $offset + $length;
+			$shift += $length;
 		}
 
-		$plain .= $escape (substr ($string, $origin));
-
 		// Encode into tokenized string and return
-		return $this->encoder->encode ($scopes, $plain);
+		return $this->encoder->encode ($scopes, $text);
 	}
 
-	public function	inverse ($token, $unescape, $custom = null)
+	/*
+	** Override for Converter::revert.
+	*/
+	public function	revert ($token, $custom = null)
 	{
 		// Parse tokenized string
 		$pack = $this->encoder->decode ($token);
@@ -169,7 +172,7 @@ class	MarkupConverter extends Converter
 		if ($pack === null)
 			return null;
 
-		list ($scopes, $plain) = $pack;
+		list ($scopes, $text) = $pack;
 
 		$context = '';
 		$offset = 0;
@@ -189,7 +192,7 @@ class	MarkupConverter extends Converter
 			list ($delta, $name, $action, $flag, $captures) = $scope;
 
 			// Decode current tag
-			if (isset ($this->callbacks[$name . '-']) && !$this->callbacks[$name . '-'] ($custom, $action, $flag, $captures))
+			if (isset ($this->callbacks[$name . '-']) && call_user_func ($this->callbacks[$name . '-'], $action, $flag, $captures, $custom) === false)
 			{
 				$switch = null;
 				$tag = '';
@@ -203,9 +206,9 @@ class	MarkupConverter extends Converter
 				$key = $name . ':' . $context . ($stacks[$name] > 0 ? '+' : '-') . ':' . $action . ':' . $flag;
 
 				// Get decoded tag text if exists
-				if (isset ($this->inverses[$key]))
+				if (isset ($this->reverts[$key]))
 				{
-					list ($accept, $switch) = $this->inverses[$key];
+					list ($accept, $switch) = $this->reverts[$key];
 
 					$tag = $this->scanner->make ($accept, $captures);
 				}
@@ -219,20 +222,20 @@ class	MarkupConverter extends Converter
 			// Update opened tags counter
 			switch ($action)
 			{
-				case UMEN_ACTION_START:
+				case Action::START:
 					++$stacks[$name];
 
 					break;
 
-				case UMEN_ACTION_STOP:
+				case Action::STOP:
 					--$stacks[$name];
 
 					break;
 			}
 
 			// Escape skipped plain text and insert tag
-			$chunk = $this->scanner->escape ($unescape (substr ($plain, $offset, $delta)), $sensible);
-			$plain = substr_replace ($plain, $chunk . $tag, $offset, $delta);
+			$chunk = $this->scanner->escape (substr ($text, $offset, $delta), $sensible);
+			$text = substr_replace ($text, $chunk . $tag, $offset, $delta);
 
 			$offset += strlen ($chunk) + strlen ($tag);
 
@@ -242,13 +245,10 @@ class	MarkupConverter extends Converter
 		}
 
 		// Escape remaining plain text
-		if ($offset < strlen ($plain))
-		{
-			$chunk = $this->scanner->escape ($unescape (substr ($plain, $offset)), $sensible);
-			$plain = substr_replace ($plain, $chunk, $offset);
-		}
+		$chunk = $this->scanner->escape (substr ($text, $offset), $sensible);
+		$text = substr_replace ($text, $chunk, $offset);
 
-		return $plain;
+		return $text;
 	}
 }
 

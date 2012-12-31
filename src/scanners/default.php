@@ -4,21 +4,21 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-define ('UMEN_SCANNER_CAPTURE_BEGIN',	'<');
-define ('UMEN_SCANNER_CAPTURE_END',		'>');
-define ('UMEN_SCANNER_CAPTURE_NAME',	':');
-define ('UMEN_SCANNER_DECODE_CAPTURE',	0);
-define ('UMEN_SCANNER_DECODE_STRING',	1);
-define ('UMEN_SCANNER_GROUP_BEGIN',		'(');
-define ('UMEN_SCANNER_GROUP_END',		')');
-define ('UMEN_SCANNER_GROUP_ESCAPE',	'\\');
-define ('UMEN_SCANNER_GROUP_RANGE',		'-');
-define ('UMEN_SCANNER_REPEAT_BEGIN',	'{');
-define ('UMEN_SCANNER_REPEAT_END',		'}');
-define ('UMEN_SCANNER_REPEAT_SPLIT',	',');
-
 class	DefaultScanner extends Scanner
 {
+	const CAPTURE_BEGIN		= '<';
+	const CAPTURE_END		= '>';
+	const CAPTURE_NAME		= ':';
+	const DECODE_CAPTURE	= 0;
+	const DECODE_STRING		= 1;
+	const GROUP_BEGIN		= '(';
+	const GROUP_END			= ')';
+	const GROUP_ESCAPE		= '\\';
+	const GROUP_RANGE		= '-';
+	const REPEAT_BEGIN		= '{';
+	const REPEAT_END		= '}';
+	const REPEAT_SPLIT		= ',';
+
 	public function	__construct ($escape = '\\')
 	{
 		$this->escape = $escape;
@@ -26,6 +26,9 @@ class	DefaultScanner extends Scanner
 		$this->table = array ();
 	}
 
+	/*
+	** Override for Scanner::assign.
+	*/
 	public function	assign ($pattern, $match)
 	{
 		$accept = count ($this->table);
@@ -37,21 +40,21 @@ class	DefaultScanner extends Scanner
 		for ($i = 0; $i < $length; )
 		{
 			// Parse capture instructions
-			if ($i < $length && $pattern[$i] === UMEN_SCANNER_CAPTURE_BEGIN)
+			if ($i < $length && $pattern[$i] === self::CAPTURE_BEGIN)
 			{
 				$capture = '';
 
 				++$i;
 
-				while ($i < $length && $pattern[$i] !== UMEN_SCANNER_CAPTURE_NAME)
+				while ($i < $length && $pattern[$i] !== self::CAPTURE_NAME)
 					$capture .= $pattern[$i++];
 
-				$decode[] = array (UMEN_SCANNER_DECODE_CAPTURE, $capture);
+				$decode[] = array (self::DECODE_CAPTURE, $capture);
 
 				++$i;
 			}
 
-			if ($i < $length && $pattern[$i] === UMEN_SCANNER_CAPTURE_END)
+			if ($i < $length && $pattern[$i] === self::CAPTURE_END)
 			{
 				$capture = null;
 
@@ -62,19 +65,19 @@ class	DefaultScanner extends Scanner
 			if ($i >= $length)
 				continue;
 
-			if ($pattern[$i] === UMEN_SCANNER_GROUP_BEGIN)
+			if ($pattern[$i] === self::GROUP_BEGIN)
 			{
 				$characters = array ();
 
-				for (++$i; $i < $length && $pattern[$i] !== UMEN_SCANNER_GROUP_END; )
+				for (++$i; $i < $length && $pattern[$i] !== self::GROUP_END; )
 				{
-					if ($i + 1 < $length && $pattern[$i] === UMEN_SCANNER_GROUP_ESCAPE)
+					if ($i + 1 < $length && $pattern[$i] === self::GROUP_ESCAPE)
 					{
 						$characters[] = $pattern[$i + 1];
 
 						$i += 2;
 					}
-					else if ($i + 2 < $length && $pattern[$i + 1] === UMEN_SCANNER_GROUP_RANGE)
+					else if ($i + 2 < $length && $pattern[$i + 1] === self::GROUP_RANGE)
 					{
 						for ($ord = ord ($pattern[$i]); $ord <= ord ($pattern[$i + 2]); ++$ord)
 							$characters[] = chr ($ord);
@@ -89,12 +92,12 @@ class	DefaultScanner extends Scanner
 					}
 				}
 
-				if ($i >= $length || $pattern[$i] !== UMEN_SCANNER_GROUP_END)
-					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . UMEN_SCANNER_GROUP_END . '"');
+				if ($i >= $length || $pattern[$i] !== self::GROUP_END)
+					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . self::GROUP_END . '"');
 			}
 			else
 			{
-				if ($i + 1 < $length && $pattern[$i] === UMEN_SCANNER_GROUP_ESCAPE)
+				if ($i + 1 < $length && $pattern[$i] === self::GROUP_ESCAPE)
 					++$i;
 
 				$characters = array ($pattern[$i]);
@@ -103,14 +106,14 @@ class	DefaultScanner extends Scanner
 			++$i;
 
 			// Parse repeat modifiers
-			if ($i < $length && $pattern[$i] === UMEN_SCANNER_REPEAT_BEGIN)
+			if ($i < $length && $pattern[$i] === self::REPEAT_BEGIN)
 			{
 				for ($j = ++$i; $i < $length && $pattern[$i] >= '0' && $pattern[$i] <= '9'; )
 					++$i;
 
 				$min = $i > $j ? (int)substr ($pattern, $j, $i - $j) : 0;
 
-				if ($i < $length && $pattern[$i] == UMEN_SCANNER_REPEAT_SPLIT)
+				if ($i < $length && $pattern[$i] == self::REPEAT_SPLIT)
 				{
 					for ($j = ++$i; $i < $length && $pattern[$i] >= '0' && $pattern[$i] <= '9'; )
 						++$i;
@@ -120,8 +123,8 @@ class	DefaultScanner extends Scanner
 				else
 					$max = $min;
 
-				if ($i >= $length || $pattern[$i] !== UMEN_SCANNER_REPEAT_END)
-					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . UMEN_SCANNER_REPEAT_END . '"');
+				if ($i >= $length || $pattern[$i] !== self::REPEAT_END)
+					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . self::REPEAT_END . '"');
 
 				++$i;
 			}
@@ -181,10 +184,10 @@ class	DefaultScanner extends Scanner
 				$constant = str_repeat ($characters[0], $min);
 				$count = count ($decode);
 
-				if ($count > 0 && $decode[$count - 1][0] === UMEN_SCANNER_DECODE_STRING)
+				if ($count > 0 && $decode[$count - 1][0] === self::DECODE_STRING)
 					$decode[$count - 1][1] .= $constant;
 				else
-					$decode[] = array (UMEN_SCANNER_DECODE_STRING, $constant);
+					$decode[] = array (self::DECODE_STRING, $constant);
 			}
 		}
 
@@ -196,6 +199,9 @@ class	DefaultScanner extends Scanner
 		return $accept;
 	}
 
+	/*
+	** Override for Scanner::escape.
+	*/
 	public function	escape ($string, $callback)
 	{
 		$cursors = array ();
@@ -219,7 +225,7 @@ class	DefaultScanner extends Scanner
 
 					foreach ($cursor->accepts as $accept => $dummy)
 					{
-						if ($callback ($this->table[$accept][1]))
+						if (call_user_func ($callback, $this->table[$accept][1]))
 						{
 							$insert = $cursor->offset;
 
@@ -245,6 +251,9 @@ class	DefaultScanner extends Scanner
 		return $string;
 	}
 
+	/*
+	** Override for Scanner::make.
+	*/
 	public function	make ($accept, $captures)
 	{
 		$decode = $this->table[$accept][0];
@@ -252,7 +261,7 @@ class	DefaultScanner extends Scanner
 
 		foreach ($decode as $segment)
 		{
-			if ($segment[0] === UMEN_SCANNER_DECODE_STRING)
+			if ($segment[0] === self::DECODE_STRING)
 				$string .= $segment[1];
 			else if (isset ($captures[$segment[1]]))
 				$string .= $captures[$segment[1]];
@@ -261,6 +270,11 @@ class	DefaultScanner extends Scanner
 		return $string;
 	}
 
+	/*
+	** Resolve first acceptable match from current cursors.
+	** $cursors:	cursors array
+	** $callback:	match acceptance predicate
+	*/
 	public function resolve (&$cursors, $callback)
 	{
 		$count = count ($cursors);
@@ -292,6 +306,9 @@ class	DefaultScanner extends Scanner
 		}
 	}
 
+	/*
+	** Override for Scanner::scan.
+	*/
 	public function	scan ($string, $callback)
 	{
 		$cursors = array ();
