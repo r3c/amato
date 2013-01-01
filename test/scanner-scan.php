@@ -22,7 +22,7 @@ $files = array
 
 $scanner = new Umen\DefaultScanner ('\\');
 
-foreach ($ymlMarkup as $name => $rule)
+foreach ($markup as $name => $rule)
 {
 	foreach ($rule['tags'] as $pattern => $options)
 		$scanner->assign ($pattern, $name);

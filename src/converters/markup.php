@@ -15,36 +15,48 @@ class	MarkupConverter extends Converter
 	*/
 	public function	__construct ($encoder, $scanner, $markup, $limit = 0)
 	{
-		$this->callbacks = array ();
 		$this->encoder = $encoder;
 		$this->limits = array ();
-		$this->reverts = array ();
+		$this->onConverts = array ();
+		$this->onReverts = array ();
+		$this->resolvers = array ();
 		$this->scanner = $scanner;
 
 		foreach ($markup as $name => $definition)
 		{
 			if (isset ($definition['onConvert']))
-				$this->callbacks[$name . '+'] = $definition['onConvert'];
+				$this->onConverts[$name] = $definition['onConvert'];
 
 			if (isset ($definition['onRevert']))
-				$this->callbacks[$name . '-'] = $definition['onRevert'];
+				$this->onReverts[$name] = $definition['onRevert'];
 
 			if (isset ($definition['tags']))
 			{
-				foreach ($definition['tags'] as $pattern => $options)
+				foreach ($definition['tags'] as $pattern => $instructions)
 				{
-					$actions = isset ($options['actions']) ? $options['actions'] : array ();
-					$flag = isset ($options['flag']) ? (string)$options['flag'] : '';
-					$switch = isset ($options['switch']) ? (string)$options['switch'] : null;
+					$meanings = array ();
 
-					$accept = $this->scanner->assign ($pattern, array ($name, $actions, $flag, $switch));
-
-					foreach ($actions as $condition => $action)
+					foreach ($instructions as $expression => $instruction)
 					{
-						$key = $name . ':' . $condition . ':' . $action . ':' . $flag;
+						$meanings[] = array
+						(
+							self::parseCondition ($expression),
+							isset ($instruction[0]) ? $instruction[0] : Action::ALONE,
+							isset ($instruction[1]) ? $instruction[1] : '',
+							isset ($instruction[2]) ? self::parseSwitch ($instruction[2]) : array ()
+						);
+					}
 
-						if (!isset ($this->reverts[$key]))
-							$this->reverts[$key] = array ($accept, $switch);
+					$accept = $this->scanner->assign ($pattern, array ($name, $meanings));
+
+					foreach ($meanings as $meaning)
+					{
+						$key = $name . ':' . $meaning[1] . ':' . $meaning[2];
+
+						if (!isset ($this->resolvers[$key]))
+							$this->resolvers[$key] = array ();
+
+						$this->resolvers[$key][] = array ($accept, $meaning[0], $meaning[3]);
 					}
 				}
 			}
@@ -59,16 +71,16 @@ class	MarkupConverter extends Converter
 	public function	convert ($text, $custom = null)
 	{
 		// Parse original string using internal scanner
-		$callbacks =& $this->callbacks;
+		$callbacks =& $this->onConverts;
 		$chains = array ();
-		$context = '';
+		$context = array ('default' => 1);
 		$limits =& $this->limits;
 		$tags = array ();
 		$usages = array ();
 
 		$text = $this->scanner->scan ($text, function ($offset, $length, $match, $captures) use (&$callbacks, &$chains, &$context, &$custom, &$limits, &$tags, &$usages)
 		{
-			list ($name, $actions, $flag, $switch) = $match;
+			list ($name, $meanings) = $match;
 
 			// Ensure tag limit has not be reached
 			$usage = isset ($usages[$name]) ? $usages[$name] : 0;
@@ -78,70 +90,99 @@ class	MarkupConverter extends Converter
 
 			$usages[$name] = $usage + 1;
 
-			// Find action from current context condition
-			if (!isset ($chains[$name]))
-				$chains[$name] = array ();
-
-			$condition = $context . (count ($chains[$name]) > 0 ? '+' : '-');
-			$action = isset ($actions[$condition]) ? $actions[$condition] : null;
-
-			if ($action === null || (isset ($callbacks[$name . '+']) && call_user_func ($callbacks[$name . '+'], $action, $flag, $captures, $custom) === false))
-				return false;
-
-			// Switch context if requested
-			if ($switch !== null)
-				$context = $switch;
-
-			// Add current match to tags chain
-			$chain =& $chains[$name];
-			$first = count ($chain);
-
-			// Set start of chain to be flushed
-			switch ($action)
+			// Find action from current context
+			foreach ($meanings as $meaning)
 			{
-				case Action::START:
-					++$first;
+				list ($condition, $action, $flag, $switch) = $meaning;
 
-					break;
+				// Check whether meaning is acceptable or not
+				foreach ($condition as $key => $exists)
+				{
+					if (isset ($context[$key]) !== $exists)
+						continue 2;
+				}
 
-				case Action::STEP:
-					for ($start = $first - 1; $start >= 0 && $chain[$start][3] != Action::START; )
-						--$start;
+				if (isset ($callbacks[$name]) && call_user_func ($callbacks[$name], $action, $flag, $captures, $custom) === false)
+					continue;
 
-					if ($start < 0)
-						return true;
+				// Add current match to tags chain
+				if (!isset ($chains[$name]))
+					$chains[$name] = array ();
 
-					++$first;
+				$chain =& $chains[$name];
 
-					break;
+				// Set start of chain to be flushed
+				switch ($action)
+				{
+					case Action::ALONE:
+						$flush = count ($chain);
 
-				case Action::STOP:
-					for ($start = $first - 1; $start >= 0 && $chain[$start][3] != Action::START; )
-						--$start;
+						break;
 
-					if ($start < 0)
-						return true;
+					case Action::START:
+						$flush = null;
 
-					$first = $start;
+						break;
 
-					break;
+					case Action::STEP:
+						for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != Action::START; )
+							--$start;
+
+						if ($start < 0)
+							continue 2;
+
+						$flush = null;
+
+						break;
+
+					case Action::STOP:
+						for ($start = count ($chain) - 1; $start >= 0 && $chain[$start][3] != Action::START; )
+							--$start;
+
+						if ($start < 0)
+							continue 2;
+
+						$flush = $start;
+
+						break;
+
+					default:
+						continue 2;
+				}
+
+				// Update context keys
+				foreach ($switch as $key => $update)
+				{
+					$value = $update (isset ($context[$key]) ? $context[$key] : 0);
+
+					if ($value > 0)
+						$context[$key] = $value;
+					else
+						unset ($context[$key]);
+				}
+
+				// Add matched tag to chain
+				$chain[] = array ($offset, $length, $name, $action, $flag, $captures);
+
+				// Push chain section to tags
+				if ($flush !== null)
+				{
+					foreach (array_splice ($chain, $flush) as $tag)
+						$tags[] = $tag;
+				}
+
+				return true;
 			}
 
-			// Push entire chain to tags, sorted by start index
-			$chain[] = array ($offset, $length, $name, $action, $flag, $captures);
-
-			for ($from = count ($chain) - 1; $from >= $first; --$from)
-			{
-				for ($to = count ($tags); $to > 0 && $tags[$to - 1][0] > $chain[$from][0]; )
-					--$to;
-
-				array_splice ($tags, $to, 0, array_splice ($chain, $from, 1));
-			}
-
-			return true;
+			return false;
 		});
 
-		// Remove resolved tags from string
+		// Sort resolved tags and remove from plain text string
+		usort ($tags, function ($a, $b)
+		{
+			return $a[0] < $b[0] ? -1 : 1;
+		});
+
 		$origin = 0;
 		$scopes = array ();
 		$shift = 0;
@@ -174,17 +215,26 @@ class	MarkupConverter extends Converter
 
 		list ($scopes, $text) = $pack;
 
-		$context = '';
+		$callbacks =& $this->onReverts;
+		$context = array ('default' => 1);
 		$offset = 0;
-		$stacks = array ();
 
-		$sensible = function ($match) use (&$context, &$stacks)
+		$escape = function ($match) use (&$context)
 		{
-			list ($name, $actions) = $match;
+			list ($name, $meanings) = $match;
 
-			$condition = $context . (isset ($stacks[$name]) && count ($stacks[$name]) > 0 ? '+' : '-');
+			foreach ($meanings as $meaning)
+			{
+				foreach ($meaning[0] as $key => $exists)
+				{
+					if (isset ($context[$key]) !== $exists)
+						continue 2;
+				}
 
-			return isset ($actions[$condition]);
+				return true;
+			}
+
+			return false;
 		};
 
 		foreach ($scopes as $scope)
@@ -192,63 +242,110 @@ class	MarkupConverter extends Converter
 			list ($delta, $name, $action, $flag, $captures) = $scope;
 
 			// Decode current tag
-			if (isset ($this->callbacks[$name . '-']) && call_user_func ($this->callbacks[$name . '-'], $action, $flag, $captures, $custom) === false)
-			{
-				$switch = null;
-				$tag = '';
-			}
-			else
-			{
-				// Find valid decoded version of current tag using internal scanner
-				if (!isset ($stacks[$name]))
-					$stacks[$name] = 0;
+			$string = '';
+			$switch = array ();
 
-				$key = $name . ':' . $context . ($stacks[$name] > 0 ? '+' : '-') . ':' . $action . ':' . $flag;
+			if (!isset ($callbacks[$name]) || call_user_func ($callbacks[$name], $action, $flag, $captures, $custom) !== false)
+			{
+				$key = $name . ':' . $action . ':' . $flag;
 
-				// Get decoded tag text if exists
-				if (isset ($this->reverts[$key]))
+				if (isset ($this->resolvers[$key]))
 				{
-					list ($accept, $switch) = $this->reverts[$key];
+					foreach ($this->resolvers[$key] as $resolver)
+					{
+						list ($accept, $condition) = $resolver;
 
-					$tag = $this->scanner->make ($accept, $captures);
+						// Check whether meaning is acceptable or not
+						foreach ($condition as $key => $exists)
+						{
+							if (isset ($context[$key]) !== $exists)
+								continue 2;
+						}
+
+						// Decode tag to string and save context switch
+						$string = $this->scanner->make ($accept, $captures);
+						$switch = $resolver[2];
+
+						break;
+					}
 				}
-				else
-				{
-					$switch = null;
-					$tag = '';
-				}
-			}
-
-			// Update opened tags counter
-			switch ($action)
-			{
-				case Action::START:
-					++$stacks[$name];
-
-					break;
-
-				case Action::STOP:
-					--$stacks[$name];
-
-					break;
 			}
 
 			// Escape skipped plain text and insert tag
-			$chunk = $this->scanner->escape (substr ($text, $offset, $delta), $sensible);
-			$text = substr_replace ($text, $chunk . $tag, $offset, $delta);
+			$chunk = $this->scanner->escape (substr ($text, $offset, $delta), $escape);
+			$text = substr_replace ($text, $chunk . $string, $offset, $delta);
 
-			$offset += strlen ($chunk) + strlen ($tag);
+			$offset += strlen ($chunk) + strlen ($string);
 
-			// Apply context switch if required
-			if ($switch !== null)
-				$context = $switch;
+			// Apply context switch for resolved tag
+			foreach ($switch as $key => $update)
+			{
+				$value = $update (isset ($context[$key]) ? $context[$key] : 0);
+
+				if ($value > 0)
+					$context[$key] = $value;
+				else
+					unset ($context[$key]);
+			}
 		}
 
 		// Escape remaining plain text
-		$chunk = $this->scanner->escape (substr ($text, $offset), $sensible);
+		$chunk = $this->scanner->escape (substr ($text, $offset), $escape);
 		$text = substr_replace ($text, $chunk, $offset);
 
 		return $text;
+	}
+
+	private static function	parseCondition ($expression)
+	{
+		$result = array ();
+
+		if ($expression !== '')
+		{
+			foreach (explode (';', $expression) as $key)
+			{
+				if (strlen ($key) > 0 && $key[0] === '!')
+					$result[substr ($key, 1)] = false;
+				else
+					$result[$key] = true;
+			}
+		}
+
+		return $result;
+	}
+
+	private static function	parseSwitch ($expression)
+	{
+		$switch = array ();
+
+		foreach (explode (';', $expression) as $fragment)
+		{
+			if (strlen ($fragment) < 1)
+				continue;
+
+			$context = substr ($fragment, 1);
+
+			switch ($fragment[0])
+			{
+				case '-':
+					$switch[$context] = function ($value)
+					{
+						return $value - 1;
+					};
+
+					break;
+
+				case '+':
+					$switch[$context] = function ($value)
+					{
+						return $value + 1;
+					};
+
+					break;
+			}
+		}
+
+		return $switch;
 	}
 }
 

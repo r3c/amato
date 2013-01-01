@@ -2,9 +2,7 @@
 
 define ('CHARSET',	'utf-8');
 
-include ('src/umen.php');
-include ('test/formats/html.php');
-include ('test/markups/yml.php');
+require ('src/umen.php');
 
 Umen\autoload ();
 
@@ -79,9 +77,9 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 						Display
 						<select name="action">' . getOptions (array ('print' => 'actual rendering', 'tree' => 'syntax tree', 'debug' => 'debug mode'), isset ($_POST['action']) ? $_POST['action'] : 'html') . '</select>
 						using
-						<select name="markups">' . getOptions (array ('yml' => 'yML'), isset ($_POST['markups']) ? $_POST['markups'] : null) . '</select>
+						<select name="markup">' . getOptions (array ('yml' => 'yML', 'test' => 'Test'), isset ($_POST['markup']) ? $_POST['markup'] : null) . '</select>
 						to
-						<select name="formats">' . getOptions (array ('html' => 'HTML'), isset ($_POST['formats']) ? $_POST['formats'] : null) . '</select>
+						<select name="format">' . getOptions (array ('html' => 'HTML'), isset ($_POST['format']) ? $_POST['format'] : null) . '</select>
 						<input type="submit" value="Submit" />
 						<input onclick="var i = document.getElementById(\'options_input\'), p = document.getElementById(\'options_panel\'); if (i.value) { i.value = \'\'; p.style.display = \'none\'; } else { i.value = \'1\'; p.style.display = \'block\'; }" type="button" value="Options" />
 						<input id="options_input" name="options" type="hidden" value="' . htmlspecialchars (isset ($_POST['options']) ? $_POST['options'] : '', ENT_COMPAT, CHARSET)  . '" />
@@ -150,7 +148,23 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 	switch (isset ($_POST['converter']) ? $_POST['converter'] : null)
 	{
 		case 'markup':
-			$converter = new Umen\MarkupConverter ($encoder, $scanner, $ymlMarkup);
+			switch (isset ($_POST['markup']) ? $_POST['markup'] : null)
+			{
+				case 'test':
+					require ('test/markups/test.php');
+
+					break;
+
+				case 'yml':
+					require ('test/markups/yml.php');
+
+					break;
+
+				default:
+					throw new Exception ('invalid markup');
+			}
+
+			$converter = new Umen\MarkupConverter ($encoder, $scanner, $markup);
 
 			break;
 
@@ -161,7 +175,18 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 	switch (isset ($_POST['renderer']) ? $_POST['renderer'] : null)
 	{
 		case 'format':
-			$renderer = new Umen\FormatRenderer ($encoder, $htmlFormat);
+			switch (isset ($_POST['format']) ? $_POST['format'] : null)
+			{
+				case 'html':
+					include ('test/formats/html.php');
+
+					break;
+
+				default:
+					throw new Exception ('invalid format');
+			}
+		
+			$renderer = new Umen\FormatRenderer ($encoder, $format);
 
 			break;
 

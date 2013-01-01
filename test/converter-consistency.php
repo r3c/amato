@@ -55,8 +55,8 @@ function	html_encode ($string)
 
 $encoder = new Umen\CompactEncoder ();
 $scanner = new Umen\DefaultScanner ('\\');
-$converter = new Umen\MarkupConverter ($encoder, $scanner, $ymlMarkup);
-$renderer = new Umen\FormatRenderer ($encoder, $htmlFormat);
+$converter = new Umen\MarkupConverter ($encoder, $scanner, $markup);
+$renderer = new Umen\FormatRenderer ($encoder, $format);
 
 mysql_connect ('localhost', 'yaronet', 'yaronet') or die ('connect');
 mysql_select_db ('yaronet') or die ('select');

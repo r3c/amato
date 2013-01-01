@@ -12,10 +12,10 @@ Umen\autoload ();
 $encoder = new Umen\CompactEncoder ();
 $scanner = new Umen\DefaultScanner ('\\');
 
-$converter = new Umen\MarkupConverter ($encoder, $scanner, $ymlMarkup);
+$converter = new Umen\MarkupConverter ($encoder, $scanner, $markup);
 $token = $converter->convert (file_get_contents ('../res/tag.medium.txt'));
 
-$renderer = new Umen\FormatRenderer ($encoder, $htmlFormat);
+$renderer = new Umen\FormatRenderer ($encoder, $format);
 $out = $renderer->render ($token, function ($string) { return htmlspecialchars ($string, ENT_COMPAT, CHARSET); });
 
 if (false)

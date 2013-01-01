@@ -3,15 +3,14 @@
 /*
 ** String parsing rules for each available tag, as name => properties
 **   .limit:		optional allowed number of uses of this tag, default is 100
-**   .onConvert:	optional conversion callback as ($custom, $action, $flag,
-**					$captures) => bool, ignore conversion if false is returned
-**   .onInverse:	optional inversion callback as ($custom, $action, $flag,
-**					$captures) => bool, ignore inversion if false is returned
-**   .tags:			tag patterns list, as pattern => rules list
-**     [rules as context => (action, flag, switch)]
-**	     $action:	tag action type
-**	     $flag:		optional tag flag identifier, null if none
-**	     $switch:	optional context switch instructions
+**   .onConvert:	optional convert callback as ($action, $flag, $captures,
+**					$custom) -> bool, ignore match if false is returned
+**   .onRevert:		optional revert callback as ($action, $flag, $captures,
+**					$custom) -> bool, ignore match if false is returned
+**   .tags:			tag patterns list, as [pattern => [context => instruction]]
+**     .0:			tag action
+**     .1:			optional tag flag identifier, null if none
+**     .2:          optional context switch command
 */
 $markup = array
 (
@@ -20,29 +19,31 @@ $markup = array
 //		'limit'	=> 100,
 		'tags'	=> array
 		(
-			"\n\n"	=> array ('' => array (Umen\Action::ALONE))
+			"\n\n"	=> array ('default' => array (Umen\Action::ALONE))
 		)
 	),
 	'b'		=> array
 	(
 		'tags'	=> array
 		(
-			'**'	=> array ('b' => array (Umen\Action::STOP, null, '-b'), '' => array (Umen\Action::START, null, '+b'))
+			'**'	=> array ('default' => array (Umen\Action::STOP, null, '-b'), 'default;!b' => array (Umen\Action::START, null, '+b')),
+			'[b]'	=> array ('default' => array (Umen\Action::START)),
+			'[/b]'	=> array ('default' => array (Umen\Action::STOP))
 		)
 	),
 	'i'		=> array
 	(
 		'tags'	=> array
 		(
-			'//'	=> array ('i' => array (Umen\Action::STOP, null, '-i'), '' => array (Umen\Action::START, null, '+i'))
+			'//'	=> array ('default' => array (Umen\Action::STOP, null, '-i'), 'default;!i' => array (Umen\Action::START, null, '+i'))
 		)
-	)
+	),
 	'pre'	=> array
 	(
 		'tags'	=> array
 		(
-			'{{{'	=> array ('' => array (Umen\Action::START, null, '-+pre')),
-			'}}}'	=> array ('pre' => array (Umen\Action::STOP, null, '-pre+'))
+			'[[['	=> array ('default' => array (Umen\Action::START, null, '-default')),
+			']]]'	=> array ('' => array (Umen\Action::STOP, null, '+default'))
 		)
 	),
 

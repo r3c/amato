@@ -221,19 +221,20 @@ class	DefaultScanner extends Scanner
 				for ($i = count ($cursors) - 1; $insert === null && $i >= 0; --$i)
 				{
 					$cursor = $cursors[$i];
-					$keep = $cursor->move ($character);
 
-					foreach ($cursor->accepts as $accept => $dummy)
+					if ($cursor->move ($character))
 					{
-						if (call_user_func ($callback, $this->table[$accept][1]))
+						foreach ($cursor->accepts as $accept => $dummy)
 						{
-							$insert = $cursor->offset;
+							if (call_user_func ($callback, $this->table[$accept][1]))
+							{
+								$insert = $cursor->offset;
 
-							break;
+								break;
+							}
 						}
 					}
-
-					if (!$keep)
+					else
 						array_splice ($cursors, $i, 1);
 				}
 			}

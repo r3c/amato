@@ -15,7 +15,7 @@
 **   .onStep:	optional tag break callback, undefined if none
 **   .onStop:	optional tag end callback, undefined if none
 */
-$htmlFormat = array
+$format = array
 (
 	'.'		=> array
 	(
