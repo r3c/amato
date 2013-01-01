@@ -12,7 +12,7 @@ class	CompactEncoder extends Encoder
 	const TOKEN_SCOPE	= ';';
 	const TOKEN_VALUE	= '=';
 
-	const VERSION		= 2;
+	const VERSION		= 3;
 
 	private static	$actionsDecode = array
 	(
