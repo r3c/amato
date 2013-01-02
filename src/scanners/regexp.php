@@ -225,7 +225,7 @@ echo "FIXME: no escape sequence!<br />";
 		{
 			list ($offset, $length, $match, $captures) = $candidates[$i];
 
-			if (call_user_func ($callback, $offset, $length, $match, $captures))
+			if ($callback ($offset, $length, $match, $captures))
 			{
 				for ($j = $i + 1; $j < count ($candidates) && $candidates[$j][0] < $offset + $length; )
 					array_splice ($candidates, $j, 1);

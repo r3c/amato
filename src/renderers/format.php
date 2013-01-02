@@ -41,7 +41,7 @@ class	FormatRenderer extends Renderer
 			// Escape incoming text chunk using provided callback if any
 			if ($escape !== null)
 			{
-				$chunk = call_user_func ($escape, substr ($text, $offset, $delta));
+				$chunk = $escape (substr ($text, $offset, $delta));
 				$text = substr_replace ($text, $chunk, $offset, $delta);
 
 				$offset += strlen ($chunk) - $delta;
@@ -153,7 +153,7 @@ class	FormatRenderer extends Renderer
 		// Escape remaining text chunk using provided callback if any
 		if ($escape !== null)
 		{
-			$chunk = call_user_func ($escape, substr ($text, $offset));
+			$chunk = $escape (substr ($text, $offset));
 			$text = substr_replace ($text, $chunk, $offset);
 		}
 

@@ -226,7 +226,7 @@ class	DefaultScanner extends Scanner
 					{
 						foreach ($cursor->accepts as $accept => $dummy)
 						{
-							if (call_user_func ($callback, $this->table[$accept][1]))
+							if ($callback ($this->table[$accept][1]))
 							{
 								$insert = $cursor->offset;
 
@@ -291,7 +291,7 @@ class	DefaultScanner extends Scanner
 				$captures = isset ($cursor->captures[$accept]) ? $cursor->captures[$accept] : array ();
 				$match = $this->table[$accept][1];
 
-				if (call_user_func ($callback, $cursor->offset, $length, $match, $captures))
+				if ($callback ($cursor->offset, $length, $match, $captures))
 				{
 					// Remove all cursors covered by this one
 					while ($i + 1 < $count && $cursors[$i + 1]->offset < $cursor->offset + $length)

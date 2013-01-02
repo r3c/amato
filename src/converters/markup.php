@@ -102,7 +102,7 @@ class	MarkupConverter extends Converter
 						continue 2;
 				}
 
-				if (isset ($callbacks[$name]) && call_user_func ($callbacks[$name], $action, $flag, $captures, $custom) === false)
+				if (isset ($callbacks[$name]) && $callbacks[$name] ($action, $flag, $captures, $custom) === false)
 					continue;
 
 				// Add current match to tags chain
@@ -245,7 +245,7 @@ class	MarkupConverter extends Converter
 			$string = '';
 			$switch = array ();
 
-			if (!isset ($callbacks[$name]) || call_user_func ($callbacks[$name], $action, $flag, $captures, $custom) !== false)
+			if (!isset ($callbacks[$name]) || $callbacks[$name] ($action, $flag, $captures, $custom) !== false)
 			{
 				$key = $name . ':' . $action . ':' . $flag;
 
