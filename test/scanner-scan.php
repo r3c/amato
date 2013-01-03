@@ -3,8 +3,16 @@
 		<link type="text/css" rel="stylesheet" href="../res/test.css" />
 	</head>
 	<body>
+		<div class="block">
+			<legend>Scanner selection</legend>
+			Scanner mode:
+			<a href="?s=default">default scanner</a>,
+			<a href="?s=regexp">regexp scanner</a>
+		</div>
 
 <?php
+
+$start = microtime (true);
 
 include ('../src/umen.php');
 
@@ -20,7 +28,21 @@ $files = array
 	'Tagged text - tiny'	=> '../res/tag.tiny.txt'
 );
 
-$scanner = new Umen\DefaultScanner ('\\');
+switch (isset ($_GET['s']) ? $_GET['s'] : 'default')
+{
+	case 'default':
+		$scanner = new Umen\DefaultScanner ();
+
+		break;
+
+	case 'regexp':
+		$scanner = new Umen\RegExpScanner ();
+
+		break;
+
+	default:
+		die;
+}
 
 foreach ($markup as $name => $rule)
 {
@@ -54,5 +76,7 @@ foreach ($files as $name => $path)
 
 	echo '<div class="block"><legend>' . $name . '</legend>' . $plain . '</div>';
 }
+
+echo '<div class="block"><legend>Debug</legend>Execution time: ' . (int)((microtime (true) - $start) * 1000) . ' ms</div>';
 
 ?>

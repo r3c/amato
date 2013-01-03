@@ -114,17 +114,17 @@ class	CompactEncoder extends Encoder
 
 			while ($i < $length && $token[$i] === self::TOKEN_PARAM)
 			{
-				$cName = '';
+				$key = '';
 
 				for (++$i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
 				{
 					if ($token[$i] === self::TOKEN_ESCAPE && $i + 1 < $length)
 						++$i;
 
-					$cName .= $token[$i];
+					$key .= $token[$i];
 				}
 
-				$cValue = '';
+				$value = '';
 
 				if ($i < $length && $token[$i] === self::TOKEN_VALUE)
 				{
@@ -133,11 +133,11 @@ class	CompactEncoder extends Encoder
 						if ($token[$i] === self::TOKEN_ESCAPE && $i + 1 < $length)
 							++$i;
 
-						$cValue .= $token[$i];
+						$value .= $token[$i];
 					}
 				}
 
-				$captures[$cName] = $cValue;
+				$captures[$key] = $value;
 			}
 
 			$scopes[] = array ($delta, $name, $action, $flag, $captures);
@@ -187,11 +187,11 @@ class	CompactEncoder extends Encoder
 			}
 
 			// Write tag parameters
-			foreach ($captures as $cName => $cValue)
+			foreach ($captures as $key => $value)
 			{
 				$token .= self::TOKEN_PARAM;
 
-				foreach (str_split ($cName) as $character)
+				foreach (str_split ($key) as $character)
 				{
 					if (isset (self::$escapesEncode[$character]))
 						$token .= self::TOKEN_ESCAPE;
@@ -199,11 +199,11 @@ class	CompactEncoder extends Encoder
 					$token .= $character;
 				}
 
-				if ($cValue !== '')
+				if ($value !== '')
 				{
 					$token .= self::TOKEN_VALUE;
 
-					foreach (str_split ($cValue) as $character)
+					foreach (str_split ($value) as $character)
 					{
 						if (isset (self::$escapesEncode[$character]))
 							$token .= self::TOKEN_ESCAPE;

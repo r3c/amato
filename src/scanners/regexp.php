@@ -29,121 +29,121 @@ class	RegExpScanner extends Scanner
 	/*
 	** Override for Scanner::assign.
 	*/
-	public function	assign ($pattern, $match)
+	public function	assign ($expression, $match)
 	{
 		$capture = null;
 		$decode = array ();
-		$length = strlen ($pattern);
-		$names = array ();
-		$regexp = '/';
+		$length = strlen ($expression);
+		$keys = array ();
+		$pattern = '';
 
 		for ($i = 0; $i < $length; )
 		{
-			// Parse capture instructions
-			if ($i < $length && $pattern[$i] === self::CAPTURE_BEGIN)
+			// Parse capture begin instructions
+			if ($capture === null && $i < $length && $expression[$i] === self::CAPTURE_BEGIN)
 			{
-				for ($start = ++$i; $i < $length && $pattern[$i] !== self::CAPTURE_NAME; )
+				for ($start = ++$i; $i < $length && $expression[$i] !== self::CAPTURE_NAME; )
 					++$i;
 
-				$capture = substr ($pattern, $start, $i - $start);
+				$capture = substr ($expression, $start, $i - $start);
 				$decode[] = array (self::DECODE_CAPTURE, $capture);
-				$names[] = $capture;
-				$regexp .= '(';
-				$i += 1;
-			}
+				$keys[] = $capture;
 
-			if ($i < $length && $pattern[$i] === self::CAPTURE_END)
-			{
-				$capture = null;
-				$regexp .= ')';
+				$pattern .= '(';
 				$i += 1;
 			}
 
 			// Parse character or group
-			$character = '?';
+			if ($i >= $length)
+				throw new \Exception ('parse error for expression "' . $expression . '" at character ' . $i . ', expected character or group');
 
-			if ($i < $length)
+			if ($expression[$i] === self::GROUP_BEGIN)
 			{
-				if ($pattern[$i] === self::GROUP_BEGIN)
-				{
-					$regexp .= '[';
-					$i += 1;
+				$character = null;
+				$pattern .= '[';
+				$i += 1;
 
-					if ($i < $length && $pattern[$i] === self::GROUP_NEGATE)
+				if ($i < $length && $expression[$i] === self::GROUP_NEGATE)
+				{
+					$pattern .= '^';
+					$i += 1;
+				}
+
+				while ($i < $length && $expression[$i] !== self::GROUP_END)
+				{
+					if ($i + 1 < $length && $expression[$i] === self::GROUP_ESCAPE)
 					{
-						$regexp .= '!';
+						$character = $expression[$i + 1];
+						$pattern .= preg_quote ($character, '/');
+						$i += 2;
+					}
+					else if ($i + 2 < $length && $expression[$i + 1] === self::GROUP_RANGE)
+					{
+						$character = $expression[$i];
+						$pattern .= preg_quote ($character, '/') . '-' . preg_quote ($expression[$i + 2], '/');
+						$i += 3;
+					}
+					else
+					{
+						$character = $expression[$i];
+						$pattern .= preg_quote ($character, '/');
 						$i += 1;
 					}
-
-					while ($i < $length && $pattern[$i] !== self::GROUP_END)
-					{
-						if ($i + 1 < $length && $pattern[$i] === self::GROUP_ESCAPE)
-						{
-							$character = $pattern[$i + 1];
-							$regexp .= preg_quote ($character, '/');
-							$i += 2;
-						}
-						else if ($i + 2 < $length && $pattern[$i + 1] === self::GROUP_RANGE)
-						{
-							$character = $pattern[$i];
-							$regexp .= preg_quote ($character, '/') . '-' . preg_quote ($pattern[$i + 2], '/');
-							$i += 3;
-						}
-						else
-						{
-							$character = $pattern[$i];
-							$regexp .= preg_quote ($character, '/');
-							$i += 1;
-						}
-					}
-
-					if ($i >= $length || $pattern[$i] !== self::GROUP_END)
-						throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . self::GROUP_END . '"');
-
-					$regexp .= ']';
-					$i += 1;
 				}
-				else
-				{
-					if ($i + 1 < $length && $pattern[$i] === self::GROUP_ESCAPE)
-						++$i;
 
-					$character = $pattern[$i++];
-					$regexp .= preg_quote ($character, '/');
-				}
-			}
+				if ($i >= $length || $expression[$i] !== self::GROUP_END)
+					throw new \Exception ('parse error for expression "' . $expression . '" at character ' . $i . ', expected "' . self::GROUP_END . '"');
 
-			// Parse repeat modifiers
-			if ($i < $length && $pattern[$i] === self::REPEAT_BEGIN)
-			{
-				for ($j = ++$i; $i < $length && $pattern[$i] >= '0' && $pattern[$i] <= '9'; )
-					++$i;
+				if ($character === null)
+					throw new \Exception ('empty group in expression "' . $expression . '" at character ' . $i);
 
-				$min = $i > $j ? (int)substr ($pattern, $j, $i - $j) : 0;
-
-				if ($i < $length && $pattern[$i] == self::REPEAT_SPLIT)
-				{
-					for ($j = ++$i; $i < $length && $pattern[$i] >= '0' && $pattern[$i] <= '9'; )
-						++$i;
-
-					$max = $i > $j ? (int)substr ($pattern, $j, $i - $j) : 0;
-				}
-				else
-					$max = $min;
-
-				if ($i >= $length || $pattern[$i] !== self::REPEAT_END)
-					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . self::REPEAT_END . '"');
-
-				$regexp .= '{' . ($min > 0 ? $min : '') . ',' . ($max > 0 ? $max : '') . '}';
+				$pattern .= ']';
 				$i += 1;
 			}
 			else
-				$min = 1;
+			{
+				if ($i + 1 < $length && $expression[$i] === self::GROUP_ESCAPE)
+					++$i;
+
+				$character = $expression[$i++];
+				$pattern .= preg_quote ($character, '/');
+			}
+
+			// Parse repeat modifiers
+			if ($i < $length && $expression[$i] === self::REPEAT_BEGIN)
+			{
+				for ($j = ++$i; $i < $length && $expression[$i] >= '0' && $expression[$i] <= '9'; )
+					++$i;
+
+				$repeat = $i > $j ? (int)substr ($expression, $j, $i - $j) : 0;
+
+				if ($i < $length && $expression[$i] == self::REPEAT_SPLIT)
+				{
+					for ($j = ++$i; $i < $length && $expression[$i] >= '0' && $expression[$i] <= '9'; )
+						++$i;
+
+					$max = $i > $j ? (int)substr ($expression, $j, $i - $j) : 0;
+					$min = $repeat;
+				}
+				else
+				{
+					$max = $repeat;
+					$min = $repeat;
+				}
+
+				if ($i >= $length || $expression[$i] !== self::REPEAT_END)
+					throw new \Exception ('parse error for expression "' . $expression . '" at character ' . $i . ', expected "' . self::REPEAT_END . '"');
+
+				$pattern .= '{' . ($min > 0 ? $min : '0') . ',' . ($max > 0 ? $max : '') . '}';
+				$i += 1;
+			}
+			else
+				$repeat = 1;
 
 			// Register constant characters to decode array
 			if ($capture === null)
 			{
-				$constant = str_repeat ($character, $min);
+				$constant = str_repeat ($character, $repeat);
 				$count = count ($decode);
 
 				if ($count > 0 && $decode[$count - 1][0] === self::DECODE_STRING)
@@ -151,11 +151,17 @@ class	RegExpScanner extends Scanner
 				else
 					$decode[] = array (self::DECODE_STRING, $constant);
 			}
+
+			// Parse capture end instructions
+			if ($capture !== null && $i < $length && $expression[$i] === self::CAPTURE_END)
+			{
+				$capture = null;
+				$pattern .= ')';
+				$i += 1;
+			}
 		}
 
-		$regexp .= '/';
-
-		$this->table[] = array ($match, $decode, $regexp, $names);
+		$this->table[] = array ($match, $decode, '/' . $pattern . '/m', $keys);
 
 		return count ($this->table) - 1;
 	}
@@ -165,7 +171,21 @@ class	RegExpScanner extends Scanner
 	*/
 	public function	escape ($string, $callback)
 	{
-throw new \Exception ('not implemented');
+		$candidates = $this->find ($string);
+		$shift = 0;
+
+		for ($i = 0; $i < count ($candidates); ++$i)
+		{
+			list ($offset, $length, $match, $captures) = $candidates[$i];
+
+			if ($captures === null || $callback ($match))
+			{
+				$string = substr_replace ($string, $this->escape, $offset + $shift, 0);
+				$shift += strlen ($this->escape);
+			}
+		}
+
+		return $string;
 	}
 
 	/*
@@ -192,27 +212,68 @@ throw new \Exception ('not implemented');
 	*/
 	public function	scan ($string, $callback)
 	{
-echo "FIXME: no escape sequence!<br />";
-		// Search for candidates within input string
+		$candidates = $this->find ($string);
+		$shift = 0;
+
+		// Send candidates to matching callback
+		for ($i = 0; $i < count ($candidates); ++$i)
+		{
+			list ($offset, $length, $match, $captures) = $candidates[$i];
+
+			if ($captures !== null)
+			{
+				if (!$callback ($offset - $shift, $length, $match, $captures))
+					continue;
+			}
+			else
+			{
+				$string = substr_replace ($string, '', $offset - $shift, $length);
+
+				$offset += 1;
+				$shift += $length;
+			}
+
+			while ($i + 1 < count ($candidates) && $candidates[$i + 1][0] < $offset + $length)
+				array_splice ($candidates, $i + 1, 1);
+		}
+
+		return $string;
+	}
+
+	/*
+	** Find all tag candidates from input plain text.
+	** $string:	input plain text string
+	** return:	sorted candidates array (offset, length, match, captures)
+	*/
+	private function	find ($string)
+	{
+		// Search for candidates amongst tag patterns
 		$candidates = array ();
 
 		foreach ($this->table as $array)
 		{
-			list ($match, $decode, $regexp, $names) = $array;
+			list ($match, $decode, $pattern, $keys) = $array;
 
-			if (preg_match_all ($regexp, $string, $finds, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) === false)
-				throw new \Exception ('invalid regular expression "' . $regexp . '"');
+			if (preg_match_all ($pattern, $string, $finds, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) === false)
+				throw new \Exception ('invalid regular expression pattern "' . $pattern . '" for tag');
 
 			foreach ($finds as $find)
 			{
 				$captures = array ();
 
-				for ($i = min (count ($names), count ($find) - 1); $i-- > 0; )
-					$captures[$names[$i]] = $find[$i + 1][0];
+				for ($i = min (count ($keys), count ($find) - 1); $i-- > 0; )
+					$captures[$keys[$i]] = $find[$i + 1][0];
 
 				$candidates[] = array ($find[0][1], strlen ($find[0][0]), $match, $captures);
 			}
 		}
+
+		// Search for escape sequences within input string
+		if (preg_match_all ('/' . preg_quote ($this->escape, '/') . '/', $string, $finds, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) === false)
+			throw new \Exception ('invalid regular expression pattern "' . $this->escape . '" for escape sequence');
+
+		foreach ($finds as $find)
+			$candidates[] = array ($find[0][1], strlen ($find[0][0]), null, null);
 
 		// Sort candidates by start offset
 		usort ($candidates, function ($a, $b)
@@ -220,19 +281,7 @@ echo "FIXME: no escape sequence!<br />";
 			return $a[0] < $b[0] ? -1 : 1;
 		});
 
-		// Send candidates to matching callback
-		for ($i = 0; $i < count ($candidates); ++$i)
-		{
-			list ($offset, $length, $match, $captures) = $candidates[$i];
-
-			if ($callback ($offset, $length, $match, $captures))
-			{
-				for ($j = $i + 1; $j < count ($candidates) && $candidates[$j][0] < $offset + $length; )
-					array_splice ($candidates, $j, 1);
-			}
-		}
-
-		return $string;
+		return $candidates;
 	}
 }
 

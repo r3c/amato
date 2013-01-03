@@ -22,9 +22,9 @@ function	bench ($count, $init, $loop, $stop)
 }
 
 $encoder = new Umen\CompactEncoder ();
-$scanner = new Umen\DefaultScanner ('\\');
-$converter = new Umen\MarkupConverter ($encoder, $scanner, $ymlMarkup);
-$renderer = new Umen\FormatRenderer ($encoder, $htmlFormat);
+$scanner = new Umen\DefaultScanner ();
+$converter = new Umen\MarkupConverter ($encoder, $scanner, $markup);
+$renderer = new Umen\FormatRenderer ($encoder, $format);
 
 $out = '';
 $i = 1;

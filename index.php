@@ -132,12 +132,12 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 	switch (isset ($_POST['scanner']) ? $_POST['scanner'] : null)
 	{
 		case 'default':
-			$scanner = new Umen\DefaultScanner ('\\');
+			$scanner = new Umen\DefaultScanner ();
 
 			break;
 
 		case 'regex':
-			$scanner = new Umen\RegExpScanner ('\\');
+			$scanner = new Umen\RegExpScanner ();
 
 			break;
 

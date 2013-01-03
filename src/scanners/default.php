@@ -272,42 +272,6 @@ class	DefaultScanner extends Scanner
 	}
 
 	/*
-	** Resolve first acceptable match from current cursors.
-	** $cursors:	cursors array
-	** $callback:	match acceptance predicate
-	*/
-	public function resolve (&$cursors, $callback)
-	{
-		$count = count ($cursors);
-
-		// Browse cursor from lowest to highest starting offset
-		for ($i = 0; $i < $count; ++$i)
-		{
-			$cursor = $cursors[$i];
-
-			// Browse accepted indices sorted by length descending order
-			foreach ($cursor->accepts as $accept => $length)
-			{
-				$captures = isset ($cursor->captures[$accept]) ? $cursor->captures[$accept] : array ();
-				$match = $this->table[$accept][1];
-
-				if ($callback ($cursor->offset, $length, $match, $captures))
-				{
-					// Remove all cursors covered by this one
-					while ($i + 1 < $count && $cursors[$i + 1]->offset < $cursor->offset + $length)
-					{
-						array_splice ($cursors, $i + 1, 1);
-
-						--$count;
-					}
-
-					break;
-				}
-			}
-		}
-	}
-
-	/*
 	** Override for Scanner::scan.
 	*/
 	public function	scan ($string, $callback)
@@ -358,6 +322,42 @@ class	DefaultScanner extends Scanner
 		$this->resolve ($cursors, $callback);
 
 		return $string;
+	}
+
+	/*
+	** Resolve first acceptable match from current cursors.
+	** $cursors:	cursors array
+	** $callback:	match acceptance predicate
+	*/
+	private function	resolve (&$cursors, $callback)
+	{
+		$count = count ($cursors);
+
+		// Browse cursor from lowest to highest starting offset
+		for ($i = 0; $i < $count; ++$i)
+		{
+			$cursor = $cursors[$i];
+
+			// Browse accepted indices sorted by length descending order
+			foreach ($cursor->accepts as $accept => $length)
+			{
+				$captures = isset ($cursor->captures[$accept]) ? $cursor->captures[$accept] : array ();
+				$match = $this->table[$accept][1];
+
+				if ($callback ($cursor->offset, $length, $match, $captures))
+				{
+					// Remove all cursors covered by this one
+					while ($i + 1 < $count && $cursors[$i + 1]->offset < $cursor->offset + $length)
+					{
+						array_splice ($cursors, $i + 1, 1);
+
+						--$count;
+					}
+
+					break;
+				}
+			}
+		}
 	}
 }
 
