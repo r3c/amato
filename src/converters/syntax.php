@@ -291,7 +291,7 @@ class	SyntaxConverter extends Converter
 
 		// Escape remaining plain text
 		$chunk = $this->scanner->escape (mb_substr ($text, $offset), $escape);
-		$text = mb_substr ($text, 0, $offset) . $chunk . mb_substr ($text, $offset);
+		$text = mb_substr ($text, 0, $offset) . $chunk;
 
 		return $text;
 	}
