@@ -180,8 +180,8 @@ class	RegExpScanner extends Scanner
 
 			if ($captures === null || $callback ($match))
 			{
-				$string = substr_replace ($string, $this->escape, $offset + $shift, 0);
-				$shift += strlen ($this->escape);
+				$string = mb_substr ($string, 0, $offset + $shift) . $this->escape . mb_substr ($string, $offset + $shift);
+				$shift += mb_strlen ($this->escape);
 			}
 		}
 
@@ -213,28 +213,39 @@ class	RegExpScanner extends Scanner
 	public function	scan ($string, $callback)
 	{
 		$candidates = $this->find ($string);
+		$count = count ($candidates);
 		$shift = 0;
 
 		// Send candidates to matching callback
-		for ($i = 0; $i < count ($candidates); ++$i)
+		for ($i = 0; $i < $count; ++$i)
 		{
 			list ($offset, $length, $match, $captures) = $candidates[$i];
 
-			if ($captures !== null)
+			$resume = $offset + $length;
+
+			// Candidate is a match, use callback to validate
+			if ($match !== null)
 			{
 				if (!$callback ($offset - $shift, $length, $match, $captures))
 					continue;
 			}
-			else
-			{
-				$string = substr_replace ($string, '', $offset - $shift, $length);
 
-				$offset += 1;
+			// Candidate is an escape sequence
+			else if ($i + 1 < $count && $candidates[$i + 1][0] === $offset + $length)
+			{
+				$string = mb_substr ($string, 0, $offset - $shift) . mb_substr ($string, $offset - $shift + $length);
+
+				$resume += 1;
 				$shift += $length;
 			}
 
-			while ($i + 1 < count ($candidates) && $candidates[$i + 1][0] < $offset + $length)
+			// Remove overlapped matches from candidates list
+			while ($i + 1 < $count && $candidates[$i + 1][0] < $resume)
+			{
 				array_splice ($candidates, $i + 1, 1);
+
+				--$count;
+			}
 		}
 
 		return $string;
@@ -264,7 +275,10 @@ class	RegExpScanner extends Scanner
 				for ($i = min (count ($keys), count ($find) - 1); $i-- > 0; )
 					$captures[$keys[$i]] = $find[$i + 1][0];
 
-				$candidates[] = array ($find[0][1], strlen ($find[0][0]), $match, $captures);
+				$offset = mb_strlen (substr ($string, 0, $find[0][1]));
+				$length = mb_strlen ($find[0][0]);
+
+				$candidates[] = array ($offset, $length, $match, $captures);
 			}
 		}
 
@@ -273,7 +287,12 @@ class	RegExpScanner extends Scanner
 			throw new \Exception ('invalid regular expression pattern "' . $this->escape . '" for escape sequence');
 
 		foreach ($finds as $find)
-			$candidates[] = array ($find[0][1], strlen ($find[0][0]), null, null);
+		{
+			$offset = mb_strlen (substr ($string, 0, $find[0][1]));
+			$length = mb_strlen ($find[0][0]);
+
+			$candidates[] = array ($offset, $length, null, null);
+		}
 
 		// Sort candidates by start offset
 		usort ($candidates, function ($a, $b)

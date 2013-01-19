@@ -10,8 +10,8 @@ define ('CHARSET',	'iso-8859-1');
 
 include ('../src/umen.php');
 
-include ('formats/html.php');
-include ('markups/yml.php');
+include ('format/html.php');
+include ('syntax/yml.php');
 
 Umen\autoload ();
 
@@ -55,7 +55,7 @@ function	html_encode ($string)
 
 $encoder = new Umen\CompactEncoder ();
 $scanner = new Umen\DefaultScanner ('\\');
-$converter = new Umen\MarkupConverter ($encoder, $scanner, $markup);
+$converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
 $renderer = new Umen\FormatRenderer ($encoder, $format);
 
 mysql_connect ('localhost', 'yaronet', 'yaronet') or die ('connect');

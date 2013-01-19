@@ -28,3 +28,4 @@ X Escape plain text at rendering only (no need for unescape callback)
 X Implement negative character groups
 X Allow multiple contexts as a replacement to "+" and "-" suffixes ?
 	- Start with fixed contexts, move \n to its own one and disable it from table & lists
+X Make compatible with multi-bytes strings

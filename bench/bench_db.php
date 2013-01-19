@@ -4,8 +4,8 @@ define ('CHARSET',	'iso-8859-1');
 
 include ('../src/umen.php');
 
-include ('../test/formats/html.php');
-include ('../test/markups/yml.php');
+include ('../test/format/html.php');
+include ('../test/syntax/yml.php');
 
 Umen\autoload ();
 
@@ -23,7 +23,7 @@ function	bench ($count, $init, $loop, $stop)
 
 $encoder = new Umen\CompactEncoder ();
 $scanner = new Umen\DefaultScanner ('\\');
-$converter = new Umen\MarkupConverter ($encoder, $scanner, $markup);
+$converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
 $renderer = new Umen\FormatRenderer ($encoder, $format);
 
 $out = '';

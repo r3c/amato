@@ -4,15 +4,15 @@ define ('CHARSET',	'iso-8859-1');
 
 include ('../src/umen.php');
 
-include ('formats/html.php');
-include ('markups/yml.php');
+include ('format/html.php');
+include ('syntax/yml.php');
 
 Umen\autoload ();
 
 $encoder = new Umen\CompactEncoder ();
 $scanner = new Umen\DefaultScanner ('\\');
 
-$converter = new Umen\MarkupConverter ($encoder, $scanner, $markup);
+$converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
 $token = $converter->convert (file_get_contents ('../res/tag.medium.txt'));
 
 $renderer = new Umen\FormatRenderer ($encoder, $format);

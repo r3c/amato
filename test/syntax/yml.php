@@ -12,7 +12,7 @@
 **		.flag:		tag flag
 **		.switch:	context switch name
 */
-$markup = array
+$syntax = array
 (
 	'.'		=> array
 	(

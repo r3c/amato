@@ -205,9 +205,9 @@ class	DefaultScanner extends Scanner
 	public function	escape ($string, $callback)
 	{
 		$cursors = array ();
-		$length = strlen ($string);
+		$size = strlen ($string);
 
-		for ($offset = 0; $offset < $length; ++$offset)
+		for ($offset = 0; $offset < $size; ++$offset)
 		{
 			$character = $string[$offset];
 
@@ -244,8 +244,8 @@ class	DefaultScanner extends Scanner
 				$cursors = array ();
 				$string = substr_replace ($string, $this->escape, $insert, 0);
 
-				++$length;
 				++$offset;
+				++$size;
 			}
 		}
 
@@ -277,21 +277,21 @@ class	DefaultScanner extends Scanner
 	public function	scan ($string, $callback)
 	{
 		$cursors = array ();
-		$length = strlen ($string);
+		$size = strlen ($string);
 
-		for ($offset = 0; $offset < $length; ++$offset)
+		for ($offset = 0; $offset < $size; ++$offset)
 		{
 			$character = $string[$offset];
 
 			// Kill cursors and remove escape character from original string
-			if ($character === $this->escape && $offset + 1 < $length)
+			if ($character === $this->escape && $offset + 1 < $size)
 			{
 				foreach ($cursors as $cursor)
 					$cursor->kill ();
 
 				$string = substr_replace ($string, '', $offset, 1);
 
-				--$length;
+				--$size;
 
 				continue;
 			}
@@ -313,23 +313,24 @@ class	DefaultScanner extends Scanner
 			// Search for matches and drop all cursors
 			if ($flush)
 			{
-				$this->resolve ($cursors, $callback);
+				$this->resolve ($string, $cursors, $callback);
 
 				$cursors = array ();
 			}
 		}
 
-		$this->resolve ($cursors, $callback);
+		$this->resolve ($string, $cursors, $callback);
 
 		return $string;
 	}
 
 	/*
 	** Resolve first acceptable match from current cursors.
+	** $string:		plain text string
 	** $cursors:	cursors array
 	** $callback:	match acceptance predicate
 	*/
-	private function	resolve (&$cursors, $callback)
+	private function	resolve ($string, &$cursors, $callback)
 	{
 		$count = count ($cursors);
 
@@ -339,15 +340,18 @@ class	DefaultScanner extends Scanner
 			$cursor = $cursors[$i];
 
 			// Browse accepted indices sorted by length descending order
-			foreach ($cursor->accepts as $accept => $length)
+			foreach ($cursor->accepts as $accept => $size)
 			{
 				$captures = isset ($cursor->captures[$accept]) ? $cursor->captures[$accept] : array ();
 				$match = $this->table[$accept][1];
 
-				if ($callback ($cursor->offset, $length, $match, $captures))
+				$offset = mb_strlen (substr ($string, 0, $cursor->offset));
+				$length = mb_strlen (substr ($string, $cursor->offset, $size));
+
+				if ($callback ($offset, $length, $match, $captures))
 				{
 					// Remove all cursors covered by this one
-					while ($i + 1 < $count && $cursors[$i + 1]->offset < $cursor->offset + $length)
+					while ($i + 1 < $count && $cursors[$i + 1]->offset < $cursor->offset + $size)
 					{
 						array_splice ($cursors, $i + 1, 1);
 

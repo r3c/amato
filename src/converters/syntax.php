@@ -4,16 +4,16 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-class	MarkupConverter extends Converter
+class	SyntaxConverter extends Converter
 {
 	/*
 	** Initialize a new default converter.
 	** $encoder:	encoder instance
 	** $scanner:	scanner instance
-	** $markup:		markup language definitions
+	** $syntax:		syntax language definitions
 	** $limit:		optional default tag limit, 0 for no limit
 	*/
-	public function	__construct ($encoder, $scanner, $markup, $limit = 0)
+	public function	__construct ($encoder, $scanner, $syntax, $limit = 0)
 	{
 		$this->encoder = $encoder;
 		$this->limits = array ();
@@ -22,7 +22,7 @@ class	MarkupConverter extends Converter
 		$this->resolvers = array ();
 		$this->scanner = $scanner;
 
-		foreach ($markup as $name => $definition)
+		foreach ($syntax as $name => $definition)
 		{
 			if (isset ($definition['onConvert']))
 				$this->onConverts[$name] = $definition['onConvert'];
@@ -192,7 +192,7 @@ class	MarkupConverter extends Converter
 			list ($offset, $length, $name, $action, $flag, $captures) = $tag;
 
 			$scopes[] = array ($offset - $origin, $name, $action, $flag, $captures);
-			$text = substr_replace ($text, '', $offset - $shift, $length);
+			$text = mb_substr ($text, 0, $offset - $shift) . mb_substr ($text, $offset - $shift + $length);
 
 			$origin = $offset + $length;
 			$shift += $length;
@@ -272,10 +272,10 @@ class	MarkupConverter extends Converter
 			}
 
 			// Escape skipped plain text and insert tag
-			$chunk = $this->scanner->escape (substr ($text, $offset, $delta), $escape);
-			$text = substr_replace ($text, $chunk . $string, $offset, $delta);
+			$chunk = $this->scanner->escape (mb_substr ($text, $offset, $delta), $escape);
+			$text = mb_substr ($text, 0, $offset) . $chunk . $string . mb_substr ($text, $offset + $delta);
 
-			$offset += strlen ($chunk) + strlen ($string);
+			$offset += mb_strlen ($chunk) + mb_strlen ($string);
 
 			// Apply context switch for resolved tag
 			foreach ($switch as $key => $update)
@@ -290,8 +290,8 @@ class	MarkupConverter extends Converter
 		}
 
 		// Escape remaining plain text
-		$chunk = $this->scanner->escape (substr ($text, $offset), $escape);
-		$text = substr_replace ($text, $chunk, $offset);
+		$chunk = $this->scanner->escape (mb_substr ($text, $offset), $escape);
+		$text = mb_substr ($text, 0, $offset) . $chunk . mb_substr ($text, $offset);
 
 		return $text;
 	}

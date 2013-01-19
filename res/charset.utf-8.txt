@@ -1,0 +1,1 @@
+Voilà [hr] une [b]chaîne[/b] qui [i]devrait[/i] être \[0]convertie[/0] sans [u]problèmes[/u].

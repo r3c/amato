@@ -6,7 +6,7 @@
 
 namespace Umen;
 
-define ('UMEN',	'1.0.2.0');
+define ('UMEN',	'1.0.3.0');
 
 require (dirname (__FILE__) . '/action.php');
 
@@ -18,9 +18,9 @@ function	autoload ()
 
 		switch ($class)
 		{
-			case 'Umen\MarkupConverter':
+			case 'Umen\SyntaxConverter':
 				require_once ($path . '/converter.php');
-				require ($path . '/converters/markup.php');
+				require ($path . '/converters/syntax.php');
 
 				break;
 

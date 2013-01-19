@@ -16,7 +16,7 @@ $start = microtime (true);
 
 include ('../src/umen.php');
 
-include ('markups/yml.php');
+include ('syntax/yml.php');
 
 Umen\autoload ();
 
@@ -44,7 +44,7 @@ switch (isset ($_GET['s']) ? $_GET['s'] : 'default')
 		die;
 }
 
-foreach ($markup as $name => $rule)
+foreach ($syntax as $name => $rule)
 {
 	foreach ($rule['tags'] as $pattern => $options)
 		$scanner->assign ($pattern, $name);

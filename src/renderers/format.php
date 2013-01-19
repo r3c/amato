@@ -41,10 +41,10 @@ class	FormatRenderer extends Renderer
 			// Escape incoming text chunk using provided callback if any
 			if ($escape !== null)
 			{
-				$chunk = $escape (substr ($text, $offset, $delta));
-				$text = substr_replace ($text, $chunk, $offset, $delta);
+				$chunk = $escape (mb_substr ($text, $offset, $delta));
+				$text = mb_substr ($text, 0, $offset) . $chunk . mb_substr ($text, $offset + $delta);
 
-				$offset += strlen ($chunk) - $delta;
+				$offset += mb_strlen ($chunk) - $delta;
 			}
 
 			$offset += $delta;
@@ -100,10 +100,10 @@ class	FormatRenderer extends Renderer
 					$crossOffset = $stack[$i][1];
 					$crossLength = $offset - $crossOffset;
 
-					$result = $this->format[$cross][$callback] ($cross, $stack[$i][3], $stack[$i][4], substr ($text, $crossOffset, $crossLength));
-					$text = substr_replace ($text, $result, $crossOffset, $crossLength);
+					$result = $this->format[$cross][$callback] ($cross, $stack[$i][3], $stack[$i][4], mb_substr ($text, $crossOffset, $crossLength));
+					$text = mb_substr ($text, 0, $crossOffset) . $result . mb_substr ($text, $crossOffset + $crossLength);
 
-					$offset = $crossOffset + strlen ($result);
+					$offset = $crossOffset + mb_strlen ($result);
 				}
 			}
 
@@ -115,9 +115,9 @@ class	FormatRenderer extends Renderer
 					if (isset ($rule['onAlone']))
 					{
 						$result = $rule['onAlone'] ($name, $flag, $captures);
-						$text = substr_replace ($text, $result, $offset, 0);
+						$text = mb_substr ($text, 0, $offset) . $result . mb_substr ($text, $offset);
 
-						$offset += strlen ($result);
+						$offset += mb_strlen ($result);
 					}
 
 					break;
@@ -153,8 +153,8 @@ class	FormatRenderer extends Renderer
 		// Escape remaining text chunk using provided callback if any
 		if ($escape !== null)
 		{
-			$chunk = $escape (substr ($text, $offset));
-			$text = substr_replace ($text, $chunk, $offset);
+			$chunk = $escape (mb_substr ($text, $offset));
+			$text = mb_substr ($text, 0, $offset) . $chunk;
 		}
 
 		return $text;

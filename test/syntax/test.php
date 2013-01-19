@@ -12,7 +12,7 @@
 **     .1:			optional tag flag identifier, null if none
 **     .2:          optional context switch command
 */
-$markup = array
+$syntax = array
 (
 	'.'		=> array
 	(

@@ -77,7 +77,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 						Display
 						<select name="action">' . getOptions (array ('print' => 'actual rendering', 'tree' => 'syntax tree', 'debug' => 'debug mode'), isset ($_POST['action']) ? $_POST['action'] : 'html') . '</select>
 						using
-						<select name="markup">' . getOptions (array ('yml' => 'yML', 'test' => 'Test'), isset ($_POST['markup']) ? $_POST['markup'] : null) . '</select>
+						<select name="syntax">' . getOptions (array ('yml' => 'yML', 'test' => 'Test'), isset ($_POST['syntax']) ? $_POST['syntax'] : null) . '</select>
 						to
 						<select name="format">' . getOptions (array ('html' => 'HTML'), isset ($_POST['format']) ? $_POST['format'] : null) . '</select>
 						<input type="submit" value="Submit" />
@@ -88,7 +88,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 						Parse using
 						<select name="scanner">' . getOptions (array ('default' => 'default', 'regex' => 'regexp'), isset ($_POST['scanner']) ? $_POST['scanner'] : null) . '</select>
 						scanner and
-						<select name="converter">' . getOptions (array ('markup' => 'markup'), isset ($_POST['converter']) ? $_POST['converter'] : null) . '</select>
+						<select name="converter">' . getOptions (array ('syntax' => 'syntax'), isset ($_POST['converter']) ? $_POST['converter'] : null) . '</select>
 						converter, store using
 						<select name="encoder">' . getOptions (array ('compact' => 'compact', 'concat' => 'concat', 'json' => 'json', 'sleep' => 'sleep'), isset ($_POST['encoder']) ? $_POST['encoder'] : null) . '</select>
 						encoding, render with
@@ -147,24 +147,24 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 
 	switch (isset ($_POST['converter']) ? $_POST['converter'] : null)
 	{
-		case 'markup':
-			switch (isset ($_POST['markup']) ? $_POST['markup'] : null)
+		case 'syntax':
+			switch (isset ($_POST['syntax']) ? $_POST['syntax'] : null)
 			{
 				case 'test':
-					require ('test/markups/test.php');
+					require ('test/syntax/test.php');
 
 					break;
 
 				case 'yml':
-					require ('test/markups/yml.php');
+					require ('test/syntax/yml.php');
 
 					break;
 
 				default:
-					throw new Exception ('invalid markup');
+					throw new Exception ('invalid syntax');
 			}
 
-			$converter = new Umen\MarkupConverter ($encoder, $scanner, $markup);
+			$converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
 
 			break;
 
@@ -178,7 +178,7 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 			switch (isset ($_POST['format']) ? $_POST['format'] : null)
 			{
 				case 'html':
-					include ('test/formats/html.php');
+					include ('test/format/html.php');
 
 					break;
 
