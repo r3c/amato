@@ -78,7 +78,7 @@ class	SyntaxConverter extends Converter
 		$tags = array ();
 		$usages = array ();
 
-		$text = $this->scanner->scan ($text, function ($offset, $length, $match, $captures) use (&$callbacks, &$chains, &$context, &$custom, &$limits, &$tags, &$usages)
+		$process = function ($match, $offset, $length, $captures) use (&$callbacks, &$chains, &$context, &$custom, &$limits, &$tags, &$usages)
 		{
 			list ($name, $meanings) = $match;
 
@@ -175,7 +175,32 @@ class	SyntaxConverter extends Converter
 			}
 
 			return false;
-		});
+		};
+
+		$verify = function ($match) use (&$context, &$limits, &$usages)
+		{
+			list ($name, $meanings) = $match;
+
+			// Ensure tag limit has not be reached
+			if (isset ($usages[$name]) && $usages[$name] >= $limits[$name])
+				return false;
+
+			// Find action from current context
+			foreach ($meanings as $meaning)
+			{
+				foreach ($meaning[0] as $key => $exists)
+				{
+					if (isset ($context[$key]) !== $exists)
+						continue 2;
+				}
+
+				return true;
+			}
+
+			return false;
+		};
+
+		$text = $this->scanner->scan ($text, $process, $verify);
 
 		// Sort resolved tags and remove from plain text string
 		usort ($tags, function ($a, $b)

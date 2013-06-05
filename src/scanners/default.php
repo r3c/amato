@@ -202,7 +202,7 @@ class	DefaultScanner extends Scanner
 	/*
 	** Override for Scanner::escape.
 	*/
-	public function	escape ($string, $callback)
+	public function	escape ($string, $verify)
 	{
 		$cursors = array ();
 		$size = strlen ($string);
@@ -226,7 +226,7 @@ class	DefaultScanner extends Scanner
 					{
 						foreach ($cursor->accepts as $accept => $dummy)
 						{
-							if ($callback ($this->table[$accept][1]))
+							if ($verify ($this->table[$accept][1]))
 							{
 								$insert = $cursor->offset;
 
@@ -274,7 +274,7 @@ class	DefaultScanner extends Scanner
 	/*
 	** Override for Scanner::scan.
 	*/
-	public function	scan ($string, $callback)
+	public function	scan ($string, $process, $verify)
 	{
 		$cursors = array ();
 		$size = strlen ($string);
@@ -313,13 +313,13 @@ class	DefaultScanner extends Scanner
 			// Search for matches and drop all cursors
 			if ($flush)
 			{
-				$this->resolve ($string, $cursors, $callback);
+				$this->resolve ($string, $cursors, $process);
 
 				$cursors = array ();
 			}
 		}
 
-		$this->resolve ($string, $cursors, $callback);
+		$this->resolve ($string, $cursors, $process);
 
 		return $string;
 	}
@@ -328,9 +328,9 @@ class	DefaultScanner extends Scanner
 	** Resolve first acceptable match from current cursors.
 	** $string:		plain text string
 	** $cursors:	cursors array
-	** $callback:	match acceptance predicate
+	** $process:	match processing callback (match, offset, length, captures)
 	*/
-	private function	resolve ($string, &$cursors, $callback)
+	private function	resolve ($string, &$cursors, $process)
 	{
 		$count = count ($cursors);
 
@@ -348,7 +348,7 @@ class	DefaultScanner extends Scanner
 				$offset = mb_strlen (substr ($string, 0, $cursor->offset));
 				$length = mb_strlen (substr ($string, $cursor->offset, $size));
 
-				if ($callback ($offset, $length, $match, $captures))
+				if ($process ($match, $offset, $length, $captures))
 				{
 					// Remove all cursors covered by this one
 					while ($i + 1 < $count && $cursors[$i + 1]->offset < $cursor->offset + $size)

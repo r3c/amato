@@ -169,7 +169,7 @@ class	RegExpScanner extends Scanner
 	/*
 	** Override for Scanner::escape.
 	*/
-	public function	escape ($string, $callback)
+	public function	escape ($string, $verify)
 	{
 		$candidates = $this->find ($string);
 		$shift = 0;
@@ -178,7 +178,7 @@ class	RegExpScanner extends Scanner
 		{
 			list ($offset, $length, $match, $captures) = $candidates[$i];
 
-			if ($captures === null || $callback ($match))
+			if ($captures === null || $verify ($match))
 			{
 				$string = mb_substr ($string, 0, $offset + $shift) . $this->escape . mb_substr ($string, $offset + $shift);
 				$shift += mb_strlen ($this->escape);
@@ -210,7 +210,7 @@ class	RegExpScanner extends Scanner
 	/*
 	** Override for Scanner::scan.
 	*/
-	public function	scan ($string, $callback)
+	public function	scan ($string, $process, $verify)
 	{
 		$candidates = $this->find ($string);
 		$count = count ($candidates);
@@ -226,13 +226,18 @@ class	RegExpScanner extends Scanner
 			// Candidate is a match, use callback to validate
 			if ($match !== null)
 			{
-				if (!$callback ($offset - $shift, $length, $match, $captures))
+				if (!$process ($match, $offset - $shift, $length, $captures))
 					continue;
 			}
 
-			// Candidate is an escape sequence
+			// Candidate is an escape sequence followed by a valid candidate
 			else if ($i + 1 < $count && $candidates[$i + 1][0] === $offset + $length)
 			{
+				$match = $candidates[$i + 1][2];
+
+				if ($match !== null && !$verify ($match))
+					continue;
+
 				$string = mb_substr ($string, 0, $offset - $shift) . mb_substr ($string, $offset - $shift + $length);
 
 				$resume += 1;

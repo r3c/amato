@@ -18,10 +18,10 @@ abstract class	Scanner
 	** Escape given string so it doesn't match any of currently assigned
 	** patterns.
 	** $string:		plain text string
-	** $callback:	escape requirement verification callback (match) -> bool
+	** $verify:		escape requirement check (match) -> bool
 	** return:		escaped string
 	*/
-	public abstract function	escape ($string, $callback);
+	public abstract function	escape ($string, $verify);
 
 	/*
 	** Make plain text string compatible with given pattern.
@@ -35,10 +35,11 @@ abstract class	Scanner
 	** Search given string for known patterns, invoke callback for all matches
 	** and return cleaned up string (with escape characters removed).
 	** $string:		plain text string
-	** $callback:	matching callback (offset, length, match, captures) -> bool
+	** $process:	match processor (match, offset, length, captures) -> bool
+	** $verify:		escape requirement check (match) -> bool
 	** return:		cleaned up string
 	*/
-	public abstract  function	scan ($string, $callback);
+	public abstract  function	scan ($string, $process, $verify);
 }
 
 ?>
