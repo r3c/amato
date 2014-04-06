@@ -6,6 +6,11 @@ require ('src/umen.php');
 
 Umen\autoload ();
 
+function	escape ($str)
+{
+	return htmlspecialchars ($str, ENT_COMPAT, CHARSET);
+}
+
 function	formatHTML ($str)
 {
 	$depth = 0;
@@ -19,13 +24,13 @@ function	formatHTML ($str)
 			if ($matches[2][0])
 				$depth = max ($depth - 1, 0);
 
-			$out .= str_repeat ('&nbsp;&nbsp;&nbsp;&nbsp;', $depth) . '<span style="color: #666666;">' . htmlspecialchars ($matches[1][0], ENT_COMPAT, CHARSET) . '</span><br />';
+			$out .= str_repeat ('&nbsp;&nbsp;&nbsp;&nbsp;', $depth) . '<span style="color: #666666;">' . escape ($matches[1][0]) . '</span><br />';
 
 			if ($matches[2][0] == '' && $matches[3][0] == '')
 				$depth = min ($depth + 1, 16);
 		}
 		else if ($matches[1][0] != '')
-			$out .= str_repeat ('&nbsp;&nbsp;&nbsp;&nbsp;', $depth) . htmlspecialchars ($matches[1][0], ENT_COMPAT, CHARSET) . '<br />';
+			$out .= str_repeat ('&nbsp;&nbsp;&nbsp;&nbsp;', $depth) . escape ($matches[1][0]) . '<br />';
 
 		$offset = $matches[0][1] + strlen ($matches[0][0]);
 	}
@@ -35,10 +40,10 @@ function	formatHTML ($str)
 
 function	formatW3C ($str)
 {
-	return htmlspecialchars ('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+	return escape ('<!DOCTYPE html>
+<html>
 	<head>
-		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . CHARSET . '" />
+		<meta charset="' . CHARSET . '" /> 
 		<title>Fragment</title>
 	</head>
 	<body>
@@ -46,7 +51,7 @@ function	formatW3C ($str)
 			' . $str . '
 		</div>
 	</body>
-</html>', ENT_COMPAT, CHARSET);
+</html>');
 }
 
 function	getOptions ($options, $selected)
@@ -54,39 +59,39 @@ function	getOptions ($options, $selected)
 	$html = '';
 
 	foreach ($options as $value => $caption)
-		$html .= '<option' . ($selected === $value ? ' selected="selected"' : '') . ' value="' . htmlspecialchars ($value, ENT_COMPAT, CHARSET) . '">' . htmlspecialchars ($caption, ENT_COMPAT, CHARSET) . '</option>';
+		$html .= '<option' . ($selected === $value ? ' selected="selected"' : '') . ' value="' . escape ($value) . '">' . escape ($caption) . '</option>';
 
 	return $html;
 }
 
-echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+echo '<!DOCTYPE html>
+<html>
 	<head>
 		<link href="res/style.css" rel="stylesheet" type="text/css" />
 		<link href="res/umen.css" rel="stylesheet" type="text/css" />
-		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . CHARSET . '" />
-		<title>Universal Markup Engine v' . htmlspecialchars (UMEN, ENT_COMPAT, CHARSET) . ' - Test Page</title>
+		<meta charset="' . CHARSET . '" /> 
+		<title>Universal Markup Engine v' . escape (UMEN) . ' - Demo Page</title>
 	</head>
 	<body>
 		<div class="box">
 			<h1>Input string:</h1>
 			<div class="body">
 				<form action="" method="POST">
-					<textarea name="string" rows="10" style="box-sizing: border-box; width: 100%;">' . htmlspecialchars (isset ($_POST['string']) ? $_POST['string'] : file_get_contents ('res/sample.txt'), ENT_COMPAT, CHARSET) . '</textarea>
+					<textarea name="string" rows="10" style="box-sizing: border-box; width: 100%;">' . escape (isset ($_POST['string']) ? $_POST['string'] : file_get_contents ('sample/demo.txt')) . '</textarea>
 					<div class="buttons" id="actions">
 						Display
-						<select name="action">' . getOptions (array ('print' => 'actual rendering', 'tree' => 'syntax tree', 'debug' => 'debug mode'), isset ($_POST['action']) ? $_POST['action'] : 'html') . '</select>
+						<select name="action">' . getOptions (array ('print' => 'actual result', 'tree' => 'syntax tree', 'debug' => 'debug mode'), isset ($_POST['action']) ? $_POST['action'] : 'html') . '</select>
 						using
-						<select name="syntax">' . getOptions (array ('yml' => 'yML', 'test' => 'Test'), isset ($_POST['syntax']) ? $_POST['syntax'] : null) . '</select>
+						<select name="syntax">' . getOptions (array ('bbcode' => 'BBCode', 'test' => 'Test'), isset ($_POST['syntax']) ? $_POST['syntax'] : null) . '</select>
 						to
 						<select name="format">' . getOptions (array ('html' => 'HTML'), isset ($_POST['format']) ? $_POST['format'] : null) . '</select>
 						<input type="submit" value="Submit" />
 						<input onclick="var i = document.getElementById(\'options_input\'), p = document.getElementById(\'options_panel\'); if (i.value) { i.value = \'\'; p.style.display = \'none\'; } else { i.value = \'1\'; p.style.display = \'block\'; }" type="button" value="Options" />
-						<input id="options_input" name="options" type="hidden" value="' . htmlspecialchars (isset ($_POST['options']) ? $_POST['options'] : '', ENT_COMPAT, CHARSET)  . '" />
+						<input id="options_input" name="options" type="hidden" value="' . escape (isset ($_POST['options']) ? $_POST['options'] : '')  . '" />
 					</div>
 					<div class="buttons" id="options_panel" style="display: ' . (isset ($_POST['options']) && $_POST['options'] ? 'block' : 'none') . ';">
 						Parse using
-						<select name="scanner">' . getOptions (array ('default' => 'default', 'regex' => 'regexp'), isset ($_POST['scanner']) ? $_POST['scanner'] : null) . '</select>
+						<select name="scanner">' . getOptions (array ('regex' => 'regexp', 'default' => 'default'), isset ($_POST['scanner']) ? $_POST['scanner'] : null) . '</select>
 						scanner and
 						<select name="converter">' . getOptions (array ('syntax' => 'syntax'), isset ($_POST['converter']) ? $_POST['converter'] : null) . '</select>
 						converter, store using
@@ -101,8 +106,6 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.or
 
 if (isset ($_POST['action']) && isset ($_POST['string']))
 {
-	$string = str_replace (array ("\n\r", "\r\n"), "\n", $_POST['string']);
-
 	switch (isset ($_POST['encoder']) ? $_POST['encoder'] : null)
 	{
 		case 'compact':
@@ -150,13 +153,13 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 		case 'syntax':
 			switch (isset ($_POST['syntax']) ? $_POST['syntax'] : null)
 			{
-				case 'test':
-					require ('test/syntax/test.php');
+				case 'bbcode':
+					require ('sample/syntax/bbcode.php');
 
 					break;
 
-				case 'yml':
-					require ('test/syntax/yml.php');
+				case 'test':
+					require ('sample/syntax/test.php');
 
 					break;
 
@@ -164,7 +167,7 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 					throw new Exception ('invalid syntax');
 			}
 
-			$converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
+			$converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax, 1000);
 
 			break;
 
@@ -178,7 +181,7 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 			switch (isset ($_POST['format']) ? $_POST['format'] : null)
 			{
 				case 'html':
-					include ('test/format/html.php');
+					include ('sample/format/html.php');
 
 					break;
 
@@ -194,8 +197,9 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 			throw new Exception ('invalid renderer');
 	}
 
+	$string = str_replace ("\r", '', $_POST['string']);
 	$token = $converter->convert ($string);
-	$print = $renderer->render ($token, function ($plain) { return htmlspecialchars ($plain, ENT_COMPAT, CHARSET); });
+	$print = $renderer->render ($token, 'escape');
 
 	switch ($_POST['action'])
 	{
@@ -204,13 +208,13 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 
 			$output =
 				'<h2>string (' . strlen ($string) . ' characters):</h2>' . 
-				'<div class="code">' . htmlspecialchars ($string, ENT_COMPAT, CHARSET) . '</div><hr />' .
+				'<div class="code">' . escape ($string) . '</div><hr />' .
 				'<h2>token (' . strlen ($token) . ' characters):</h2>' .
-				'<div class="code">' . htmlspecialchars ($token, ENT_COMPAT, CHARSET) . '</div><hr />' .
+				'<div class="code">' . escape ($token) . '</div><hr />' .
 				'<h2>print (' . strlen ($print) . ' characters):</h2>' .
-				'<div class="code">' . htmlspecialchars ($print, ENT_COMPAT, CHARSET) . '</div><hr />' .
+				'<div class="code">' . escape ($print) . '</div><hr />' .
 				'<h2>inverse (' . strlen ($inverse) . ' characters):</h2>' .
-				'<div class="code" style="color: ' . (str_replace ('\\', '', $inverse) === str_replace ('\\', '', $string) ? 'green' : 'red') . ';">' . htmlspecialchars ($inverse, ENT_COMPAT, CHARSET) . '</div>';
+				'<div class="code" style="color: ' . (str_replace ('\\', '', $inverse) === str_replace ('\\', '', $string) ? 'green' : 'red') . ';">' . escape ($inverse) . '</div>';
 
 			break;
 

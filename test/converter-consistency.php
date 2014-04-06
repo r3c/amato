@@ -10,8 +10,8 @@ define ('CHARSET',	'iso-8859-1');
 
 include ('../src/umen.php');
 
-include ('format/html.php');
-include ('syntax/yml.php');
+include ('../sample/format/html.php');
+include ('../sample/syntax/bbcode.php');
 
 Umen\autoload ();
 
@@ -58,20 +58,20 @@ $scanner = new Umen\DefaultScanner ('\\');
 $converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
 $renderer = new Umen\FormatRenderer ($encoder, $format);
 
-mysql_connect ('localhost', 'yaronet', 'yaronet') or die ('connect');
-mysql_select_db ('yaronet') or die ('select');
+$tests = array
+(
+	'Plain text - long'		=> 'txt/plain.long.txt',
+	'Plain text - medium'	=> 'txt/plain.medium.txt',
+	'Plain text - short'	=> 'txt/plain.short.txt',
+	'Plain text - tiny'		=> 'txt/plain.tiny.txt',
+	'Tagged text - long'	=> 'txt/tag.long.txt',
+	'Tagged text - medium'	=> 'txt/tag.medium.txt',
+	'Tagged text - short'	=> 'txt/tag.short.txt',
+	'Tagged text - tiny'	=> 'txt/tag.tiny.txt'
+);
 
-$limit = isset ($_GET['limit']) ? (int)$_GET['limit'] : 50;
-
-$q = mysql_query ('SELECT sujet, num, post FROM postsx ORDER BY RAND() LIMIT ' . $limit);
-//$q = mysql_query ('SELECT sujet, num, post FROM postsx WHERE sujet = 102931 AND num = 165');
-
-while (($row = mysql_fetch_assoc ($q)))
-{
-	$href = 'http://www.yaronet.com/posts.php?s=' . $row['sujet'] . '&p=' . (int)((($row['num'] - 1) / 30) + 1) . '&h=' . ($row['num'] - 1) . '#' . ($row['num'] - 1);
-
-	echo '<li>Topic ' . $row['sujet'] . ' post <a href="' . html_encode ($href) . '">#' . ($row['num'] - 1) . '</a>:<ul>' . check ($converter, $renderer, $row['post']) . '</ul></li>';
-}
+foreach ($tests as $name => $path)
+	echo '<li>' . html_encode ($name) . ':<ul>' . check ($converter, $renderer, file_get_contents ($path)) . '</ul></li>';
 
 ?>
 		</ul>

@@ -10,8 +10,8 @@ define ('CHARSET',	'iso-8859-1');
 
 include ('../src/umen.php');
 
-include ('format/html.php');
-include ('syntax/yml.php');
+include ('../sample/format/html.php');
+include ('../sample/syntax/bbcode.php');
 
 Umen\autoload ();
 
@@ -43,8 +43,8 @@ $scanner = new Umen\DefaultScanner ('\\');
 $converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
 $renderer = new Umen\FormatRenderer ($encoder, $format);
 
-run ($converter, $renderer, '../res/charset.iso-8859-1.txt', 'iso-8859-1');
-run ($converter, $renderer, '../res/charset.utf-8.txt', 'utf-8');
+run ($converter, $renderer, 'txt/charset.iso-8859-1.txt', 'iso-8859-1');
+run ($converter, $renderer, 'txt/charset.utf-8.txt', 'utf-8');
 
 echo '</ul></li>';
 
@@ -55,8 +55,8 @@ $scanner = new Umen\RegExpScanner ('\\');
 $converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
 $renderer = new Umen\FormatRenderer ($encoder, $format);
 
-run ($converter, $renderer, '../res/charset.iso-8859-1.txt', 'iso-8859-1');
-run ($converter, $renderer, '../res/charset.utf-8.txt', 'utf-8');
+run ($converter, $renderer, 'txt/charset.iso-8859-1.txt', 'iso-8859-1');
+run ($converter, $renderer, 'txt/charset.utf-8.txt', 'utf-8');
 
 echo '</ul></li>';
 

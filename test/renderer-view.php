@@ -4,8 +4,8 @@ define ('CHARSET',	'iso-8859-1');
 
 include ('../src/umen.php');
 
-include ('format/html.php');
-include ('syntax/yml.php');
+include ('../sample/format/html.php');
+include ('../sample/syntax/bbcode.php');
 
 Umen\autoload ();
 
@@ -13,7 +13,7 @@ $encoder = new Umen\CompactEncoder ();
 $scanner = new Umen\DefaultScanner ('\\');
 
 $converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
-$token = $converter->convert (file_get_contents ('../res/tag.medium.txt'));
+$token = $converter->convert (file_get_contents ('txt/tag.medium.txt'));
 
 $renderer = new Umen\FormatRenderer ($encoder, $format);
 $out = $renderer->render ($token, function ($string) { return htmlspecialchars ($string, ENT_COMPAT, CHARSET); });

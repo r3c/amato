@@ -16,16 +16,16 @@ $start = microtime (true);
 
 include ('../src/umen.php');
 
-include ('syntax/yml.php');
+include ('../sample/syntax/bbcode.php');
 
 Umen\autoload ();
 
 $files = array
 (
-	'Tagged text - long'	=> '../res/tag.long.txt',
-	'Tagged text - medium'	=> '../res/tag.medium.txt',
-	'Tagged text - short'	=> '../res/tag.short.txt',
-	'Tagged text - tiny'	=> '../res/tag.tiny.txt'
+	'Tagged text - long'	=> 'txt/tag.long.txt',
+	'Tagged text - medium'	=> 'txt/tag.medium.txt',
+	'Tagged text - short'	=> 'txt/tag.short.txt',
+	'Tagged text - tiny'	=> 'txt/tag.tiny.txt'
 );
 
 switch (isset ($_GET['s']) ? $_GET['s'] : 'default')
@@ -55,12 +55,12 @@ foreach ($files as $name => $path)
 	$plain = file_get_contents ($path);
 	$tags = array ();
 
-	$plain = $scanner->scan ($plain, function ($offset, $length, $match, $captures) use (&$tags)
+	$plain = $scanner->scan ($plain, function ($match, $offset, $length, $captures) use (&$tags)
 	{
 		$tags[] = array ($offset, $length, $match, $captures);
 
 		return true;
-	});
+	}, function ($match) { return false; });
 
 	for ($i = count ($tags) - 1; $i >= 0; --$i)
 	{
