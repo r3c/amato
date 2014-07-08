@@ -20,7 +20,7 @@ class	FormatRenderer extends Renderer
 	/*
 	** Override for Renderer::render.
 	*/
-	public function	render ($token, $escape = null)
+	public function	render ($token, $escape = null, $custom = null)
 	{
 		// Parse tokenized string
 		$pack = $this->encoder->decode ($token);
@@ -100,7 +100,7 @@ class	FormatRenderer extends Renderer
 					$crossOffset = $stack[$i][1];
 					$crossLength = $offset - $crossOffset;
 
-					$result = $this->format[$cross][$callback] ($cross, $stack[$i][3], $stack[$i][4], mb_substr ($text, $crossOffset, $crossLength));
+					$result = $this->format[$cross][$callback] ($cross, $stack[$i][3], $stack[$i][4], mb_substr ($text, $crossOffset, $crossLength), $custom);
 					$text = mb_substr ($text, 0, $crossOffset) . $result . mb_substr ($text, $crossOffset + $crossLength);
 
 					$offset = $crossOffset + mb_strlen ($result);
@@ -114,7 +114,7 @@ class	FormatRenderer extends Renderer
 				case Action::ALONE:
 					if (isset ($rule['onAlone']))
 					{
-						$result = $rule['onAlone'] ($name, $flag, $captures);
+						$result = $rule['onAlone'] ($name, $flag, $captures, $custom);
 						$text = mb_substr ($text, 0, $offset) . $result . mb_substr ($text, $offset);
 
 						$offset += mb_strlen ($result);
@@ -125,7 +125,7 @@ class	FormatRenderer extends Renderer
 				// Insert opened tag into stack
 				case Action::START:
 					if (isset ($rule['onStart']))
-						$rule['onStart'] ($name, $flag, $captures);
+						$rule['onStart'] ($name, $flag, $captures, $custom);
 
 					array_splice ($stack, $index, 0, array (array
 					(

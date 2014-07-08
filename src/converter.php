@@ -16,9 +16,9 @@ abstract class	Converter
 
 	/*
 	** Convert tokenized string back to plain text format.
-	** $token:		tokenized string
-	** $custom:		optional custom revert information
-	** return:		plain text string
+	** $token:	tokenized string
+	** $custom:	optional custom revert information
+	** return:	plain text string
 	*/
 	public abstract function	revert ($token, $custom = null);
 }
