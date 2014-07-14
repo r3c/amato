@@ -71,14 +71,14 @@ $pairs = array
 
 $tests = array
 (
-//	'Plain text - long'		=> 'txt/plain.long.txt',
-	'Plain text - medium'	=> 'txt/plain.medium.txt',
-	'Plain text - short'	=> 'txt/plain.short.txt',
-	'Plain text - tiny'		=> 'txt/plain.tiny.txt',
-//	'Tagged text - long'	=> 'txt/tag.long.txt',
-	'Tagged text - medium'	=> 'txt/tag.medium.txt',
-	'Tagged text - short'	=> 'txt/tag.short.txt',
-	'Tagged text - tiny'	=> 'txt/tag.tiny.txt'
+	'plain text long'		=> 'txt/plain.long.txt',
+	'plain text medium'		=> 'txt/plain.medium.txt',
+	'plain text short'		=> 'txt/plain.short.txt',
+	'plain text tiny'		=> 'txt/plain.tiny.txt',
+	'tagged text long'		=> 'txt/tag.long.txt',
+	'tagged text medium'	=> 'txt/tag.medium.txt',
+	'tagged text short'		=> 'txt/tag.short.txt',
+	'tagged text tiny'		=> 'txt/tag.tiny.txt'
 );
 
 foreach ($pairs as $name1 => $pair)
@@ -86,7 +86,7 @@ foreach ($pairs as $name1 => $pair)
 	list ($converter, $renderer) = $pair;
 
 	foreach ($tests as $name2 => $path)
-		echo '<li>' . html_encode ($name1) . ' - ' . html_encode ($name2) . ':<ul>' . check ($converter, $renderer, file_get_contents ($path)) . '</ul></li>';
+		echo '<li>' . html_encode ($name1) . ' / ' . html_encode ($name2) . ':<ul>' . check ($converter, $renderer, file_get_contents ($path)) . '</ul></li>';
 }
 
 ?>

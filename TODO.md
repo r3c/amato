@@ -6,7 +6,7 @@ TODO
 
 - Empty cycles cause captures to be assigned to a wrong state
 - Start with fixed contexts, move \n to its own one and disable it from table &amp; lists
-- Fix tests: revert(convert([b][/b][b])) not working with regexp encoder
+- Merge start of "process" and "verify" callbacks in converter's "convert" method
 
 DONE
 ----
@@ -37,3 +37,4 @@ DONE
 - Implement negative character groups
 - Allow multiple contexts as a replacement to "+" and "-" suffixes ?
 - Make compatible with multi-bytes strings
+- Fix tests: revert(convert([b][/b][b])) not working with regexp encoder

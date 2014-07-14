@@ -83,9 +83,10 @@ class	SyntaxConverter extends Converter
 			list ($name, $meanings) = $match;
 
 			// Ensure tag limit has not be reached
+			$limit = $limits[$name];
 			$usage = isset ($usages[$name]) ? $usages[$name] : 0;
 
-			if ($limits[$name] > 0 && $usage >= $limits[$name])
+			if ($limit > 0 && $usage >= $limit)
 				return false;
 
 			$usages[$name] = $usage + 1;
@@ -182,7 +183,10 @@ class	SyntaxConverter extends Converter
 			list ($name, $meanings) = $match;
 
 			// Ensure tag limit has not be reached
-			if (isset ($usages[$name]) && $usages[$name] >= $limits[$name])
+			$limit = $limits[$name];
+			$usage = isset ($usages[$name]) ? $usages[$name] : 0;
+
+			if ($limit > 0 && $usage >= $limit)
 				return false;
 
 			// Find action from current context
