@@ -168,7 +168,7 @@ class	SyntaxConverter extends Converter
 				if ($flush !== null)
 				{
 					foreach (array_splice ($chain, $flush) as $tag)
-						$tags[] = $tag;
+						$tags[$tag[0]] = $tag;
 				}
 
 				return true;
@@ -203,10 +203,7 @@ class	SyntaxConverter extends Converter
 		$text = $this->scanner->scan ($text, $process, $verify);
 
 		// Sort resolved tags and remove from plain text string
-		usort ($tags, function ($a, $b)
-		{
-			return $a[0] < $b[0] ? -1 : 1;
-		});
+		ksort ($tags);
 
 		$origin = 0;
 		$scopes = array ();

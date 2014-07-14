@@ -283,7 +283,7 @@ class	RegExpScanner extends Scanner
 				$offset = mb_strlen (substr ($string, 0, $find[0][1]));
 				$length = mb_strlen ($find[0][0]);
 
-				$candidates[] = array ($offset, $length, $match, $captures);
+				$candidates[$offset] = array ($offset, $length, $match, $captures);
 			}
 		}
 
@@ -296,16 +296,13 @@ class	RegExpScanner extends Scanner
 			$offset = mb_strlen (substr ($string, 0, $find[0][1]));
 			$length = mb_strlen ($find[0][0]);
 
-			$candidates[] = array ($offset, $length, null, null);
+			$candidates[$offset] = array ($offset, $length, null, null);
 		}
 
-		// Sort candidates by start offset
-		usort ($candidates, function ($a, $b)
-		{
-			return $a[0] < $b[0] ? -1 : 1;
-		});
+		// Return candidates sorted by start offset
+		ksort ($candidates);
 
-		return $candidates;
+		return array_values ($candidates);
 	}
 }
 

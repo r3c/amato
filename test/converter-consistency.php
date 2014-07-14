@@ -53,25 +53,41 @@ function	html_encode ($string)
 	return htmlspecialchars ($string, ENT_COMPAT, CHARSET);
 }
 
-$encoder = new Umen\CompactEncoder ();
-$scanner = new Umen\DefaultScanner ('\\');
-$converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
-$renderer = new Umen\FormatRenderer ($encoder, $format);
+$encoder1 = new Umen\CompactEncoder ();
+$encoder2 = new Umen\ConcatEncoder ();
+$encoder3 = new Umen\JSONEncoder ();
+$encoder4 = new Umen\SleepEncoder ();
+$scanner1 = new Umen\DefaultScanner ('\\');
+$scanner2 = new Umen\RegExpScanner ('\\');
+
+$pairs = array
+(
+	'compact + default'	=> array (new Umen\SyntaxConverter ($encoder1, $scanner1, $syntax), new Umen\FormatRenderer ($encoder1, $format)),
+	'compact + regex'	=> array (new Umen\SyntaxConverter ($encoder1, $scanner2, $syntax), new Umen\FormatRenderer ($encoder2, $format)),
+	'concat + default'	=> array (new Umen\SyntaxConverter ($encoder2, $scanner1, $syntax), new Umen\FormatRenderer ($encoder2, $format)),
+	'json + default'	=> array (new Umen\SyntaxConverter ($encoder3, $scanner1, $syntax), new Umen\FormatRenderer ($encoder3, $format)),
+	'sleep + default'	=> array (new Umen\SyntaxConverter ($encoder4, $scanner1, $syntax), new Umen\FormatRenderer ($encoder4, $format))
+);
 
 $tests = array
 (
-	'Plain text - long'		=> 'txt/plain.long.txt',
+//	'Plain text - long'		=> 'txt/plain.long.txt',
 	'Plain text - medium'	=> 'txt/plain.medium.txt',
 	'Plain text - short'	=> 'txt/plain.short.txt',
 	'Plain text - tiny'		=> 'txt/plain.tiny.txt',
-	'Tagged text - long'	=> 'txt/tag.long.txt',
+//	'Tagged text - long'	=> 'txt/tag.long.txt',
 	'Tagged text - medium'	=> 'txt/tag.medium.txt',
 	'Tagged text - short'	=> 'txt/tag.short.txt',
 	'Tagged text - tiny'	=> 'txt/tag.tiny.txt'
 );
 
-foreach ($tests as $name => $path)
-	echo '<li>' . html_encode ($name) . ':<ul>' . check ($converter, $renderer, file_get_contents ($path)) . '</ul></li>';
+foreach ($pairs as $name1 => $pair)
+{
+	list ($converter, $renderer) = $pair;
+
+	foreach ($tests as $name2 => $path)
+		echo '<li>' . html_encode ($name1) . ' - ' . html_encode ($name2) . ':<ul>' . check ($converter, $renderer, file_get_contents ($path)) . '</ul></li>';
+}
 
 ?>
 		</ul>

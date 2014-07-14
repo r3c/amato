@@ -6,6 +6,7 @@ TODO
 
 - Empty cycles cause captures to be assigned to a wrong state
 - Start with fixed contexts, move \n to its own one and disable it from table &amp; lists
+- Fix tests: revert(convert([b][/b][b])) not working with regexp encoder
 
 DONE
 ----
