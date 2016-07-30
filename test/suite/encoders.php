@@ -1,7 +1,7 @@
 <?php
 
-require_once ('../../src/amato.php');
-require_once ('../assert/token.php');
+require_once ('../src/amato.php');
+require_once ('assert/token.php');
 
 Amato\autoload ();
 

@@ -40,7 +40,8 @@ class TagConverter extends Converter
 	public function convert ($markup, $context = null)
 	{
 		// Resolve candidate into matched tags chains
-		$candidates = $this->scanner->find ($markup);
+		list ($markup, $candidates) = $this->scanner->find ($markup);
+
 		$groups = array ();
 
 		for ($i = 0; $i < count ($candidates); ++$i)
@@ -83,6 +84,9 @@ class TagConverter extends Converter
 			// Matches chain is incomplete, ignore it
 			if ($search)
 				continue;
+
+			// Search for escape sequences before matches
+			// FIXME
 
 			// Remove matches from string and fix offsets
 			foreach ($matches as $match)

@@ -76,39 +76,75 @@ class PregScanner extends Scanner
 	public function find ($string)
 	{
 		$candidates = array ();
+		$order = 0;
 
-		// Match all candidates from input plain string
+		// Match all candidates from input string
 		foreach ($this->rules as $key => $rule)
 		{
 			list ($pattern, $names) = $rule;
 
 			if (preg_match_all ($pattern, $string, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) === false)
-				throw new \Exception ('invalid regular expression pattern "' . $pattern . '" for tag');
+				throw new \Exception ('invalid tag pattern "' . $pattern . '"');
 
 			foreach ($matches as $match)
 			{
+				// Copy named groups to captures array
 				$captures = array ();
 
 				for ($i = min (count ($match) - 1, count ($names)); $i-- > 0; )
 					$captures[$names[$i]] = $match[$i + 1][0];
 
-				$offset = mb_strlen (substr ($string, 0, $match[0][1]));
+				// Append to candidates array, using custom key for fast sorting
 				$length = mb_strlen ($match[0][0]);
-				$index = str_pad ($offset, 8, '0', STR_PAD_LEFT) . ':' . str_pad (100000000 - $length, 8, '0', STR_PAD_LEFT);
+				$offset = mb_strlen (substr ($string, 0, $match[0][1]));
 
-				$candidates[$index][] = array ($key, $offset, $length, $captures);
+				$index = str_pad ($offset, 8, '0', STR_PAD_LEFT) . ':' . str_pad (100000000 - $length, 8, '0', STR_PAD_LEFT) . ':' . str_pad ($order, 8, '0', STR_PAD_LEFT);
+
+				$candidates[$index] = array ($key, $offset, $length, $captures);
+			}
+
+			++$order;
+		}
+
+		// Order candidates by offset ascending, length descending, rule ascending
+		ksort ($candidates);
+
+		$candidates = array_values ($candidates);
+
+		// Cancel candidates overlapping or starting right after an escape sequence
+		if (preg_match_all ('/' . preg_quote ($this->escape) . '/', $string, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) === false)
+			throw new \Exception ('invalid escape pattern "' . $pattern . '"');
+
+		$i = 0;
+		$shift = 0;
+
+		foreach ($matches as $match)
+		{
+			$escape_length = strlen ($match[0][0]);
+			$escape_offset = $match[0][1];
+
+			for (; $i < count ($candidates); ++$i)
+			{
+				list ($key, $candidate_offset, $candidate_length) = $candidates[$i];
+
+				if ($candidate_offset > $escape_offset + $escape_length)
+					break;
+
+				if ($candidate_offset + $candidate_length > $escape_offset)
+				{
+					$string = substr_replace ($string, '', $escape_offset - $shift, $escape_length);
+					$shift += $escape_length;
+
+					for ($j = $i + 1; $j < count ($candidates); ++$j)
+						$candidates[$j][1] -= $escape_length;
+
+					array_splice ($candidates, $i--, 1);
+				}
 			}
 		}
 
-		// Order candidates by offset ascending, length descending
-		ksort ($candidates);
-
-		$matches = array ();
-
-		foreach ($candidates as $overlaps)
-			$matches = array_merge ($matches, $overlaps);
-
-		return $matches;
+		// Return clean string and remaining candidates
+		return array ($string, $candidates);
 	}
 
 	/*
