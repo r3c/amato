@@ -24,12 +24,11 @@ class TagConverter extends Converter
 			{
 				$convert = isset ($definition[3]) ? $definition[3] : null;
 				$defaults = isset ($definition[2]) ? (array)$definition[2] : array ();
-				$revert = isset ($definition[4]) ? $definition[4] : null;
 				$type = (int)$definition[0];
 
 				$key = $scanner->assign ((string)$definition[1]);
 
-				$this->attributes[$key] = array ($id, $type, $defaults, $convert, $revert);
+				$this->attributes[$key] = array ($id, $type, $defaults, $convert);
 			}
 		}
 	}
@@ -47,7 +46,7 @@ class TagConverter extends Converter
 		{
 			list ($key, $offset, $length) = $candidates[$i];
 
-			// Skip disabled candidates
+			// Ignore disabled candidates
 			if ($length === null)
 				continue;
 
@@ -60,11 +59,9 @@ class TagConverter extends Converter
 				if ($type !== Tag::ALONE && $type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::START)
 					continue;
 
-				// FIXME: call pre-convert callback here if any
-
 				// Search for compatible matches in candidates
 				$incomplete = $type !== Tag::ALONE;
-				$matches = array ($i);
+				$matches = array (array ($i, $candidates[$i][3] + $defaults, $convert));
 
 				for ($j = $i + 1; $incomplete && $j < count ($candidates); ++$j)
 				{
@@ -89,18 +86,29 @@ class TagConverter extends Converter
 					if ($id !== $id_next || ($type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::STEP && $type !== Tag::STOP))
 						continue;
 
-					// FIXME: call pre-convert callback here if any
-
 					$incomplete = $type === Tag::PULSE || $type === Tag::STEP;
-					$matches[] = $j;
+					$matches[] = array ($j, $candidates[$j][3] + $defaults, $convert);
 				}
 
 				// Matches list is incomplete, ignore it
 				if ($incomplete)
 					continue;
 
+				// Call pre-convert callbacks and cancel tag sequence if one fails
+				foreach ($matches as &$match)
+				{
+					$convert = $match[2];
+
+					if ($convert === null)
+						continue;
+
+					if ($convert ($match[1], $context) === false)
+						continue 2;
+				}
+
 				// Append completed tag sequence to references
 				$references[] = array ($id, $matches);
+				$strips = array_map (function ($match) { return $match[0]; }, $matches);
 			}
 
 			// Candidate is an escape sequence
@@ -120,16 +128,16 @@ class TagConverter extends Converter
 					continue;
 
 				// Flag escape sequence for removal
-				$matches = array ($i);
+				$strips = array ($i);
 			}
 
-			// Remove matches from string and fix offsets
-			foreach ($matches as $match)
+			// Remove escape or tag sequences from string and fix offsets
+			foreach ($strips as $strip)
 			{
-				list ($key1, $offset1, $length1) = $candidates[$match];
+				list ($key1, $offset1, $length1) = $candidates[$strip];
 
 				// Disable current candidate
-				$candidates[$match][2] = null;
+				$candidates[$strip][2] = null;
 
 				// Disable overlapped candidates, shift successors
 				for ($next = 0; $next < count ($candidates); ++$next)
@@ -139,7 +147,7 @@ class TagConverter extends Converter
 					if ($length2 !== null && $offset1 < $offset2 + $length2 && $offset2 < $offset1 + $length1)
 						$candidates[$next][2] = null;
 
-					if ($match < $next)
+					if ($strip < $next)
 						$candidates[$next][1] -= $length1;
 				}
 
@@ -182,7 +190,7 @@ class TagConverter extends Converter
 			// Find definition matching current marker
 			foreach ($this->attributes as $key => $attribute)
 			{
-				list ($id_attribute, $type, $defaults, $convert, $revert) = $attribute;
+				list ($id_attribute, $type, $defaults) = $attribute;
 
 				// Skip definition if id, type or captures don't match
 				if (($id !== $id_attribute) ||
@@ -234,9 +242,9 @@ class TagConverter extends Converter
 
 			foreach ($matches as $match)
 			{
-				list ($key, $offset, $length, $captures) = $candidates[$match];
+				list ($i, $captures) = $match;
 
-				$markers[] = array ($offset, $captures + $this->attributes[$key][2]);
+				$markers[] = array ($candidates[$i][1], $captures);
 			}
 
 			$groups[] = array ($id, $markers);

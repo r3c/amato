@@ -33,6 +33,11 @@ $syntax = array
 		array (Amato\Tag::STOP, '[/b]'),
 		array (Amato\Tag::FLIP, '__')
 	),
+	'c'	=> array
+	(
+		array (Amato\Tag::START, '[c=<n:[01]>]', null, 'c_convert_start'),
+		array (Amato\Tag::STOP, '[/c=<n:[01]>]', null, 'c_convert_stop')
+	),
 	'hr' => array
 	(
 		array (Amato\Tag::ALONE, '[hr]')
@@ -59,6 +64,20 @@ $syntax = array
 		array (Amato\Tag::STOP, '[/size]')
 	)
 );
+
+function c_convert_start (&$captures, $context)
+{
+	$captures['test'] = 5;
+
+	return (int)$captures['n'] !== 0;
+}
+
+function c_convert_stop (&$captures, $context)
+{
+	$captures['test'] = 7;
+
+	return (int)$captures['n'] !== 0;
+}
 
 Amato\autoload ();
 
@@ -171,12 +190,18 @@ test_converter ('\\\\', array (), '\\');
 test_converter ('\\ \\', array (), '\\ \\', true); // Non-canonical: escape sequence will be escaped
 test_converter ('\\\\\\\\', array (), '\\\\');
 test_converter ('\[b][/b]', array (), '[b][/b]');
-test_converter ('[b]\[/b]', array (), '[b][/b]', true);
-test_converter ('\[b]\[/b]', array (), '[b][/b]', true);
+test_converter ('[b]\[/b]', array (), '[b][/b]', true); // Non-canonical: start tag will be escaped
+test_converter ('\[b]\[/b]', array (), '[b][/b]', true); // Non-canonical: start tag will be escaped
 test_converter ('[b]some\[b]bold\[/b]text[/b]', array (array ('b', array (array (0), array (19)))), 'some[b]bold[/b]text');
 test_converter ('\[b]some[b]bold[/b]text\[/b]', array (array ('b', array (array (7), array (11)))), '[b]someboldtext[/b]');
 test_converter ('\__italic__', array (array ('i', array (array (1), array (7)))), '_italic_', true); // Non-canonical: start tag will be escaped
 test_converter ('_\_italic__', array (array ('i', array (array (0), array (7)))), '_italic_', true); // Non-canonical: start tag will be escaped
+
+// Convert callbacks
+test_converter ('[c=0]abc[/c=0]', array (), '[c=0]abc[/c=0]', true); // Non-canonical: tag will be escaped because callback failed
+test_converter ('[c=1]abc[/c=0]', array (), '[c=1]abc[/c=0]', true); // Non-canonical: tag will be escaped because callback failed
+test_converter ('[c=0]abc[/c=1]', array (), '[c=0]abc[/c=1]', true); // Non-canonical: tag will be escaped because callback failed
+test_converter ('[c=1]abc[/c=1]', array (array ('c', array (array (0, array ('n' => '1', 'test' => '5')), array (3, array ('n' => '1', 'test' => '7'))))), 'abc');
 
 echo 'OK';
 
