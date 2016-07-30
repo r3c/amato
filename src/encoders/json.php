@@ -17,9 +17,9 @@ class JSONEncoder extends Encoder
 	/*
 	** Override for Encoder::encode.
 	*/
-	public function encode ($plain, $chains)
+	public function encode ($plain, $groups)
 	{
-		return json_encode (array ($plain, $chains));
+		return json_encode (array ($plain, $groups));
 	}
 }
 

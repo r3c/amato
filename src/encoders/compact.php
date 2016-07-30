@@ -8,17 +8,17 @@ class CompactEncoder extends Encoder
 {
 	const CAPTURE = ',';
 	const CAPTURE_VALUE = '=';
-	const CHAIN = ';';
-	const CHAIN_MARKER = '@';
 	const ESCAPE = '\\';
+	const GROUP = ';';
+	const GROUP_MARKER = '@';
 	const PLAIN = '|';
 
 	private static $escapes_decode = array
 	(
 		self::CAPTURE		=> true,
 		self::CAPTURE_VALUE	=> true,
-		self::CHAIN			=> true,
-		self::CHAIN_MARKER	=> true,
+		self::GROUP			=> true,
+		self::GROUP_MARKER	=> true,
 		self::PLAIN			=> true
 	);
 
@@ -26,9 +26,9 @@ class CompactEncoder extends Encoder
 	(
 		self::CAPTURE		=> true,
 		self::CAPTURE_VALUE	=> true,
-		self::CHAIN			=> true,
-		self::CHAIN_MARKER	=> true,
 		self::ESCAPE		=> true,
+		self::GROUP			=> true,
+		self::GROUP_MARKER	=> true,
 		self::PLAIN			=> true
 	);
 
@@ -39,22 +39,22 @@ class CompactEncoder extends Encoder
 	{
 		$length = strlen ($token);
 
-		// Parse chains
-		$shift_chain = 0;
-		$chains = array ();
+		// Parse groups
+		$delta = 0;
+		$groups = array ();
 
 		for ($i = 0; $i < $length && $token[$i] !== self::PLAIN; )
 		{
-			// Skip to next chain
+			// Skip to next group
 			if ($i > 0)
 			{
-				if ($token[$i] !== self::CHAIN)
+				if ($token[$i] !== self::GROUP)
 					return null;
 
 				++$i;
 			}
 
-			// Read chain id
+			// Read group id
 			$id = '';
 
 			for (; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
@@ -67,15 +67,15 @@ class CompactEncoder extends Encoder
 
 			// Read markers
 			$markers = array ();
-			$shift = $shift_chain;
+			$delta_group = $delta;
 
-			while ($i < $length && $token[$i] === self::CHAIN_MARKER)
+			while ($i < $length && $token[$i] === self::GROUP_MARKER)
 			{
 				// Read offset delta
 				for ($j = ++$i; $i < $length && $token[$i] >= '0' && $token[$i] <= '9'; )
 					++$i;
 
-				$shift += (int)substr ($token, $j, $i - $j);
+				$delta_group += (int)substr ($token, $j, $i - $j);
 
 				// Read captures
 				$captures = array ();
@@ -111,47 +111,47 @@ class CompactEncoder extends Encoder
 					$captures[$key] = $value;
 				}
 
-				// Append to chain markers
-				$markers[] = array ($shift, $captures);
+				// Append to group markers
+				$markers[] = array ($delta_group, $captures);
 			}
 
-			// Append to chains
-			$shift_chain = $markers[0][0];
+			// Append to groups
+			$delta = $markers[0][0];
 
-			$chains[] = array ($id, $markers);
+			$groups[] = array ($id, $markers);
 		}
 
 		if ($i >= $length || $token[$i++] !== self::PLAIN)
 			return null;
 
-		return array ((string)substr ($token, $i), $chains);
+		return array ((string)substr ($token, $i), $groups);
 	}
 
 	/*
 	** Override for Encoder::encode.
 	*/
-	public function encode ($plain, $chains)
+	public function encode ($plain, $groups)
 	{
-		$shift_chain = 0;
+		$delta = 0;
 		$token = '';
 
-		foreach ($chains as $chain)
+		foreach ($groups as $group)
 		{
-			list ($id, $markers) = $chain;
+			list ($id, $markers) = $group;
 
-			// Write chain id
+			// Write group id
 			if ($token !== '')
-				$token .= self::CHAIN;
+				$token .= self::GROUP;
 
 			$token .= self::escape ((string)$id);
 
 			// Write markers
-			$shift = $shift_chain;
+			$delta_group = $delta;
 
 			foreach ($markers as $marker)
 			{
 				// Write offset delta
-				$token .= self::CHAIN_MARKER . ($marker[0] - $shift);
+				$token .= self::GROUP_MARKER . ($marker[0] - $delta_group);
 
 				// Write captures
 				foreach ($marker[1] as $key => $value)
@@ -163,10 +163,10 @@ class CompactEncoder extends Encoder
 						$token .= self::CAPTURE_VALUE . self::escape ((string)$value);
 				}
 
-				$shift = $marker[0];
+				$delta_group = $marker[0];
 			}
 
-			$shift_chain = $markers[0][0];
+			$delta = $markers[0][0];
 		}
 
 		return $token . self::PLAIN . $plain;

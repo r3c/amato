@@ -39,9 +39,9 @@ class TagConverter extends Converter
 	*/
 	public function convert ($markup, $context = null)
 	{
-		// Resolve candidate into matched groups
+		// Resolve candidate into matched references
 		$candidates = $this->scanner->find ($markup);
-		$groups = array ();
+		$references = array ();
 
 		for ($i = 0; $i < count ($candidates); ++$i)
 		{
@@ -95,12 +95,12 @@ class TagConverter extends Converter
 					$matches[] = $j;
 				}
 
-				// Matches group is incomplete, ignore it
+				// Matches list is incomplete, ignore it
 				if ($incomplete)
 					continue;
 
-				// Append completed tag sequence to groups
-				$groups[] = array ($id, $matches);
+				// Append completed tag sequence to references
+				$references[] = array ($id, $matches);
 			}
 
 			// Candidate is an escape sequence
@@ -148,7 +148,7 @@ class TagConverter extends Converter
 		}
 
 		// Encode into tokenized string and return
-		return $this->encoder->encode ($markup, $this->build_chains ($candidates, $groups));
+		return $this->encoder->encode ($markup, $this->build_groups ($candidates, $references));
 	}
 
 	/*
@@ -156,20 +156,20 @@ class TagConverter extends Converter
 	*/
 	public function revert ($token, $context = null)
 	{
-		// Decode tokenized string into chains and pairs
+		// Decode tokenized string into groups and pairs
 		$pair = $this->encoder->decode ($token);
 
 		if ($pair === null)
 			return null;
 
-		list ($plain, $chains) = $pair;
+		list ($plain, $groups) = $pair;
 
 		// Build linear list of matches, ordered by offset
 		$matches = array ();
 
-		foreach ($chains as $precedence => $chain)
+		foreach ($groups as $precedence => $group)
 		{
-			list ($id, $markers) = $chain;
+			list ($id, $markers) = $group;
 
 			for ($i = 0; $i < count ($markers); ++$i)
 			{
@@ -183,7 +183,7 @@ class TagConverter extends Converter
 		ksort ($matches);
 
 		// Build tokens and insert into plain string
-		$depths = array ();
+		$levels = array ();
 		$markup = '';
 		$start = 0;
 
@@ -191,8 +191,8 @@ class TagConverter extends Converter
 		{
 			list ($id, $offset, $captures, $is_first, $is_last) = $match;
 
-			// Append plain string before current tag
-			$markup .= $this->build_markup ($depths, mb_substr ($plain, $start, $offset - $start));
+			// Escape and append skipped plain string to markup
+			$markup .= $this->build_markup ($levels, mb_substr ($plain, $start, $offset - $start));
 			$start = $offset;
 
 			// Find definition matching current marker
@@ -211,40 +211,40 @@ class TagConverter extends Converter
 				    (count (array_diff_assoc ($defaults, $captures)) > 0))
 					continue;
 
-				// Insert reverted tag into plain string
+				// Revert tag sequence and append to plain string
 				$markup .= $this->scanner->build ($key, $captures);
 
-				// Update depth of current marker id
-				if ($type === Tag::FLIP && isset ($depths[$id]))
-					$depths[$id] = ($depths[$id] - 1) ?: null;
-				else if (($type === Tag::FLIP || $type === Tag::PULSE) && !isset ($depths[$id]))
-					$depths[$id] = 1;
+				// Update depth level for current definition id
+				if ($type === Tag::FLIP && isset ($levels[$id]))
+					$levels[$id] = ($levels[$id] - 1) ?: null;
+				else if (($type === Tag::FLIP || $type === Tag::PULSE) && !isset ($levels[$id]))
+					$levels[$id] = 1;
 				else if ($type === Tag::START)
-					$depths[$id] = (isset ($depths[$id]) ? $depths[$id] : 0) + 1;
+					$levels[$id] = (isset ($levels[$id]) ? $levels[$id] : 0) + 1;
 
 				break;
 			}
 		}
 
-		// Append remaining plain string
-		$markup .= $this->build_markup ($depths, mb_substr ($plain, $start));
+		// Escape and append remaining plain string to markup
+		$markup .= $this->build_markup ($levels, mb_substr ($plain, $start));
 
 		return $markup;
 	}
 
 	/*
-	** Build chains from matched groups.
+	** Build groups from matched references.
 	** $candidates:	array of (key, offset, length, captures) candidates
-	** $groups:		array of (id, array of matches) completed groups
-	** return:		array of (id, array of (offset, captures)) chains
+	** $references:	array of (id, array of matches) references
+	** return:		array of (id, array of (offset, captures)) groups
 	*/
-	private function build_chains ($candidates, $groups)
+	private function build_groups ($candidates, $references)
 	{
-		$chains = array ();
+		$groups = array ();
 
-		foreach ($groups as $group)
+		foreach ($references as $reference)
 		{
-			list ($id, $matches) = $group;
+			list ($id, $matches) = $reference;
 
 			$markers = array ();
 
@@ -255,20 +255,20 @@ class TagConverter extends Converter
 				$markers[] = array ($offset, $captures + $this->attributes[$key][2]);
 			}
 
-			$chains[] = array ($id, $markers);
+			$groups[] = array ($id, $markers);
 		}
 
-		return $chains;
+		return $groups;
 	}
 
 	/*
 	** Build plain string from given raw string, by escaping tag sequences that
 	** would be matched when converting it.
-	** $depths:	array of id => depth values per id
+	** $levels:	array of id => depth values per id
 	** $raw:	unescaped raw string
 	** return:	escaped plain string
 	*/
-	private function build_markup ($depths, $plain)
+	private function build_markup ($levels, $plain)
 	{
 		$candidates = $this->scanner->find ($plain);
 		$markup = $plain;
@@ -288,8 +288,8 @@ class TagConverter extends Converter
 					 ($type !== Tag::FLIP) &&
 					 ($type !== Tag::PULSE) &&
 					 ($type !== Tag::START) &&
-					 ($type !== Tag::STEP || !isset ($depths[$id])) &&
-					 ($type !== Tag::STOP || !isset ($depths[$id]))) ||
+					 ($type !== Tag::STEP || !isset ($levels[$id])) &&
+					 ($type !== Tag::STOP || !isset ($levels[$id]))) ||
 					count (array_diff_assoc ($defaults, $captures)) > 0)
 					continue;
 			}

@@ -16,25 +16,25 @@ class ConcatEncoder extends Encoder
 		if (count ($pack) < 2)
 			return null;
 
-		list ($chains_string, $plain) = $pack;
+		list ($groups_string, $plain) = $pack;
 
 		$unescape = function ($string)
 		{
 			return str_replace (array ('%a', '%c', '%e', '%p', '%s', '%%'), array ('@', ',', '=', '|', ';', '%'), $string);
 		};
 
-		$chains = array ();
+		$groups = array ();
 
-		if ($chains_string !== '')
+		if ($groups_string !== '')
 		{
-			foreach (explode (';', $chains_string) as $chain_string)
+			foreach (explode (';', $groups_string) as $group_string)
 			{
-				$chain = explode ('@', $chain_string);
+				$group = explode ('@', $group_string);
 
-				$id = $unescape (array_shift ($chain));
+				$id = $unescape (array_shift ($group));
 				$markers = array ();
 
-				foreach ($chain as $marker_string)
+				foreach ($group as $marker_string)
 				{
 					$marker = explode (',', $marker_string);
 
@@ -52,42 +52,42 @@ class ConcatEncoder extends Encoder
 					$markers[] = array ($offset, $captures);
 				}
 
-				$chains[] = array ($id, $markers);
+				$groups[] = array ($id, $markers);
 			}
 		}
 
-		return array ($plain, $chains);
+		return array ($plain, $groups);
 	}
 
 	/*
 	** Override for Encoder::encode.
 	*/
-	public function encode ($plain, $chains)
+	public function encode ($plain, $groups)
 	{
 		$escape = function ($string)
 		{
 			return str_replace (array ('%', '@', ',', '=', '|', ';'), array ('%%', '%a', '%c', '%e', '%p', '%s'), $string);
 		};
 
-		$chains_string = '';
+		$groups_string = '';
 
-		foreach ($chains as $chain)
+		foreach ($groups as $group)
 		{
-			if ($chains_string !== '')
-				$chains_string .= ';';
+			if ($groups_string !== '')
+				$groups_string .= ';';
 
-			$chains_string .= $escape ($chain[0]);
+			$groups_string .= $escape ($group[0]);
 
-			foreach ($chain[1] as $marker)
+			foreach ($group[1] as $marker)
 			{
-				$chains_string .= '@' . $marker[0];
+				$groups_string .= '@' . $marker[0];
 
 				foreach ($marker[1] as $key => $value)
-					$chains_string .= ',' . $escape ($key) . '=' . $escape ($value);
+					$groups_string .= ',' . $escape ($key) . '=' . $escape ($value);
 			}
 		}
 
-		return $chains_string . '|' . $plain;
+		return $groups_string . '|' . $plain;
 	}
 }
 

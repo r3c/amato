@@ -30,38 +30,38 @@ class FormatRenderer extends Renderer
 		if ($pack === null)
 			return null;
 
-		list ($render, $chains) = $pack;
+		list ($render, $groups) = $pack;
 
-		// Process all chains elements
+		// Process all groups elements
 		$cursors = array ();
 		$escape = $this->escape;
 		$last = 0;
 		$scopes = array ();
 		$stop = 0;
 
-		if (count ($chains) > 0)
+		if (count ($groups) > 0)
 			$cursors[0] = 0;
 
 		while (count ($cursors) > 0)
 		{
-			// First best chain and mark indices in current cursors, by offset
+			// First best group and mark indices in current cursors, by offset
 			$best_offset = null;
 
-			foreach ($cursors as $last_chain => $last_mark)
+			foreach ($cursors as $last_group => $last_mark)
 			{
-				$offset = $chains[$last_chain][1][$last_mark][0];
+				$offset = $groups[$last_group][1][$last_mark][0];
 
 				if ($best_offset === null || $offset < $best_offset)
 				{
-					$best_chain = $last_chain;
+					$best_group = $last_group;
 					$best_offset = $offset;
 				}
 			}
 
-			// Process current chain and mark
-			$best_mark = $cursors[$best_chain];
+			// Process current group and mark
+			$best_mark = $cursors[$best_group];
 
-			list ($id, $marks) = $chains[$best_chain];
+			list ($id, $marks) = $groups[$best_group];
 			list ($offset, $captures) = $marks[$best_mark];
 
 			$is_first = $best_mark === 0;
@@ -71,13 +71,13 @@ class FormatRenderer extends Renderer
 			$stop += $offset - $last;
 			$last = $offset;
 
-			// Append next chain to cursors when processing first mark of last chain
-			if ($best_chain === $last_chain && $best_mark === 0 && $best_chain + 1 < count ($chains))
-				$cursors[$best_chain + 1] = 0;
+			// Append next group to cursors when processing first mark of last group
+			if ($best_group === $last_group && $best_mark === 0 && $best_group + 1 < count ($groups))
+				$cursors[$best_group + 1] = 0;
 
-			// Remove current chain from cursors when processing its last mark
-			if (++$cursors[$best_chain] >= count ($marks))
-				unset ($cursors[$best_chain]);
+			// Remove current group from cursors when processing its last mark
+			if (++$cursors[$best_group] >= count ($marks))
+				unset ($cursors[$best_group]);
 
 			// Escape plain text using provided callback if any
 			if ($escape !== null)
@@ -89,7 +89,7 @@ class FormatRenderer extends Renderer
 				$stop += mb_strlen ($plain) - $length;
 			}
 
-			// Get formatting rule for current chain
+			// Get formatting rule for current group
 			if (!isset ($this->format[$id]))
 				continue;
 
@@ -110,7 +110,7 @@ class FormatRenderer extends Renderer
 					++$scope_end;
 			}
 
-			// Find existing scope matching current chain id, cancel if none
+			// Find existing scope matching current group id, cancel if none
 			else
 			{
 				for ($scope_end = count ($scopes) - 1; $scope_end >= 0 && $scopes[$scope_end][0] !== $id; )
