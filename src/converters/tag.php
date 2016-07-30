@@ -133,27 +133,30 @@ class TagConverter extends Converter
 
 		list ($chains, $markup) = $pair;
 
+		// Build linear list of matches, ordered by offset
+		$matches = array ();
+
+		foreach ($chains as $precedence => $chain)
+		{
+			list ($id, $markers) = $chain;
+
+			for ($i = 0; $i < count ($markers); ++$i)
+			{
+				list ($offset, $captures) = $markers[$i];
+
+				$index = str_pad ($offset, 8, '0', STR_PAD_LEFT) . ':' . str_pad ($precedence, 8, '0', STR_PAD_LEFT);
+				$matches[$index] = array ($id, $offset, $captures, $i === 0, $i + 1 === count ($markers));
+			}
+		}
+
+		ksort ($matches);
+
 		// Build tokens and insert into plain string
 		$shift = 0;
 
-		while (count ($chains) > 0)
+		foreach ($matches as $match)
 		{
-			// Find next marker occurrence by offset
-			$index = 0;
-			$min = $chains[$index][1][0][0];
-
-			for ($i = 1; $i < count ($chains) && $chains[$i][1][0][0] < $min; ++$i)
-			{
-				$index = $i;
-				$min = $chains[$i][1][0][0];
-			}
-
-			// Remove marker from chains, and chain if no markers are left
-			list ($offset, $captures) = array_shift ($chains[$index][1]);
-			list ($id, $markers) = $chains[$index];
-
-			if (count ($markers) === 0)
-				array_splice ($chains, $index, 1);
+			list ($id, $offset, $captures, $is_first, $is_last) = $match;
 
 			// Find definition matching current marker
 			$insert = null;
@@ -162,14 +165,14 @@ class TagConverter extends Converter
 			{
 				list ($id_attribute, $type, $defaults, $convert, $revert) = $attribute;
 
-				// Skip definition if ids don't match
-				if ($id !== $id_attribute)
-					continue;
-
-				// FIXME: check if type is compatible
-
-				// Skip definition if captures and defaults don't match
-				if (count (array_diff_assoc ($defaults, $captures)) > 0)
+				// Skip definition if id, type or captures don't match
+				if (($id !== $id_attribute) ||
+					($type === Tag::ALONE && (!$is_first || !$is_last)) ||
+					($type === Tag::FLIP && !$is_first && !$is_last) ||
+					($type === Tag::START && !$is_first) ||
+					($type === Tag::STEP && ($is_first || $is_last)) ||
+					($type === Tag::STOP && !$is_last) ||
+				    (count (array_diff_assoc ($defaults, $captures)) > 0))
 					continue;
 
 				$insert = $this->scanner->build ($key, $captures);

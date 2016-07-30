@@ -1,6 +1,7 @@
 <?php
 
 require_once ('../src/amato.php');
+require_once ('assert/compare.php');
 require_once ('assert/token.php');
 
 /*
@@ -50,7 +51,7 @@ $syntax = array
 
 Amato\autoload ();
 
-function test_converter ($markup, $tags_expected, $plain_expected, $markup_expected = null)
+function test_converter ($markup, $tags_expected, $plain_expected)
 {
 	global $syntax;
 	static $converters;
@@ -70,16 +71,27 @@ function test_converter ($markup, $tags_expected, $plain_expected, $markup_expec
 	foreach ($converters as $name => $converter)
 	{
 		$context = $name . ' converter';
-		$token = $converter->convert ($markup);
 
-		list ($tags, $plain) = $encoder->decode ($token);
+		// Convert once and assert result
+		$token1 = $converter->convert ($markup);
 
-		assert_token_equal ($context, $tags, $plain, $tags_expected, $plain_expected);
+		list ($chains1, $plain1) = $encoder->decode ($token1);
 
-		$markup_reference = $markup_expected !== null ? $markup_expected : $markup;
-		$markup_revert = $converter->revert ($token);
+		assert_token_equal ($context, $chains1, $plain1, $tags_expected, $plain_expected);
 
-		assert ($markup_revert === $markup_reference, $context . ' - markup revert not equal: ' . assert_token_dump ($markup_revert) . ' !== ' . assert_token_dump ($markup_reference));
+		$markup_revert1 = $converter->revert ($token1);
+
+		// Convert twice and assert again
+		$token2 = $converter->convert ($markup_revert1);
+
+		list ($chains2, $plain2) = $encoder->decode ($token2);
+
+		assert_token_equal ($context, $chains2, $plain2, $tags_expected, $plain_expected);
+
+		$markup_revert2 = $converter->revert ($token2);
+
+		// Compare first and second reverts
+		assert_test_equal ($markup_revert2, $markup_revert1, $context . ' markup revert');
 	}
 }
 
@@ -133,9 +145,6 @@ test_converter (mb_convert_encoding ($markup, 'utf-8', $charset), $tags, mb_conv
 //test_converter ('\[b]\[/b]', array (), '[b][/b]');
 //test_converter ('[b]Texte\[b]en\[/b]gras[/b]', array (array ('b', array (array (0), array (18)))), 'Texte[b]en[/b]gras');
 //test_converter ('\[b]Texte[b]en[/b]gras\[/b]', array (array ('b', array (array (8), array (10)))), '[b]Texteengras[/b]');
-
-// Revert
-// FIXME
 
 echo 'OK';
 

@@ -56,14 +56,14 @@ class PregScanner extends Scanner
 			else
 			{
 				$count = count ($parts);
-				$plain = preg_quote ($pattern[$i], '/');
+				$plain = $pattern[$i];
 
 				if ($count > 0 && $parts[$count - 1][0] === self::DECODE_PLAIN)
 					$parts[$count - 1][1] .= $plain;
 				else
 					$parts[] = array (self::DECODE_PLAIN, $plain);
 
-				$regex .= $plain;
+				$regex .= preg_quote ($plain, '/');
 			}
 		}
 
@@ -77,7 +77,12 @@ class PregScanner extends Scanner
 	*/
 	public function build ($key, $captures)
 	{
-		return '[fixme]';
+		$tag = '';
+
+		foreach ($this->rules[$key][2] as $part)
+			$tag .= $part[0] === self::DECODE_CAPTURE ? $captures[$part[1]] : $part[1];
+
+		return $tag;
 	}
 
 	/*
