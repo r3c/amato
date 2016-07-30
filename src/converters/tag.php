@@ -165,33 +165,15 @@ class TagConverter extends Converter
 
 		list ($plain, $groups) = $pair;
 
-		// Build linear list of matches, ordered by offset
-		$matches = array ();
-
-		foreach ($groups as $group_id => $group)
-		{
-			list ($id, $markers) = $group;
-
-			for ($i = 0; $i < count ($markers); ++$i)
-			{
-				list ($offset, $captures) = $markers[$i];
-
-				$index = str_pad ($offset, 8, '0', STR_PAD_LEFT) . ':' . str_pad ($group_id, 8, '0', STR_PAD_LEFT) . ':' . str_pad ($i, 8, '0', STR_PAD_LEFT);
-
-				$matches[$index] = array ($id, $offset, $captures, $i === 0, $i + 1 === count ($markers));
-			}
-		}
-
-		ksort ($matches);
-
-		// Build tokens and insert into plain string
+		// Browse groups and markers, revert them into text and insert into plain string
+		$cursors = Encoder::begin ($groups);
 		$levels = array ();
 		$markup = '';
 		$start = 0;
 
-		foreach ($matches as $match)
+		while (count ($cursors) > 0)
 		{
-			list ($id, $offset, $captures, $is_first, $is_last) = $match;
+			list ($id, $offset, $captures, $is_first, $is_last) = Encoder::next ($groups, $cursors);
 
 			// Escape and append skipped plain string to markup
 			$markup .= $this->build_markup ($levels, mb_substr ($plain, $start, $offset - $start));

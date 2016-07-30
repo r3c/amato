@@ -33,51 +33,19 @@ class FormatRenderer extends Renderer
 		list ($render, $groups) = $pack;
 
 		// Process all groups elements
-		$cursors = array ();
+		$cursors = Encoder::begin ($groups);
 		$escape = $this->escape;
 		$last = 0;
 		$scopes = array ();
 		$stop = 0;
 
-		if (count ($groups) > 0)
-			$cursors[0] = 0;
-
 		while (count ($cursors) > 0)
 		{
-			// First best group and mark indices in current cursors, by offset
-			$best_offset = null;
-
-			foreach ($cursors as $last_group => $last_mark)
-			{
-				$offset = $groups[$last_group][1][$last_mark][0];
-
-				if ($best_offset === null || $offset < $best_offset)
-				{
-					$best_group = $last_group;
-					$best_offset = $offset;
-				}
-			}
-
-			// Process current group and mark
-			$best_mark = $cursors[$best_group];
-
-			list ($id, $marks) = $groups[$best_group];
-			list ($offset, $captures) = $marks[$best_mark];
-
-			$is_first = $best_mark === 0;
-			$is_last = $best_mark + 1 === count ($marks);
+			list ($id, $offset, $captures, $is_first, $is_last) = Encoder::next ($groups, $cursors);
 
 			$start = $stop;
 			$stop += $offset - $last;
 			$last = $offset;
-
-			// Append next group to cursors when processing first mark of last group
-			if ($best_group === $last_group && $best_mark === 0 && $best_group + 1 < count ($groups))
-				$cursors[$best_group + 1] = 0;
-
-			// Remove current group from cursors when processing its last mark
-			if (++$cursors[$best_group] >= count ($marks))
-				unset ($cursors[$best_group]);
 
 			// Escape plain text using provided callback if any
 			if ($escape !== null)

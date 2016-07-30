@@ -29,9 +29,9 @@ $syntax = array
 	),
 	'b' => array
 	(
-		array (Amato\Tag::FLIP, '__'),
 		array (Amato\Tag::START, '[b]'),
-		array (Amato\Tag::STOP, '[/b]')
+		array (Amato\Tag::STOP, '[/b]'),
+		array (Amato\Tag::FLIP, '__')
 	),
 	'hr' => array
 	(
@@ -54,15 +54,15 @@ $syntax = array
 	),
 	's' => array
 	(
-		array (Amato\Tag::START, '[size=<p:[0-9]+>]'),
 		array (Amato\Tag::START, '[size=big]', array ('p' => 200)),
+		array (Amato\Tag::START, '[size=<p:[0-9]+>]'),
 		array (Amato\Tag::STOP, '[/size]')
 	)
 );
 
 Amato\autoload ();
 
-function test_converter ($markup, $chains_expected, $plain_expected)
+function test_converter ($markup, $chains_expected, $plain_expected, $not_canonical = false)
 {
 	global $syntax;
 	static $converters;
@@ -103,6 +103,10 @@ function test_converter ($markup, $chains_expected, $plain_expected)
 
 		// Compare first and second reverts
 		assert_test_equal ($markup_revert2, $markup_revert1, $context . ' revert');
+
+		// Ensure final markup is equal to initial one if possible
+		if (!$not_canonical)
+			assert_test_equal ($markup_revert2, $markup, $context . ' iso');
 	}
 }
 
@@ -115,15 +119,19 @@ mb_internal_encoding ($charset);
 // Basic tests
 test_converter ('Hello, World!', array (), 'Hello, World!');
 test_converter ('[b]Hello, World![/b]', array (array ('b', array (array (0), array (13)))), 'Hello, World!');
-test_converter ('A[b]B[/b]C[i]D[/i]E', array (array ('b', array (array (1), array (2))), array ('i', array (array (3), array (4)))), 'ABCDE');
-test_converter ('A[b]B[i]C[/i]D[/b]E', array (array ('b', array (array (1), array (4))), array ('i', array (array (2), array (3)))), 'ABCDE');
-test_converter ('A[b]B[i]C[/b]D[/i]E', array (array ('b', array (array (1), array (3))), array ('i', array (array (2), array (4)))), 'ABCDE');
+test_converter ('A[b]B[/b]C[i]D[/i]E', array (array ('b', array (array (1), array (2))), array ('i', array (array (3), array (4)))), 'ABCDE', true);
+test_converter ('A[b]B[i]C[/i]D[/b]E', array (array ('b', array (array (1), array (4))), array ('i', array (array (2), array (3)))), 'ABCDE', true);
+test_converter ('A[b]B[i]C[/b]D[/i]E', array (array ('b', array (array (1), array (3))), array ('i', array (array (2), array (4)))), 'ABCDE', true);
 test_converter ('_italic_', array (array ('i', array (array (0), array (6)))), 'italic');
-test_converter ('__bold__', array (array ('b', array (array (0), array (4)))), 'bold');
-test_converter ('[b]bold__', array (array ('b', array (array (0), array (4)))), 'bold');
-test_converter ('__bold[/b]', array (array ('b', array (array (0), array (4)))), 'bold');
+test_converter ('__bold__', array (array ('b', array (array (0), array (4)))), 'bold', true); // Non-canonical: flip tag will be changed to start/stop
+test_converter ('[b]bold__', array (array ('b', array (array (0), array (4)))), 'bold', true); // Non-canonical: flip tag will be changed to start/stop
+test_converter ('__bold[/b]', array (array ('b', array (array (0), array (4)))), 'bold', true); // Non-canonical: flip tag will be changed to start/stop
 test_converter ("##A##B##C\n\n", array (array ('list', array (array (0), array (1), array (2), array (3)))), 'ABC');
 test_converter ("####A\n\n", array (array ('list', array (array (0), array (0), array (1)))), 'A');
+
+// Nested tags
+test_converter ('[b]_plain_[/b]', array (array ('b', array (array (0), array (5))), array ('i', array (array (0), array (5)))), 'plain');
+test_converter ('_[b]plain[/b]_', array (array ('i', array (array (0), array (5))), array ('b', array (array (0), array (5)))), 'plain');
 
 // Captures
 test_converter ('[url=http://domain.ext]link[/url]', array (array ('a', array (array (0, array ('u' => 'http://domain.ext')), array (4)))), 'link');
@@ -131,24 +139,23 @@ test_converter ('[size=big]text[/size]', array (array ('s', array (array (0, arr
 test_converter ('[size=50]text[/size]', array (array ('s', array (array (0, array ('p' => '50')), array (4)))), 'text');
 
 // Failed matches
-test_converter ('[b]', array (), '[b]');
+test_converter ('[b]', array (), '[b]', true); // Non-canonical: start tag will be escaped
 test_converter ('[/b]', array (), '[/b]');
-test_converter ('[b]Text', array (), '[b]Text');
+test_converter ('[b]Text', array (), '[b]Text', true); // Non-canonical: start tag will be escaped
 test_converter ('Text[/b]', array (), 'Text[/b]');
-test_converter ('[i]Text[/b]', array (), '[i]Text[/b]');
-test_converter ('[b][b]Text[/b]', array (array ('b', array (array (0), array (7)))), '[b]Text');
+test_converter ('[i]Text[/b]', array (), '[i]Text[/b]', true); // Non-canonical: start tag will be escaped
+test_converter ('[b][b]Text[/b]', array (array ('b', array (array (0), array (7)))), '[b]Text', true); // Non-canonical: start tag will be escaped
 
 // Overlapping matches
-test_converter ('[url]http://google.fr[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr'))))), '');
+test_converter ('[url]http://google.fr[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr'))))), '', true);
 test_converter ('[url=http://google.fr]test[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr')), array (4)))), 'test');
-test_converter ('[b][i]text[/i][/b]', array (array ('b', array (array (0), array (4))), array ('i', array (array (0), array (4)))), 'text');
 
 // Crossed matches
 test_converter ('[b][pre]text[/b][/pre]', array (array ('b', array (array (0), array (9)))), '[pre]text[/pre]');
 test_converter ('[pre][b]text[/pre][/b]', array (array ('pre', array (array (0, array ('b' => '[b]text'))))), '[/b]');
 
 // Charset
-$markup = 'Voilà [hr] une [b]chaîne[/b] qui [i]devrait[/i] être convertie sans [b]problèmes[/b].';
+$markup = 'Voilà [hr] une [b]chaîne[/b] qui _devrait_ être convertie sans [b]problèmes[/b].';
 $plain = 'Voilà  une chaîne qui devrait être convertie sans problèmes.';
 $tags = array (array ('hr', array (array (6))), array ('b', array (array (11), array (17))), array ('i', array (array (22), array (29))), array ('b', array (array (50), array (59))));
 
@@ -159,16 +166,17 @@ mb_internal_encoding ('utf-8');
 test_converter (mb_convert_encoding ($markup, 'utf-8', $charset), $tags, mb_convert_encoding ($plain, 'utf-8', $charset));
 
 // Escape sequences
+test_converter ('\\', array (), '\\', true); // Non-canonical: escape sequence will be escaped
 test_converter ('\\\\', array (), '\\');
-test_converter ('\\ \\', array (), '\\ \\');
+test_converter ('\\ \\', array (), '\\ \\', true); // Non-canonical: escape sequence will be escaped
 test_converter ('\\\\\\\\', array (), '\\\\');
 test_converter ('\[b][/b]', array (), '[b][/b]');
-test_converter ('[b]\[/b]', array (), '[b][/b]');
-test_converter ('\[b]\[/b]', array (), '[b][/b]');
+test_converter ('[b]\[/b]', array (), '[b][/b]', true);
+test_converter ('\[b]\[/b]', array (), '[b][/b]', true);
 test_converter ('[b]some\[b]bold\[/b]text[/b]', array (array ('b', array (array (0), array (19)))), 'some[b]bold[/b]text');
 test_converter ('\[b]some[b]bold[/b]text\[/b]', array (array ('b', array (array (7), array (11)))), '[b]someboldtext[/b]');
-test_converter ('\__italic__', array (array ('i', array (array (1), array (7)))), '_italic_');
-test_converter ('_\_italic__', array (array ('i', array (array (0), array (7)))), '_italic_');
+test_converter ('\__italic__', array (array ('i', array (array (1), array (7)))), '_italic_', true); // Non-canonical: start tag will be escaped
+test_converter ('_\_italic__', array (array ('i', array (array (0), array (7)))), '_italic_', true); // Non-canonical: start tag will be escaped
 
 echo 'OK';
 
