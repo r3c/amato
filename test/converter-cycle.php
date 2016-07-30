@@ -18,10 +18,10 @@ Umen\autoload ();
 function check ($converter, $renderer, $string)
 {
 	$token1 = $converter->convert ($string);
-	$print1 = $renderer->render ($token1, 'html_encode');
+	$print1 = $renderer->render ($token1);
 	$plain1 = $converter->revert ($token1);
 	$token2 = $converter->convert ($plain1);
-	$print2 = $renderer->render ($token2, 'html_encode');
+	$print2 = $renderer->render ($token2);
 	$plain2 = $converter->revert ($token2);
 
 	if ($token1 === null || $token1 === '')
@@ -63,8 +63,8 @@ $scanner2 = new Umen\RegExpScanner ('\\');
 
 $pairs = array
 (
-	'compact + default'	=> array (new Umen\SyntaxConverter ($encoder1, $scanner1, $syntax), new Umen\FormatRenderer ($encoder1, $format)),
-	'compact + regex'	=> array (new Umen\SyntaxConverter ($encoder1, $scanner2, $syntax), new Umen\FormatRenderer ($encoder1, $format))
+	'compact + default'	=> array (new Umen\SyntaxConverter ($encoder1, $scanner1, $syntax), new Umen\FormatRenderer ($encoder1, $format, 'html_encode')),
+	'compact + regex'	=> array (new Umen\SyntaxConverter ($encoder1, $scanner2, $syntax), new Umen\FormatRenderer ($encoder1, $format, 'html_encode'))
 );
 
 $tests = array

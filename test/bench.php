@@ -50,7 +50,7 @@ function	bench ($count, $init, $loop, $stop)
 $encoder = new Umen\CompactEncoder ();
 $scanner = new Umen\RegExpScanner ();
 $converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
-$renderer = new Umen\FormatRenderer ($encoder, $format);
+$renderer = new Umen\FormatRenderer ($encoder, $format, function ($s) { return $s; });
 
 $out = '';
 $i = 1;

@@ -27,7 +27,7 @@ function	run ($converter, $renderer, $file, $charset)
 	mb_internal_encoding ($charset);
 
 	$token = $converter->convert (file_get_contents ($file));
-	$render = $renderer->render ($token, 'html_encode');
+	$render = $renderer->render ($token);
 	$plain = $converter->revert ($token);
 
 	echo '<li>' . html_encode ($token) . '</li>';
@@ -41,7 +41,7 @@ echo '<li>DefaultScanner:<ul>';
 $encoder = new Umen\CompactEncoder ();
 $scanner = new Umen\DefaultScanner ('\\');
 $converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
-$renderer = new Umen\FormatRenderer ($encoder, $format);
+$renderer = new Umen\FormatRenderer ($encoder, $format, 'html_encode');
 
 run ($converter, $renderer, 'data/charset-iso-8859-1.txt', 'iso-8859-1');
 run ($converter, $renderer, 'data/charset-utf-8.txt', 'utf-8');
@@ -53,7 +53,7 @@ echo '<li>RegExpScanner:<ul>';
 $encoder = new Umen\CompactEncoder ();
 $scanner = new Umen\RegExpScanner ('\\');
 $converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
-$renderer = new Umen\FormatRenderer ($encoder, $format);
+$renderer = new Umen\FormatRenderer ($encoder, $format, 'html_encode');
 
 run ($converter, $renderer, 'data/charset-iso-8859-1.txt', 'iso-8859-1');
 run ($converter, $renderer, 'data/charset-utf-8.txt', 'utf-8');

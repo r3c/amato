@@ -10,17 +10,19 @@ class FormatRenderer extends Renderer
 	** Initialize a new renderer.
 	** $encoder:	encoder instance
 	** $format:		render format definition
+	** $escape:		plain text escape callback (string) -> string
 	*/
-	public function __construct ($encoder, $format)
+	public function __construct ($encoder, $format, $escape)
 	{
 		$this->encoder = $encoder;
+		$this->escape = $escape;
 		$this->format = $format;
 	}
 
 	/*
 	** Override for Renderer::render.
 	*/
-	public function render ($token, $escape = null)
+	public function render ($token)
 	{
 		// Parse tokenized string
 		$pack = $this->encoder->decode ($token);
@@ -31,6 +33,7 @@ class FormatRenderer extends Renderer
 		list ($scopes, $text) = $pack;
 
 		// Apply scopes on plain text
+		$escape = $this->escape;
 		$offset = 0;
 		$stack = array ();
 
