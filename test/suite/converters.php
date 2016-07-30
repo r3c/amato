@@ -14,7 +14,7 @@ $syntax = array
 (
 	/*
 	** Pattern expression:
-	** <expression:name>
+	** <capture_name:capture_regex>
 	** (pattern)
 	** [characters]
 	** {} or {exact} or {min,max} or {min,max,default}
@@ -22,7 +22,7 @@ $syntax = array
 	'a' => array
 	(
 		array (Amato\Tag::ALONE, '<u:https?://[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>'),
-		array (Amato\Tag::ALONE, '<u:www.[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>'), // How to distinguish from previous pattern? They could be merged if some group + options syntax is allowed
+		array (Amato\Tag::ALONE, '<u:www.[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>'), // FIXME: How to distinguish from previous pattern? They could be merged if some group + options syntax is allowed
 		array (Amato\Tag::ALONE, '[url]<u:[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>[/url]'),
 		array (Amato\Tag::START, '[url=<u:[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>]'),
 		array (Amato\Tag::STOP, '[/url]')
@@ -47,6 +47,10 @@ $syntax = array
 	(
 		array (Amato\Tag::PULSE, '##'),
 		array (Amato\Tag::STOP, "\n\n")
+	),
+	'pre' => array
+	(
+		array (Amato\Tag::ALONE, '[pre]<b:.*>[/pre]')
 	),
 	's' => array
 	(
@@ -136,6 +140,7 @@ test_converter ('[b][b]Text[/b]', array (array ('b', array (array (0), array (7)
 // Overlapping matches
 test_converter ('[url]http://google.fr[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr'))))), '');
 test_converter ('[url=http://google.fr]test[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr')), array (4)))), 'test');
+test_converter ('[b][pre]text[/b][/pre]', array (array ('b', array (array (0), array (4))), array ('pre', array (array (0), array (4)))), 'text');
 
 // Charset
 $markup = 'Voilà [hr] une [b]chaîne[/b] qui [i]devrait[/i] être convertie sans [b]problèmes[/b].';

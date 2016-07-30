@@ -1,8 +1,8 @@
-[4]\[4]Rouge[/4] \[3][3]Vert[/3] \[2][2]Bleu[/2]
+[color=FF0000]\[color=FF0000]Rouge[/color] \[color=00FF00][color=00FF00]Vert[/color] \[color=0000FF][color=0000FF]Bleu[/color]
 
 [[i]i]Italique[/i[/i]] [i]\[i]Italique\[/i][/i]
 
-[7][pre]Literal [b]text[/7][/pre] should [b][pre][/7]prevent[/b][/pre] any tag[/b] from being used.[/7]
+[color=FFFF00][pre]Literal [b]text[/color][/pre] should [b][pre][/color]prevent[/b][/pre] any tag[/b] from being used.[/color]
 
 [list]
 [*] Liste:[b]
@@ -12,7 +12,7 @@
 
 [s]Strike[hr]Strike[/s]
 
-[u]Start [u]over[/u] same tag[/u], [b]Cross-[i]over[/b] tags[/i], [5]Mixed [b]overlapping [s]random [i]tags[/b] jam[/5] nightmare[/s]![/i]
+[u]Start [u]over[/u] same tag[/u], [b]Cross-[i]over[/b] tags[/i], [color=00FFFF]Mixed [b]overlapping [s]random [i]tags[/b] jam[/color] nightmare[/s]![/i]
 
 [url=http://www.mirari.fr]mirari.fr[/url] - [url]http://www.mirari.fr[/url] - http://www.mirari.fr
 

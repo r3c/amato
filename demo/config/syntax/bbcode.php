@@ -1,14 +1,5 @@
 <?php
 
-/*
-** Syntax configuration: [markup id => [markup definitions]]
-**   .0:	tag type
-**   .1:	matching pattern
-**   .2:	optional attributes
-**   .3:	optional pre-convert callback
-**   .4:	optional pre-revert callback
-*/
-
 $syntax = array
 (
 	'.' => array
@@ -18,17 +9,53 @@ $syntax = array
 	'a' => array
 	(
 		array (Amato\Tag::ALONE, '<u:https?://[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>'),
-		array (Amato\Tag::ALONE, '<u:www.[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>'), // How to distinguish from previous pattern? They could be merged if some group + options syntax is allowed
+		array (Amato\Tag::ALONE, '<u:www.[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>'),
 		array (Amato\Tag::ALONE, '[url]<u:[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>[/url]'),
 		array (Amato\Tag::START, '[url=<u:[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>]'),
-		array (Amato\Tag::START, '[urli=<u:[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>]', array ('i' => 1)),
+		array (Amato\Tag::START, '[urli=<u:[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>]', array ('i' => '')),
 		array (Amato\Tag::STOP, '[/url]'),
-		array (Amato\Tag::STOP, '[/urli]', array ('i' => 1))
+		array (Amato\Tag::STOP, '[/urli]', array ('i' => ''))
+	),
+	'align' => array
+	(
+		array (Amato\Tag::START, '[align=center]', array ('w' => 'c')),
+		array (Amato\Tag::START, '[align=left]'),
+		array (Amato\Tag::START, '[align=right]', array ('w' => 'r')),
+		array (Amato\Tag::STOP, '[/align]')
+
 	),
 	'b' => array
 	(
 		array (Amato\Tag::START, '[b]'),
 		array (Amato\Tag::STOP, '[/b]')
+	),
+	'box' => array
+	(
+		array (Amato\Tag::START, "[box=<t:[^][\\0-\\n]+>]"),
+		array (Amato\Tag::STOP, '[/box]')
+	),
+	'c' => array
+	(
+		array (Amato\Tag::START, '[center]'),
+		array (Amato\Tag::STOP, '[/center]')
+	),
+	'code' => array
+	(
+		array (Amato\Tag::ALONE, '[code=<l:[0-9a-zA-Z]+>]<b:.*>[/code]')
+
+	),
+	'color' => array
+	(
+		array (Amato\Tag::START, '[color=<h:[0-9A-Fa-f]{3}>]'),
+		array (Amato\Tag::START, '[color=<h:[0-9A-Fa-f]{6}>]'),
+		array (Amato\Tag::START, '[color=#<h:[0-9A-Fa-f]{3}>]'),
+		array (Amato\Tag::START, '[color=#<h:[0-9A-Fa-f]{6}>]'),
+		array (Amato\Tag::STOP, '[/color]')
+	),
+	'font' => array
+	(
+		array (Amato\Tag::START, '[font=<p:[0-9]+>]'),
+		array (Amato\Tag::STOP, '[/font]')
 	),
 	'hr' => array
 	(
@@ -39,47 +66,10 @@ $syntax = array
 		array (Amato\Tag::START, '[i]'),
 		array (Amato\Tag::STOP, '[/i]')
 	),
-	'u' => array
-	(
-		array (Amato\Tag::START, '[u]'),
-		array (Amato\Tag::STOP, '[/u]')
-	)
-/*
-	'align' => array
-	(
-		array (Amato\Tag::START, '[align=center]', array ('w' => 'c')),
-		array (Amato\Tag::START, '[align=left]', array ('w' => 'l')),
-		array (Amato\Tag::START, '[align=right]', array ('w' => 'r')),
-		array (Amato\Tag::STOP, '[/align]')
-
-	),
-	'box' => array
-	(
-		array (Amato\Tag::START, "[box=<t:( -\\^-\xFF){1,}>]"),
-		array (Amato\Tag::STOP, '[/box]')
-	),
-	'c' => array
-	(
-		array (Amato\Tag::START, '[center]'),
-		array (Amato\Tag::STOP, '[/center]')
-	),
-	'color' => array
-	(
-		array (Amato\Tag::START, '[color=<h:(0-9A-Fa-f){3}>]'),
-		array (Amato\Tag::START, '[color=<h:(0-9A-Fa-f){6}>]'),
-		array (Amato\Tag::START, '[color=#<h:(0-9A-Fa-f){3}>]'),
-		array (Amato\Tag::START, '[color=#<h:(0-9A-Fa-f){6}>]'),
-		array (Amato\Tag::STOP, '[/color]')
-	),
-	'font' => array
-	(
-		array (Amato\Tag::START, '[font=<p:(0-9){1,}>]'),
-		array (Amato\Tag::STOP, '[/font]')
-	),
 	'img' => array
 	(
-		array (Amato\Tag::ALONE, '[img=<p:(0-9){1,}>]<u:(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]', array ('s' => 1)),
-		array (Amato\Tag::ALONE, '[img]<u:(-0-9A-Za-z._~:/?#@!$%&\'*+,;=(\\)*){1,}>[/img]')
+		array (Amato\Tag::ALONE, '[img=<p:[0-9]+>]<u:[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>[/img]', array ('s' => 1)),
+		array (Amato\Tag::ALONE, '[img]<u:[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>[/img]')
 	),
 	'list' => array
 	(
@@ -88,26 +78,19 @@ $syntax = array
 		array (Amato\Tag::STEP, '[*]', array ('t' => 'u')),
 		array (Amato\Tag::STOP, '[/list]')
 	),
-	'poll' => array
-	(
-		array (Amato\Tag::ALONE, '[sondage=<i:(0-9){1,}>]')
-	),
 	'pre' => array
 	(
-		array (Amato\Tag::START, '[pre]', null, $bbcode_check (array ('default' => true)), $bbcode_touch (array ('default' => false))),
-		array (Amato\Tag::START, '[/pre]', null, $bbcode_check (array ('default' => false)), $bbcode_touch (array ('default' => true)))
+		array (Amato\Tag::ALONE, '[pre]<b:.*>[/pre]')
 	),
 	'quote' => array
 	(
 		array (Amato\Tag::START, '[quote]'),
-		array (Amato\Tag::STOP, '[/quote]'),
-		array (Amato\Tag::START, '[cite]'),
-		array (Amato\Tag::STOP, '[/cite]')
+		array (Amato\Tag::STOP, '[/quote]')
 	),
 	'ref' => array
 	(
-		array (Amato\Tag::ALONE, './<t:(0-9){1,10}>-<p:(0-9){1,10}>', null, null, null, 'amato_syntax_bbcode_ref_convert'),
-		array (Amato\Tag::ALONE, './<p:(0-9){1,10}>', null, null, null, 'amato_syntax_bbcode_ref_convert')
+		array (Amato\Tag::ALONE, './<t:[0-9]{1,10}>-<p:[0-9]{1,10}>', null, 'amato_syntax_bbcode_ref_convert'),
+		array (Amato\Tag::ALONE, './<p:[0-9]{1,10}>', null, 'amato_syntax_bbcode_ref_convert')
 	),
 	's' => array
 	(
@@ -126,19 +109,13 @@ $syntax = array
 		array (Amato\Tag::ALONE, '%)', array ('t' => '7')),
 		array (Amato\Tag::ALONE, ':|', array ('t' => '8')),
 		array (Amato\Tag::ALONE, ':S', array ('t' => '9')),
-		array (Amato\Tag::ALONE, '##<n:(0-9A-Za-z){1,}>##', array ('t' => 'c')),
-		array (Amato\Tag::ALONE, '#<n:(0-9A-Za-z){1,}>#', array ('t' => 'n'))
+		array (Amato\Tag::ALONE, '##<n:[0-9A-Za-z]+>##', array ('t' => 'c')),
+		array (Amato\Tag::ALONE, '#<n:[0-9A-Za-z]+>#', array ('t' => 'n'))
 	),
 	'spoil' => array
 	(
 		array (Amato\Tag::START, '[spoiler]'),
 		array (Amato\Tag::STOP, '[/spoiler]')
-
-	),
-	'src' => array
-	(
-		array (Amato\Tag::START, '[source=<l:(0-9a-zA-Z){1,}>]', null, $bbcode_check (array ('default' => true)), $bbcode_touch (array ('default' => false))),
-		array (Amato\Tag::STOP, '[/source]', null, $bbcode_check (array ('default' => false)), $bbcode_touch (array ('default' => true))),
 
 	),
 	'sub' => array
@@ -158,9 +135,12 @@ $syntax = array
 		array (Amato\Tag::STEP, '[|]', array ('t' => 'c')),
 		array (Amato\Tag::STEP, '[-]', array ('t' => 'r')),
 		array (Amato\Tag::STOP, '[/table]')
-
+	),
+	'u' => array
+	(
+		array (Amato\Tag::START, '[u]'),
+		array (Amato\Tag::STOP, '[/u]')
 	)
-*/
 );
 
 function amato_syntax_bbcode_ref_convert ($action, $flag, &$captures, $context)

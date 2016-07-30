@@ -1,327 +1,114 @@
 <?php
 
-/*
-** Missing:
-** - li
-** - ul
-*/
-
-/*
-** String format modifiers for each available tag, as name => properties
-**   .level:	optional nesting level (a tag can only enclose tags of lower or
-**				equal levels), default is 1
-**   .onAlone:	optional tag alone callback, undefined if none
-**   .onStart:	optional tag begin callback, undefined if none
-**   .onStep:	optional tag break callback, undefined if none
-**   .onStop:	optional tag end callback, undefined if none
-*/
 $format = array
 (
-	'.'		=> array
-	(
-//		'level'		=> 1,
-		'onAlone'	=> 'umenHTMLNewLineAlone'
-//		'onStart'	=> 'umenHTMLNewLineStart',
-//		'onStep'	=> 'umenHTMLNewLineStep',
-//		'onStop'	=> 'umenHTMLNewLinetop'
-	),
-	'0'		=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'1'		=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'2'		=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'3'		=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'4'		=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'5'		=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'6'		=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'7'		=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'8'		=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'9'		=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'10'	=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'11'	=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'12'	=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'13'	=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'14'	=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'15'	=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'a'		=> array
-	(
-		'onAlone'	=> 'umenHTMLAnchorAlone',
-		'onStop'	=> 'umenHTMLAnchorStop',
-	),
-	'align'	=> array
-	(
-		'level'		=> 2,
-		'onStart'	=> 'umenHTMLAlignStart',
-		'onStop'	=> 'umenHTMLAlignStop'
-	),
-	'b'		=> array
-	(
-		'onStop'	=> 'umenHTMLTagStop'
-	),
-	'box'	=> array
-	(
-		'level'		=> 2,
-		'onStop'	=> 'umenHTMLBoxStop'
-	),
-	'c'		=> array
-	(
-		'level'		=> 2,
-		'onStop'	=> 'umenHTMLCenterStop'
-	),
-	'cmd'	=> array
-	(
-		'level'		=> 2,
-		'onStop'	=> 'umenHTMLCommandStop'
-	),
-	'color'	=> array
-	(
-		'onStop'	=> 'umenHTMLColorStop'
-	),
-	'em'	=> array
-	(
-		'onStop'	=> 'umenHTMLTagStop'
-	),
-	'flash'	=> array
-	(
-		'onAlone'	=> 'umenHTMLFlashAlone'
-	),
-	'font'	=> array
-	(
-		'onStop'	=> 'umenHTMLFontStop'
-	),
-	'hr'	=> array
-	(
-		'level'		=> 2,
-		'onAlone'	=> 'umenHTMLHorizontalAlone'
-	),
-	'i'		=> array
-	(
-		'onStop'	=> 'umenHTMLTagStop'
-	),
-	'img'	=> array
-	(
-		'onAlone'	=> 'umenHTMLImageAlone'
-	),
-	'list'	=> array
-	(
-		'level'		=> 2,
-		'onStart'	=> 'umenHTMLListStart',
-		'onStep'	=> 'umenHTMLListStep',
-		'onStop'	=> 'umenHTMLListStop'
-	),
-	'modo'	=> array
-	(
-		'level'		=> 2,
-		'onStop'	=> 'umenHTMLDivStop'
-	),
-	'poll'	=> array
-	(
-		'level'		=> 2,
-		'onAlone'	=> 'umenHTMLPollAlone'
-	),
-	'pre'	=> array
-	(
-		'level'		=> 2,
-		'onStop'	=> 'umenHTMLPreStop'
-	),
-	'quote'	=> array
-	(
-		'level'		=> 2,
-		'onStop'	=> 'umenHTMLQuoteStop'
-	),
-	'ref'	=> array
-	(
-		'onAlone'	=> 'umenHTMLRefStop'
-	),
-	's'		=> array
-	(
-		'onStop'	=> 'umenHTMLSpanStop'
-	),
-	'slap'	=> array
-	(
-		'onAlone'	=> 'umenHTMLSlapStop'
-	),
-	'smile'	=> array
-	(
-		'onAlone'	=> 'umenHTMLSmileyAlone'
-	),
-	'spoil'	=> array
-	(
-		'onStop'	=> 'umenHTMLSpanStop'
-	),
-	'src'	=> array
-	(
-		'onStop'	=> 'umenHTMLSourceStop',
-	),
-	'sub'	=> array
-	(
-		'onStop'	=> 'umenHTMLTagStop'
-	),
-	'sup'	=> array
-	(
-		'onStop'	=> 'umenHTMLTagStop'
-	),
-	'table'	=> array
-	(
-		'level'		=> 2,
-		'onStart'	=> 'umenHTMLTableStart',
-		'onStep'	=> 'umenHTMLTableStep',
-		'onStop'	=> 'umenHTMLTableStop'
-	),
-	'u'		=> array
-	(
-		'onStop'	=> 'umenHTMLSpanStop',
-	),
-	'uni'	=> array
-	(
-		'onAlone'	=> 'umenHTMLUnicodeAlone'
-	),
-	'yt'	=> array
-	(
-		'onAlone'	=> 'umenHTMLYoutubeAlone'
-	)
+	'.'		=> array ('amato_format_html_newline'),
+	'a'		=> array ('amato_format_html_anchor'),
+	'align'	=> array ('amato_format_html_align', 2),
+	'b'		=> array (_amato_format_html_tag ('b')),
+	'box'	=> array ('amato_format_html_box', 2),
+	'c'		=> array ('amato_format_html_center', 2),
+	'src'	=> array ('amato_format_html_code', 2),
+	'cmd'	=> array (_amato_format_html_class ('div', 'cmd'), 2),
+	'color'	=> array ('amato_format_html_color'),
+	'em'	=> array (_amato_format_html_tag ('em')),
+	'font'	=> array ('amato_format_html_font'),
+	'hr'	=> array ('amato_format_html_horizontal', 2),
+	'i'		=> array (_amato_format_html_tag ('i')),
+	'img'	=> array ('amato_format_html_image'),
+	'list'	=> array ('amato_format_html_list', 2),
+	'modo'	=> array (_amato_format_html_class ('div', 'modo'), 2),
+	'pre'	=> array ('amato_format_html_pre', 2),
+	'quote'	=> array (_amato_format_html_tag ('blockquote'), 2),
+	'ref'	=> array ('amato_format_html_ref'),
+	's'		=> array (_amato_format_html_class ('span', 's')),
+	'slap'	=> array ('amato_format_html_slap'),
+	'smile'	=> array ('amato_format_html_smiley'),
+	'spoil'	=> array (_amato_format_html_class ('span', 'spoil')),
+	'sub'	=> array (_amato_format_html_tag ('sub')),
+	'sup'	=> array (_amato_format_html_tag ('sup')),
+	'table'	=> array ('amato_format_html_table', 2),
+	'u'		=> array (_amato_format_html_class ('span', 'u'))
 );
 
-function	_umenHTMLEscape ($string)
+function _amato_format_html_class ($id, $name)
+{
+	return function ($captures, $markup, $closing) use ($id, $name)
+	{
+		return '<' . $id . ' class="' . $name . '">' . $markup . '</' . $id . '>';
+	};
+}
+
+function _amato_format_html_tag ($id)
+{
+	return function ($captures, $markup, $closing) use ($id)
+	{
+		return '<' . $id . '>' . $markup . '</' . $id . '>';
+	};
+}
+
+function _amato_format_html_escape ($string)
 {
 	return htmlspecialchars ($string, ENT_COMPAT, CHARSET);
 }
 
-function	umenHTMLAlignStart ($name, $flag, &$captures)
+function amato_format_html_align ($captures, $markup, $closing)
 {
-	$align = array ('c' => 'center', 'l' => 'left', 'r' => 'right');
+	$align = array ('c' => 'center', 'r' => 'right');
 
-	$captures[0] = $align[$flag];
+	return '<div style="text-align: ' . _amato_format_html_escape (isset ($align[$captures['w']]) ? $align[$captures['w']] : 'left') . ';">' . $markup . '</div>';
 }
 
-function	umenHTMLAlignStop ($name, $flag, $captures, $body)
-{
-	return $body ? '<div style="text-align: ' . _umenHTMLEscape ($captures[0]) . ';">' . $body . '</div>' : '';
-}
-
-function	umenHTMLAnchorAlone ($name, $flag, $captures)
-{
-	return umenHTMLAnchorStop ($name, $flag, $captures, $captures['u']);
-}
-
-function	umenHTMLAnchorStop ($name, $flag, $captures, $body)
+function amato_format_html_anchor ($captures, $markup, $closing)
 {
 	if (!preg_match ('#^([-+.0-9A-Za-z]+://)?(([^:@]+(:[0-9]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $captures['u'], $matches))
-		return $body;
+		return $markup;
 
-	$href = ($matches[1] ? $matches[1] : 'http://') . $matches[2];
-	$target = $flag === 'i' ? '_self' : '_blank';
+	$target = _amato_format_html_escape (isset ($captures['i']) ? '_self' : '_blank');
+	$url = _amato_format_html_escape (($matches[1] ? $matches[1] : 'http://') . $matches[2]);
 
-	return '<a href="' . _umenHTMLEscape ($href) . '" target="' . _umenHTMLEscape ($target) . '">' . $body . '</a>';
+	return '<a href="' . $url . '" target="' . $target . '">' . ($markup ?: $url) . '</a>';
 }
 
-function	umenHTMLBoxStop ($name, $flag, $captures, $body)
+function amato_format_html_box ($captures, $markup, $closing)
 {
-	return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') &gt;= 0 ? \'box box_0\' : \'box box_1\';">' . _umenHTMLEscape ($captures['t']) . '</h1><div>' . $body . '</div></div>';
+	return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') &gt;= 0 ? \'box box_0\' : \'box box_1\';">' . _amato_format_html_escape ($captures['t']) . '</h1><div>' . $markup . '</div></div>';
 }
 
-function	umenHTMLCenterStop ($name, $flag, $captures, $body)
+function amato_format_html_center ($captures, $markup, $closing)
 {
-	return $body ? '<div class="center">' . $body . '</div>' : '';
+	return '<div class="center">' . $markup . '</div>';
 }
 
-function	umenHTMLColorStop ($name, $flag, $captures, $body)
+function amato_format_html_code ($captures, $markup, $closing)
 {
-	if (isset ($captures['h']))
-		$attr = 'style="color: #' . _umenHTMLEscape ($captures['h']) . ';"';
-	else
-		$attr = 'class="color' . _umenHTMLEscape ($name) . '"';
+	static $brushes;
 
-	return $body ? '<span ' . $attr . '>' . $body . '</span>' : '';
+	if (!isset ($brushes))
+		$brushes = array_flip (array ('as3', 'bash', 'csharp', 'c', 'cpp', 'css', 'delphi', 'diff', 'groovy', 'js', 'java', 'jfx', 'm68k', 'perl', 'php', 'plain', 'ps', 'py', 'rails', 'scala', 'sql', 'vb', 'xml'));
+
+	if (!isset ($brushes[$captures['l']]))
+		return $markup;
+
+	return '<pre class="brush: ' . $captures['l'] . '">' . str_replace ('<br />', "\n", $markup) . '</pre>';
 }
 
-function	umenHTMLCommandStop ($name, $flag, $captures, $body)
+function amato_format_html_color ($captures, $markup, $closing)
 {
-	return $body ? '<div class="cmd">' . $body . '</div>' : '';
+	return '<span style="color: #' . _amato_format_html_escape ($captures['h']) . ';">' . $markup . '</span>';
 }
 
-function	umenHTMLDivStop ($name, $flag, $captures, $body)
+function amato_format_html_font ($captures, $markup, $closing)
 {
-	return $body ? '<div class="' . _umenHTMLEscape ($name) . '">' . $body . '</div>' : '';
+	return '<span style="font-size: ' . max (min ((int)$captures['p'], 300), 50) . '%; line-height: 100%;">' . $markup . '</span>';
 }
 
-function	umenHTMLFlashAlone ($name, $flag, $captures)
-{
-	if (isset ($captures['x']) && isset ($captures['y']))
-	{
-		$size = array (max (min ((int)$captures['x'], 1024), 32), max (min ((int)$captures['y'], 1024), 32));
-		$url = $captures['u'];
-	}
-	else
-	{
-		$size = array (550, 400);
-		$url = $captures['u'];
-	}
-
-	if (!preg_match ('#^([0-9A-Za-z+]+://)?(([^:@]+(:[^@]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $url, $matches))
-		return '';
-
-	// data="ADRESSE"
-	return '<object type="application/x-shockwave-flash" width="' . $size[0] . '" height="' . $size[1] . '"><param name="movie" value="' . (($matches[1] ? $matches[1] : 'http://') . $matches[2]) . '" /><param name="allowFullScreen" value="true" /></object>';
-}
-
-function	umenHTMLFontStop ($name, $flag, $captures, $body)
-{
-	return $body ? '<span style="font-size: ' . max (min ((int)$captures['p'], 300), 50) . '%; line-height: 100%;">' . $body . '</span>' : '';
-}
-
-function	umenHTMLHorizontalAlone ($name, $flag, $captures)
+function amato_format_html_horizontal ($captures, $markup, $closing)
 {
 	return '<hr />';
 }
 
-function	umenHTMLImageAlone ($name, $flag, $captures)
+function amato_format_html_image ($captures, $markup, $closing)
 {
 	if (isset ($captures['p']))
 	{
@@ -345,23 +132,26 @@ function	umenHTMLImageAlone ($name, $flag, $captures)
 		return '<img alt="img" src="' . $src . '" />';
 }
 
-function	umenHTMLListStart ($name, $flag, &$captures)
+function amato_format_html_list (&$captures, $markup, $closing)
 {
-	$captures = $captures + array
-	(
-		'level'	=> 0,
-		'next'	=> 0,
-		'out'	=> '',
-		'stack'	=> array (),
-		'tag'	=> ''
-	);
-}
+	if (!isset ($captures['level']))
+		$captures['level'] = 0;
 
-function	umenHTMLListStep ($name, $flag, &$captures, $body)
-{
-	$body = trim ($body);
+	if (!isset ($captures['next']))
+		$captures['next'] = 0;
 
-	if ($captures['tag'] !== '' && $body)
+	if (!isset ($captures['out']))
+		$captures['out'] = '';
+
+	if (!isset ($captures['stack']))
+		$captures['stack'] = array ();
+
+	if (!isset ($captures['tag']))
+		$captures['tag'] = '';
+
+	$markup = preg_replace ('#^([[:blank:]]*)(<br />)?(.*)(<br />)?([[:blank:]]*)$#', '$1$3$5', $markup);
+
+	if ($captures['tag'] !== '' && $markup)
 	{
 		for (; $captures['level'] > $captures['next']; --$captures['level'])
 			$captures['out'] .= '</li></' . array_pop ($captures['stack']) . '>';
@@ -377,13 +167,11 @@ function	umenHTMLListStep ($name, $flag, &$captures, $body)
 	else
 		$captures['next'] = min ($captures['next'] + 1, 8);
 
-	$captures['out'] .= $body;
-	$captures['tag'] = $flag . 'l';
-}
+	$captures['out'] .= trim ($markup);
+	$captures['tag'] = $captures['t'] . 'l';
 
-function	umenHTMLListStop ($name, $flag, $captures, $body)
-{
-	umenHTMLListStep ($name, $flag, $captures, $body);
+	if (!$closing)
+		return '';
 
 	while ($captures['level']--)
 		$captures['out'] .= '</li></' . array_pop ($captures['stack']) . '>';
@@ -391,48 +179,30 @@ function	umenHTMLListStop ($name, $flag, $captures, $body)
 	return $captures['out'];
 }
 
-function	umenHTMLNewLineAlone ($name, $flag, $captures)
+function amato_format_html_newline ($captures, $markup, $closing)
 {
 	return '<br />';
 }
 
-function	umenHTMLPollAlone ($name, $flag, $captures)
+function amato_format_html_pre ($captures, $markup, $closing)
 {
-	$s = (int)$captures['i'];
-
-	include ("sond.php");
-
-	return $sondINC;
+	return '<pre>' . _amato_format_html_escape ($captures['b']) . '</pre>';
 }
 
-function	umenHTMLPreStop ($name, $flag, $captures, $body)
+function amato_format_html_ref ($captures, $markup, $closing)
 {
-	return $body ? '<pre>' . str_replace (array ("\r\n", "\r", "\n"), '<br />', $body) . '</pre>' : '';
+	return '<a href="#" onclick="return false;">./' . $captures['p'] . '</a>';
 }
 
-function	umenHTMLQuoteStop ($name, $flag, $captures, $body)
+function amato_format_html_slap ($captures, $markup, $closing)
 {
-	return $body ? '<blockquote>' . $body . '</blockquote>' : '';
+	return '!slap ' . $captures['u'] . ($captures['u'] ? '<br /><span style="color: #990099;">&bull; #login# slaps ' . $captures['u'] . ' around a bit with a large trout !</span><br />' : '');
 }
 
-function	umenHTMLRefStop ($name, $flag, $captures)
+function amato_format_html_smiley ($captures, $markup, $closing)
 {
-	return '<a href="" onclick="getPost(event, ' . 0 . ', ' . $captures['p'] . '); return false;">./' . $captures['p'] . '</a>';
-}
-
-function	umenHTMLSlapStop ($name, $flag, $captures)
-{
-	global	$config, $mbI;
-
-	$login = htmlspecialchars ((isset ($mbI) && isset ($mbI['login']) ? $mbI['login'] : '?'), ENT_COMPAT, $config['render.charset']);
-
-	return '!slap ' . $captures['u'] . ($captures['u'] ? '<br /><span style="color: #990099;">&bull; ' . $login . ' slaps ' . $captures['u'] . ' around a bit with a large trout !</span><br />' : '');
-}
-
-function	umenHTMLSmileyAlone ($name, $flag, $captures)
-{
-	global	$config;
-	static	$names;
+	global $config;
+	static $names;
 
 	switch ($flag)
 	{
@@ -529,49 +299,34 @@ function	umenHTMLSmileyAlone ($name, $flag, $captures)
 	return '<img alt="' . $alt . '" src="' . $src . '" />';
 }
 
-function	umenHTMLSourceStop ($name, $flag, $captures, $body)
+function amato_format_html_table (&$captures, $markup, $closing)
 {
-	static	$brushes;
+	if (!isset ($captures['cols']))
+		$captures['cols'] = 0;
 
-	if (!isset ($brushes))
-		$brushes = array_flip (array ('as3', 'bash', 'csharp', 'c', 'cpp', 'css', 'delphi', 'diff', 'groovy', 'js', 'java', 'jfx', 'm68k', 'perl', 'php', 'plain', 'ps', 'py', 'rails', 'scala', 'sql', 'vb', 'xml'));
+	if (!isset ($captures['head']))
+		$captures['head'] = false;
 
-	if (isset ($brushes[$captures['l']]))
-		return '<pre class="brush: ' . $captures['l'] . '">' . str_replace ('<br />', "\n", $body) . '</pre>';
+	if (!isset ($captures['rows']))
+		$captures['rows'] = array (array ());
 
-	return $body;
-}
+	if (!isset ($captures['size']))
+		$captures['size'] = 0;
 
-function	umenHTMLSpanStop ($name, $flag, $captures, $body)
-{
-	return $body ? '<span class="' . $name . '">' . $body . '</span>' : '';
-}
+	if (!isset ($captures['span']))
+		$captures['span'] = 1;
 
-function	umenHTMLTableStart ($name, $flag, &$captures)
-{
-	$captures = $captures + array
-	(
-		'cols'	=> 0,
-		'head'	=> false,
-		'rows'	=> array (array ()),
-		'size'	=> 0,
-		'span'	=> 1
-	);
-}
+	$markup = preg_replace ('#^([[:blank:]]*)(<br />)?(.*)(<br />)?([[:blank:]]*)$#', '$1$3$5', $markup);
 
-function	umenHTMLTableStep ($name, $flag, &$captures, $body)
-{
-	$body = preg_replace ('#^([[:blank:]]*)(<br />)?(.*)(<br />)?([[:blank:]]*)$#', '$1$3$5', $body);
-
-	if ($captures['span'] === 1 && trim ($body) === '')
+	if ($captures['span'] === 1 && trim ($markup) === '')
 		;
-	else if ($body === '')
+	else if ($markup === '')
 		++$captures['span'];
 	else
 	{
 		$span = $captures['span'];
 
-		$captures['rows'][count ($captures['rows']) - 1][] = array ($captures['head'], $span, $body);
+		$captures['rows'][count ($captures['rows']) - 1][] = array ($captures['head'], $span, $markup);
 		$captures['size'] += $span;
 		$captures['span'] = 1;
 	}
@@ -597,11 +352,9 @@ function	umenHTMLTableStep ($name, $flag, &$captures, $body)
 
 			break;
 	}
-}
 
-function	umenHTMLTableStop ($name, $flag, $captures, $body)
-{
-	umenHTMLTableStep ($name, $flag, $captures, $body);
+	if (!$closing)
+		return '';
 
 	$rows = '';
 
@@ -643,21 +396,6 @@ function	umenHTMLTableStop ($name, $flag, $captures, $body)
 	}
 
 	return '<table class="table">' . $rows . '</table>';
-}
-
-function	umenHTMLTagStop ($name, $flag, $captures, $body)
-{
-	return $body ? '<' . $name . '>' . $body . '</' . $name . '>' : '';
-}
-
-function	umenHTMLUnicodeAlone ($name, $flag, $captures)
-{
-	return '&#' . $captures['c'] . ';';
-}
-
-function	umenHTMLYoutubeAlone ($name, $flag, $captures)
-{
-	return '<iframe class="youtube-player" type="text/html" width="640" height="385" src="http://www.youtube.com/embed/' . rawurlencode ($captures['i']) . '" frameborder="0"></iframe>';
 }
 
 ?>

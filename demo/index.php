@@ -201,17 +201,17 @@ if (isset ($_POST['action']) && isset ($_POST['markup']))
 	switch ($_POST['action'])
 	{
 		case 'debug':
-			$inverse = $converter->revert ($token);
+			$revert = $converter->revert ($token);
 
 			$output =
-				'<h2>markup (' . strlen ($markup) . ' characters):</h2>' . 
+				'<h2>markup string (' . mb_strlen ($markup) . ' characters):</h2>' . 
 				'<div class="code">' . escape ($markup) . '</div><hr />' .
-				'<h2>token (' . strlen ($token) . ' characters):</h2>' .
+				'<h2>token string (' . mb_strlen ($token) . ' characters):</h2>' .
 				'<div class="code">' . escape ($token) . '</div><hr />' .
-				'<h2>print (' . strlen ($render) . ' characters):</h2>' .
+				'<h2>render string (' . mb_strlen ($render) . ' characters):</h2>' .
 				'<div class="code">' . escape ($render) . '</div><hr />' .
-				'<h2>inverse (' . strlen ($inverse) . ' characters):</h2>' .
-				'<div class="code" style="color: ' . (str_replace ('\\', '', $inverse) === str_replace ('\\', '', $markup) ? 'green' : 'red') . ';">' . escape ($inverse) . '</div>';
+				'<h2>revert string (' . mb_strlen ($revert) . ' characters):</h2>' .
+				'<div class="code" style="color: ' . ($markup === $revert ? 'green' : 'red') . ';">' . escape ($revert) . '</div>';
 
 			break;
 
