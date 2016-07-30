@@ -132,14 +132,15 @@ class TagConverter extends Converter
 				$candidates[$match][2] = null;
 
 				// Disable overlapped candidates, shift successors
-				for ($next = $match + 1; $next < count ($candidates); ++$next)
+				for ($next = 0; $next < count ($candidates); ++$next)
 				{
 					list ($key2, $offset2, $length2) = $candidates[$next];
 
 					if ($length2 !== null && $offset1 < $offset2 + $length2 && $offset2 < $offset1 + $length1)
 						$candidates[$next][2] = null;
 
-					$candidates[$next][1] -= $length1;
+					if ($match < $next)
+						$candidates[$next][1] -= $length1;
 				}
 
 				// Remove match from string

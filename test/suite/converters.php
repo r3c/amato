@@ -140,7 +140,10 @@ test_converter ('[b][b]Text[/b]', array (array ('b', array (array (0), array (7)
 // Overlapping matches
 test_converter ('[url]http://google.fr[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr'))))), '');
 test_converter ('[url=http://google.fr]test[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr')), array (4)))), 'test');
-test_converter ('[b][pre]text[/b][/pre]', array (array ('b', array (array (0), array (4))), array ('pre', array (array (0), array (4)))), 'text');
+
+// Crossed matches
+test_converter ('[b][pre]text[/b][/pre]', array (array ('b', array (array (0), array (9)))), '[pre]text[/pre]');
+test_converter ('[pre][b]text[/pre][/b]', array (array ('pre', array (array (0, array ('b' => '[b]text'))))), '[/b]');
 
 // Charset
 $markup = 'Voilà [hr] une [b]chaîne[/b] qui [i]devrait[/i] être convertie sans [b]problèmes[/b].';
