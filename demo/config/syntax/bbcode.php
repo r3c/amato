@@ -76,6 +76,7 @@ $syntax = array
 		array (Amato\Tag::START, '[list]'),
 		array (Amato\Tag::STEP, '[#]', array ('t' => 'o')),
 		array (Amato\Tag::STEP, '[*]', array ('t' => 'u')),
+		array (Amato\Tag::STEP, "\n", array ('t' => 'n')),
 		array (Amato\Tag::STOP, '[/list]')
 	),
 	'pre' => array

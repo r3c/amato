@@ -119,7 +119,7 @@ class FormatRenderer extends Renderer
 				if ($scope_end < 0)
 					continue;
 
-				$scopes[$scope_end][4] += $captures;
+				$scopes[$scope_end][4] = $captures + $scopes[$scope_end][4];
 				$scope_begin = $scope_end;
 			}
 

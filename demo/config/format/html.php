@@ -134,49 +134,54 @@ function amato_format_html_image ($captures, $markup, $closing)
 
 function amato_format_html_list (&$captures, $markup, $closing)
 {
-	if (!isset ($captures['level']))
-		$captures['level'] = 0;
-
-	if (!isset ($captures['next']))
-		$captures['next'] = 0;
-
-	if (!isset ($captures['out']))
-		$captures['out'] = '';
-
-	if (!isset ($captures['stack']))
-		$captures['stack'] = array ();
-
-	if (!isset ($captures['tag']))
-		$captures['tag'] = '';
-
-	$markup = preg_replace ('#^([[:blank:]]*)(<br />)?(.*)(<br />)?([[:blank:]]*)$#', '$1$3$5', $markup);
-
-	if ($captures['tag'] !== '' && $markup)
+	if (!isset ($captures['buffer']))
 	{
-		for (; $captures['level'] > $captures['next']; --$captures['level'])
-			$captures['out'] .= '</li></' . array_pop ($captures['stack']) . '>';
-
-		if ($captures['level'] == $captures['next'])
-			$captures['out'] .= '</li><li>';
-
-		for (; $captures['level'] < $captures['next']; ++$captures['level'])
-			$captures['out'] .= '<' . ($captures['stack'][] = $captures['tag']) . '><li>';
-
-		$captures['next'] = 1;
+		$captures['buffer'] = '';
+		$captures['item'] = '';
+		$captures['next'] = 0;
+		$captures['stack'] = array ();
+		$captures['tag'] = 'u';
 	}
-	else
-		$captures['next'] = min ($captures['next'] + 1, 8);
 
-	$captures['out'] .= trim ($markup);
-	$captures['tag'] = $captures['t'] . 'l';
+	$captures['item'] .= $markup;
+	$tag = isset ($captures['t']) ? $captures['t'] : '';
+
+	if ($tag === 'o' || $tag === 'u' || $closing)
+	{
+		// Flush accumulated item text if any
+		if (trim ($captures['item']) !== '')
+		{
+			$level = max ($captures['next'], 1);
+
+			while (count ($captures['stack']) > $level)
+				$captures['buffer'] .= '</li></' . array_pop ($captures['stack']) . 'l>';
+
+			if (count ($captures['stack']) === $level)
+				$captures['buffer'] .= '</li><li>';
+
+			for (; count ($captures['stack']) < $level; $captures['stack'][] = $captures['tag'])
+				$captures['buffer'] .= '<' . $captures['tag'] . 'l><li>';
+
+			$captures['buffer'] .= $captures['item'];
+			$captures['item'] = '';
+			$captures['next'] = 1;
+		}
+
+		// Increase level otherwise
+		else
+			$captures['next'] = min ($captures['next'] + 1, 8);
+
+		// Save last tag type
+		$captures['tag'] = $tag;
+	}
 
 	if (!$closing)
 		return '';
 
-	while ($captures['level']--)
-		$captures['out'] .= '</li></' . array_pop ($captures['stack']) . '>';
+	while (count ($captures['stack']) > 0)
+		$captures['buffer'] .= '</li></' . array_pop ($captures['stack']) . 'l>';
 
-	return $captures['out'];
+	return $captures['buffer'];
 }
 
 function amato_format_html_newline ($captures, $markup, $closing)
