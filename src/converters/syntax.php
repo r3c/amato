@@ -243,12 +243,22 @@ class SyntaxConverter extends Converter
 
 		$callbacks =& $this->onReverts;
 		$context = array ('default' => 1);
+		$limits =& $this->limits;
 		$offset = 0;
+		$usages = array ();
 
-		$verify = function ($match) use (&$context)
+		$verify = function ($match) use (&$context, &$limits, &$usages)
 		{
 			list ($name, $meanings) = $match;
 
+			// Ensure tag limit has not be reached
+			$limit = $limits[$name];
+			$usage = isset ($usages[$name]) ? $usages[$name] : 0;
+
+			if ($limit > 0 && $usage >= $limit)
+				return false;
+
+			// Find action from current context
 			foreach ($meanings as $meaning)
 			{
 				foreach ($meaning[0] as $key => $exists)
@@ -280,6 +290,15 @@ class SyntaxConverter extends Converter
 					foreach ($this->resolvers[$key] as $resolver)
 					{
 						list ($accept, $condition) = $resolver;
+
+						// Ensure tag limit has not be reached
+						$limit = $limits[$name];
+						$usage = isset ($usages[$name]) ? $usages[$name] : 0;
+
+						if ($limit > 0 && $usage >= $limit)
+							continue;
+
+						$usages[$name] = $usage + 1;
 
 						// Check whether meaning is acceptable or not
 						foreach ($condition as $key => $exists)

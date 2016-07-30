@@ -71,6 +71,7 @@ $tests = array
 (
 	'plain text'	=> 'data/unit-plain-short.txt',
 	'mix tags'		=> 'data/unit-tag-short.txt',
+	'escape limit'	=> 'data/unit-escape-limit.txt',
 	'escape mixed'	=> 'data/unit-escape-mixed.txt',
 	'escape nested'	=> 'data/unit-escape-nested.txt'
 );

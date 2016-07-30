@@ -186,8 +186,8 @@ $syntax = array
 		'limit'	=> 20,
 		'tags'	=> array
 		(
-			'[box=<t:( -\\^-ÿ){1,}>]'	=> array ('default' => array (Umen\Action::START)),
-			'[/box]'					=> array ('default' => array (Umen\Action::STOP))
+			"[box=<t:( -\\^-\xFF){1,}>]"	=> array ('default' => array (Umen\Action::START)),
+			'[/box]'						=> array ('default' => array (Umen\Action::STOP))
 		)
 	),
 	'c'		=> array
@@ -334,7 +334,7 @@ $syntax = array
 	(
 		'tags'	=> array
 		(
-			'!slap <u:(0-9A-Za-zÀ-ÿ ){1,}>'	=> array ('default' => array (Umen\Action::ALONE))
+			"!slap <u:(0-9A-Za-z ){1,}>"	=> array ('default' => array (Umen\Action::ALONE))
 		)
 	),
 	'smile'	=> array

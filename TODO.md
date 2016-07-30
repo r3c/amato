@@ -7,6 +7,7 @@ TODO
 - Empty cycles cause captures to be assigned to a wrong state
 - Start with fixed contexts, move \n to its own one and disable it from table &amp; lists
 - Merge start of "process" and "verify" callbacks in converter's "convert" method
+- Remove duplicated code in convert and revert methods of "SyntaxConverter" class
 
 DONE
 ----
