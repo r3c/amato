@@ -317,9 +317,11 @@ $syntax = array
 	),
 	'ref'	=> array
 	(
-		'tags'	=> array
+		'onConvert'	=> 'umenMarkupRefConvert',
+		'tags'		=> array
 		(
-			'./<n:(0-9){1,}>'	=> array ('default' => array (Umen\Action::ALONE))
+			'./<t:(0-9){1,10}>-<p:(0-9){1,10}>'	=> array ('default' => array (Umen\Action::ALONE)),
+			'./<p:(0-9){1,10}>'					=> array ('default' => array (Umen\Action::ALONE))
 		)
 	),
 	's'		=> array
@@ -426,17 +428,23 @@ $syntax = array
 	)
 );
 
-function	umenMarkupCmdRevert ($action, $flag, $captures, $context)
+function umenMarkupCmdRevert ($action, $flag, $captures, $context)
 {
 	return false;
 }
 
-function	umenMarkupModoConvert ($action, $flag, $captures, $context)
+function umenMarkupModoConvert ($action, $flag, $captures, $context)
 {
 	if ($action !== Umen\Action::STOP)
 		return true;
 
 	return $context['user']['level'] >= 2;
+}
+
+function umenMarkupRefConvert ($action, $flag, &$captures, $context)
+{
+	if (!isset ($captures['t']))
+		$captures['t'] = 1;
 }
 
 ?>

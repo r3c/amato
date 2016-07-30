@@ -26,3 +26,5 @@ Passons à des tests plus utiles. [b][s][u]Beaucoup de balises imbriquées[/u][/
 Une balise avec un [align=unknown]argument invalide[/align] ne devrait pas être traitée.
 
 Balise "\[b]" [u][b]ouverte et non fermée, mais interrompue[/u] par une autre.
+
+Référence ./1000-53 externe et ./53 interne.

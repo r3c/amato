@@ -163,6 +163,8 @@ class SyntaxConverter extends Converter
 				}
 
 				// Add matched tag to chain
+				ksort ($captures);
+
 				$chain[] = array ($offset, $length, $name, $action, $flag, $captures);
 
 				// Push chain section to tags

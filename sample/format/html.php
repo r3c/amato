@@ -417,7 +417,7 @@ function	umenHTMLQuoteStop ($name, $flag, $captures, $body)
 
 function	umenHTMLRefStop ($name, $flag, $captures)
 {
-	return '<a href="" onclick="getPost(event, ' . 0 . ', ' . $captures['n'] . '); return false;">./' . $captures['n'] . '</a>';
+	return '<a href="" onclick="getPost(event, ' . 0 . ', ' . $captures['p'] . '); return false;">./' . $captures['p'] . '</a>';
 }
 
 function	umenHTMLSlapStop ($name, $flag, $captures)
