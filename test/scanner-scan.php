@@ -22,10 +22,10 @@ Umen\autoload ();
 
 $files = array
 (
-	'Tagged text - long'	=> 'txt/tag.long.txt',
-	'Tagged text - medium'	=> 'txt/tag.medium.txt',
-	'Tagged text - short'	=> 'txt/tag.short.txt',
-	'Tagged text - tiny'	=> 'txt/tag.tiny.txt'
+	'Tagged text - long'	=> 'data/unit-tag-long.txt',
+	'Tagged text - medium'	=> 'data/unit-tag-medium.txt',
+	'Tagged text - short'	=> 'data/unit-tag-short.txt',
+	'Tagged text - tiny'	=> 'data/unit-tag-tiny.txt'
 );
 
 switch (isset ($_GET['s']) ? $_GET['s'] : 'default')

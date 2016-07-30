@@ -4,7 +4,7 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-abstract class	Renderer
+abstract class Renderer
 {
 	/*
 	** Render tokenized string.
@@ -12,7 +12,7 @@ abstract class	Renderer
 	** $escape:	optional plain text escape callback (string) -> string
 	** return:	rendered string
 	*/
-	public abstract function	render ($token, $escape = null);
+	public abstract function render ($token, $escape = null);
 }
 
 ?>

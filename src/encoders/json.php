@@ -4,12 +4,12 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-class	JSONEncoder extends Encoder
+class JSONEncoder extends Encoder
 {
 	/*
 	** Override for Encoder::decode.
 	*/
-	public function	decode ($token)
+	public function decode ($token)
 	{
 		return json_decode ($token, true);
 	}
@@ -17,7 +17,7 @@ class	JSONEncoder extends Encoder
 	/*
 	** Override for Encoder::encode.
 	*/
-	public function	encode ($scopes, $plain)
+	public function encode ($scopes, $plain)
 	{
 		return json_encode (array ($scopes, $plain));
 	}

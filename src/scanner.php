@@ -4,7 +4,7 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-abstract class	Scanner
+abstract class Scanner
 {
 	/*
 	** Register a new pattern into this scanner instance.
@@ -12,7 +12,7 @@ abstract class	Scanner
 	** $match:		associated matching object
 	** return:		pattern accept identifier
 	*/
-	public abstract function	assign ($pattern, $match);
+	public abstract function assign ($pattern, $match);
 
 	/*
 	** Escape given string so it doesn't match any of currently assigned
@@ -21,7 +21,7 @@ abstract class	Scanner
 	** $verify:		escape requirement check (match) -> bool
 	** return:		escaped string
 	*/
-	public abstract function	escape ($string, $verify);
+	public abstract function escape ($string, $verify);
 
 	/*
 	** Make plain text string compatible with given pattern.
@@ -29,7 +29,7 @@ abstract class	Scanner
 	** $captures:	captures array
 	** return:		plain text string
 	*/
-	public abstract function	make ($accept, $captures);
+	public abstract function make ($accept, $captures);
 
 	/*
 	** Search given string for known patterns, invoke callback for all matches
@@ -39,7 +39,7 @@ abstract class	Scanner
 	** $verify:		escape requirement check (match) -> bool
 	** return:		cleaned up string
 	*/
-	public abstract  function	scan ($string, $process, $verify);
+	public abstract function scan ($string, $process, $verify);
 }
 
 ?>

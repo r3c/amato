@@ -43,8 +43,8 @@ $scanner = new Umen\DefaultScanner ('\\');
 $converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
 $renderer = new Umen\FormatRenderer ($encoder, $format);
 
-run ($converter, $renderer, 'txt/charset.iso-8859-1.txt', 'iso-8859-1');
-run ($converter, $renderer, 'txt/charset.utf-8.txt', 'utf-8');
+run ($converter, $renderer, 'data/charset-iso-8859-1.txt', 'iso-8859-1');
+run ($converter, $renderer, 'data/charset-utf-8.txt', 'utf-8');
 
 echo '</ul></li>';
 
@@ -55,8 +55,8 @@ $scanner = new Umen\RegExpScanner ('\\');
 $converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
 $renderer = new Umen\FormatRenderer ($encoder, $format);
 
-run ($converter, $renderer, 'txt/charset.iso-8859-1.txt', 'iso-8859-1');
-run ($converter, $renderer, 'txt/charset.utf-8.txt', 'utf-8');
+run ($converter, $renderer, 'data/charset-iso-8859-1.txt', 'iso-8859-1');
+run ($converter, $renderer, 'data/charset-utf-8.txt', 'utf-8');
 
 echo '</ul></li>';
 

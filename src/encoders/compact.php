@@ -4,7 +4,7 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-class	CompactEncoder extends Encoder
+class CompactEncoder extends Encoder
 {
 	const TOKEN_ESCAPE	= '\\';
 	const TOKEN_PARAM	= ',';
@@ -14,7 +14,7 @@ class	CompactEncoder extends Encoder
 
 	const VERSION		= 3;
 
-	private static	$actionsDecode = array
+	private static	$actions_decode = array
 	(
 		'/'	=> Action::ALONE,
 		'<'	=> Action::START,
@@ -22,7 +22,7 @@ class	CompactEncoder extends Encoder
 		'>'	=> Action::STOP
 	);
 
-	private static	$actionsEncode = array
+	private static	$actions_encode = array
 	(
 		Action::ALONE	=> '/',
 		Action::START	=> '<',
@@ -30,7 +30,7 @@ class	CompactEncoder extends Encoder
 		Action::STOP	=> '>'
 	);
 
-	private static	$escapesDecode = array
+	private static	$escapes_decode = array
 	(
 		self::TOKEN_PARAM	=> true,
 		self::TOKEN_PLAIN	=> true,
@@ -38,7 +38,7 @@ class	CompactEncoder extends Encoder
 		self::TOKEN_VALUE	=> true
 	);
 
-	private static	$escapesEncode = array
+	private static	$escapes_encode = array
 	(
 		self::TOKEN_ESCAPE	=> true,
 		self::TOKEN_PARAM	=> true,
@@ -50,7 +50,7 @@ class	CompactEncoder extends Encoder
 	/*
 	** Override for Encoder::decode.
 	*/
-	public function	decode ($token)
+	public function decode ($token)
 	{
 		$length = strlen ($token);
 		$scopes = array ();
@@ -79,15 +79,15 @@ class	CompactEncoder extends Encoder
 				continue;
 
 			// Read tag action
-			if ($i < $length && isset (self::$actionsDecode[$token[$i]]))
-				$action = self::$actionsDecode[$token[$i++]];
+			if ($i < $length && isset (self::$actions_decode[$token[$i]]))
+				$action = self::$actions_decode[$token[$i++]];
 			else
 				continue;
 
 			// Read tag name
 			$name = '';
 
-			for ($i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
+			for ($i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
 			{
 				if ($token[$i] === self::TOKEN_ESCAPE && $i + 1 < $length)
 					++$i;
@@ -100,7 +100,7 @@ class	CompactEncoder extends Encoder
 
 			if ($i < $length && $token[$i] === self::TOKEN_VALUE)
 			{
-				for (++$i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
+				for (++$i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
 				{
 					if ($token[$i] === self::TOKEN_ESCAPE && $i + 1 < $length)
 						++$i;
@@ -116,7 +116,7 @@ class	CompactEncoder extends Encoder
 			{
 				$key = '';
 
-				for (++$i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
+				for (++$i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
 				{
 					if ($token[$i] === self::TOKEN_ESCAPE && $i + 1 < $length)
 						++$i;
@@ -128,7 +128,7 @@ class	CompactEncoder extends Encoder
 
 				if ($i < $length && $token[$i] === self::TOKEN_VALUE)
 				{
-					for (++$i; $i < $length && !isset (self::$escapesDecode[$token[$i]]); ++$i)
+					for (++$i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
 					{
 						if ($token[$i] === self::TOKEN_ESCAPE && $i + 1 < $length)
 							++$i;
@@ -152,7 +152,7 @@ class	CompactEncoder extends Encoder
 	/*
 	** Override for Encoder::encode.
 	*/
-	public function	encode ($scopes, $plain)
+	public function encode ($scopes, $plain)
 	{
 		$token = self::VERSION;
 
@@ -161,12 +161,12 @@ class	CompactEncoder extends Encoder
 			list ($delta, $name, $action, $flag, $captures) = $scope;
 
 			// Append offset delta and action to tokenized header
-			$token .= self::TOKEN_SCOPE . $delta . self::$actionsEncode[$action];
+			$token .= self::TOKEN_SCOPE . $delta . self::$actions_encode[$action];
 
 			// Write tag name
 			foreach (str_split ($name) as $character)
 			{
-				if (isset (self::$escapesEncode[$character]))
+				if (isset (self::$escapes_encode[$character]))
 					$token .= self::TOKEN_ESCAPE;
 
 				$token .= $character;
@@ -179,7 +179,7 @@ class	CompactEncoder extends Encoder
 
 				foreach (str_split ($flag) as $character)
 				{
-					if (isset (self::$escapesEncode[$character]))
+					if (isset (self::$escapes_encode[$character]))
 						$token .= self::TOKEN_ESCAPE;
 
 					$token .= $character;
@@ -193,7 +193,7 @@ class	CompactEncoder extends Encoder
 
 				foreach (str_split ($key) as $character)
 				{
-					if (isset (self::$escapesEncode[$character]))
+					if (isset (self::$escapes_encode[$character]))
 						$token .= self::TOKEN_ESCAPE;
 
 					$token .= $character;
@@ -205,7 +205,7 @@ class	CompactEncoder extends Encoder
 
 					foreach (str_split ($value) as $character)
 					{
-						if (isset (self::$escapesEncode[$character]))
+						if (isset (self::$escapes_encode[$character]))
 							$token .= self::TOKEN_ESCAPE;
 
 						$token .= $character;

@@ -4,14 +4,14 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-class	FormatRenderer extends Renderer
+class FormatRenderer extends Renderer
 {
 	/*
 	** Initialize a new renderer.
 	** $encoder:	encoder instance
 	** $format:		render format definition
 	*/
-	public function	__construct ($encoder, $format)
+	public function __construct ($encoder, $format)
 	{
 		$this->encoder = $encoder;
 		$this->format = $format;
@@ -20,7 +20,7 @@ class	FormatRenderer extends Renderer
 	/*
 	** Override for Renderer::render.
 	*/
-	public function	render ($token, $escape = null)
+	public function render ($token, $escape = null)
 	{
 		// Parse tokenized string
 		$pack = $this->encoder->decode ($token);

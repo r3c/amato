@@ -4,7 +4,7 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-class	RegExpScanner extends Scanner
+class RegExpScanner extends Scanner
 {
 	const CAPTURE_BEGIN		= '<';
 	const CAPTURE_END		= '>';
@@ -20,7 +20,7 @@ class	RegExpScanner extends Scanner
 	const REPEAT_END		= '}';
 	const REPEAT_SPLIT		= ',';
 
-	public function	__construct ($escape = '\\')
+	public function __construct ($escape = '\\')
 	{
 		$this->escape = $escape;
 		$this->table = array ();
@@ -29,7 +29,7 @@ class	RegExpScanner extends Scanner
 	/*
 	** Override for Scanner::assign.
 	*/
-	public function	assign ($expression, $match)
+	public function assign ($expression, $match)
 	{
 		$capture = null;
 		$decode = array ();
@@ -169,19 +169,20 @@ class	RegExpScanner extends Scanner
 	/*
 	** Override for Scanner::escape.
 	*/
-	public function	escape ($string, $verify)
+	public function escape ($string, $verify)
 	{
 		$candidates = $this->find ($string);
-		$shift = 0;
 
-		for ($i = 0; $i < count ($candidates); ++$i)
+		for ($i = count ($candidates) - 1; $i >= 0; )
 		{
-			list ($offset, $length, $match, $captures) = $candidates[$i];
+			list ($offset, $length, $match, $captures) = $candidates[$i--];
 
 			if ($captures === null || $verify ($match))
 			{
-				$string = mb_substr ($string, 0, $offset + $shift) . $this->escape . mb_substr ($string, $offset + $shift);
-				$shift += mb_strlen ($this->escape);
+				$string = mb_substr ($string, 0, $offset) . $this->escape . mb_substr ($string, $offset);
+
+				while ($i >= 0 && $candidates[$i][0] + $candidates[$i][1] > $offset)
+					--$i;
 			}
 		}
 
@@ -191,7 +192,7 @@ class	RegExpScanner extends Scanner
 	/*
 	** Override for Scanner::make.
 	*/
-	public function	make ($accept, $captures)
+	public function make ($accept, $captures)
 	{
 		$decode = $this->table[$accept][1];
 		$string = '';
@@ -210,7 +211,7 @@ class	RegExpScanner extends Scanner
 	/*
 	** Override for Scanner::scan.
 	*/
-	public function	scan ($string, $process, $verify)
+	public function scan ($string, $process, $verify)
 	{
 		$candidates = $this->find ($string);
 		$count = count ($candidates);
@@ -261,11 +262,11 @@ class	RegExpScanner extends Scanner
 	** $string:	input plain text string
 	** return:	sorted candidates array (offset, length, match, captures)
 	*/
-	private function	find ($string)
+	private function find ($string)
 	{
-		// Search for candidates amongst tag patterns
 		$candidates = array ();
 
+		// Search for candidates amongst tag patterns
 		foreach ($this->table as $array)
 		{
 			list ($match, $decode, $pattern, $keys) = $array;

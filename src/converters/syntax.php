@@ -4,7 +4,7 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-class	SyntaxConverter extends Converter
+class SyntaxConverter extends Converter
 {
 	/*
 	** Initialize a new default converter.
@@ -13,7 +13,7 @@ class	SyntaxConverter extends Converter
 	** $syntax:		syntax language definitions
 	** $limit:		optional default tag limit, 0 for no limit
 	*/
-	public function	__construct ($encoder, $scanner, $syntax, $limit = 0)
+	public function __construct ($encoder, $scanner, $syntax, $limit = 0)
 	{
 		$this->encoder = $encoder;
 		$this->limits = array ();
@@ -68,7 +68,7 @@ class	SyntaxConverter extends Converter
 	/*
 	** Override for Converter::convert.
 	*/
-	public function	convert ($text, $custom = null)
+	public function convert ($text, $custom = null)
 	{
 		// Parse original string using internal scanner
 		$callbacks =& $this->onConverts;
@@ -231,7 +231,7 @@ class	SyntaxConverter extends Converter
 	/*
 	** Override for Converter::revert.
 	*/
-	public function	revert ($token, $custom = null)
+	public function revert ($token, $custom = null)
 	{
 		// Parse tokenized string
 		$pack = $this->encoder->decode ($token);
@@ -245,7 +245,7 @@ class	SyntaxConverter extends Converter
 		$context = array ('default' => 1);
 		$offset = 0;
 
-		$escape = function ($match) use (&$context)
+		$verify = function ($match) use (&$context)
 		{
 			list ($name, $meanings) = $match;
 
@@ -298,7 +298,7 @@ class	SyntaxConverter extends Converter
 			}
 
 			// Escape skipped plain text and insert tag
-			$chunk = $this->scanner->escape (mb_substr ($text, $offset, $delta), $escape);
+			$chunk = $this->scanner->escape (mb_substr ($text, $offset, $delta), $verify);
 			$text = mb_substr ($text, 0, $offset) . $chunk . $string . mb_substr ($text, $offset + $delta);
 
 			$offset += mb_strlen ($chunk) + mb_strlen ($string);
@@ -316,13 +316,13 @@ class	SyntaxConverter extends Converter
 		}
 
 		// Escape remaining plain text
-		$chunk = $this->scanner->escape (mb_substr ($text, $offset), $escape);
+		$chunk = $this->scanner->escape (mb_substr ($text, $offset), $verify);
 		$text = mb_substr ($text, 0, $offset) . $chunk;
 
 		return $text;
 	}
 
-	private static function	parseCondition ($expression)
+	private static function parseCondition ($expression)
 	{
 		$result = array ();
 
@@ -340,7 +340,7 @@ class	SyntaxConverter extends Converter
 		return $result;
 	}
 
-	private static function	parseSwitch ($expression)
+	private static function parseSwitch ($expression)
 	{
 		$switch = array ();
 

@@ -4,7 +4,7 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-abstract class	Converter
+abstract class Converter
 {
 	/*
 	** Convert plain text string to tokenized format.
@@ -12,7 +12,7 @@ abstract class	Converter
 	** $custom:	optional custom convert information
 	** return:	tokenized string
 	*/
-	public abstract function	convert ($text, $custom = null);
+	public abstract function convert ($text, $custom = null);
 
 	/*
 	** Convert tokenized string back to plain text format.
@@ -20,7 +20,7 @@ abstract class	Converter
 	** $custom:	optional custom revert information
 	** return:	plain text string
 	*/
-	public abstract function	revert ($token, $custom = null);
+	public abstract function revert ($token, $custom = null);
 }
 
 ?>

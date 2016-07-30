@@ -4,14 +4,14 @@ namespace Umen;
 
 defined ('UMEN') or die;
 
-class	ConcatEncoder extends Encoder
+class ConcatEncoder extends Encoder
 {
 	const VERSION	= 1;
 
 	/*
 	** Override for Encoder::decode.
 	*/
-	public function	decode ($token)
+	public function decode ($token)
 	{
 		$pack = explode ('|', $token, 3);
 
@@ -45,7 +45,7 @@ class	ConcatEncoder extends Encoder
 	/*
 	** Override for Encoder::encode.
 	*/
-	public function	encode ($scopes, $plain)
+	public function encode ($scopes, $plain)
 	{
 		return (string)self::VERSION . '|' . implode (';', array_map (function ($scope)
 		{

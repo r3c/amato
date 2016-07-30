@@ -48,7 +48,7 @@ function	bench ($count, $init, $loop, $stop)
 }
 
 $encoder = new Umen\CompactEncoder ();
-$scanner = new Umen\DefaultScanner ();
+$scanner = new Umen\RegExpScanner ();
 $converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
 $renderer = new Umen\FormatRenderer ($encoder, $format);
 
@@ -60,42 +60,42 @@ $test = array
 	'Plain text - long'		=> array
 	(
 		'count'	=> 5,
-		'file'	=> 'txt/plain.long.txt'
+		'file'	=> 'data/unit-plain-long.txt'
 	),
 	'Plain text - medium'	=> array
 	(
 		'count'	=> 10,
-		'file'	=> 'txt/plain.medium.txt'
+		'file'	=> 'data/unit-plain-medium.txt'
 	),
 	'Plain text - short'	=> array
 	(
 		'count'	=> 20,
-		'file'	=> 'txt/plain.short.txt'
+		'file'	=> 'data/unit-plain-short.txt'
 	),
 	'Plain text - tiny'		=> array
 	(
 		'count'	=> 100,
-		'file'	=> 'txt/plain.tiny.txt'
+		'file'	=> 'data/unit-plain-tiny.txt'
 	),
 	'Tagged text - long'	=> array
 	(
 		'count'	=> 5,
-		'file'	=> 'txt/tag.long.txt'
+		'file'	=> 'data/unit-tag-long.txt'
 	),
 	'Tagged text - medium'	=> array
 	(
 		'count'	=> 10,
-		'file'	=> 'txt/tag.medium.txt'
+		'file'	=> 'data/unit-tag-medium.txt'
 	),
 	'Tagged text - short'	=> array
 	(
 		'count'	=> 20,
-		'file'	=> 'txt/tag.short.txt'
+		'file'	=> 'data/unit-tag-short.txt'
 	),
 	'Tagged text - tiny'	=> array
 	(
 		'count'	=> 100,
-		'file'	=> 'txt/tag.tiny.txt'
+		'file'	=> 'data/unit-tag-tiny.txt'
 	)
 );
 
