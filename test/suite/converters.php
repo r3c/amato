@@ -29,7 +29,7 @@ $syntax = array
 	),
 	'b' => array
 	(
-		array (Amato\Tag::FLIP, '**'),
+		array (Amato\Tag::FLIP, '__'),
 		array (Amato\Tag::START, '[b]'),
 		array (Amato\Tag::STOP, '[/b]')
 	),
@@ -39,13 +39,14 @@ $syntax = array
 	),
 	'i' => array
 	(
+		array (Amato\Tag::FLIP, '_'),
 		array (Amato\Tag::START, '[i]'),
 		array (Amato\Tag::STOP, '[/i]')
 	),
 	'list' => array
 	(
 		array (Amato\Tag::PULSE, '##'),
-		array (Amato\Tag::STOP, "\n")
+		array (Amato\Tag::STOP, "\n\n")
 	),
 	's' => array
 	(
@@ -113,10 +114,11 @@ test_converter ('[b]Hello, World![/b]', array (array ('b', array (array (0), arr
 test_converter ('A[b]B[/b]C[i]D[/i]E', array (array ('b', array (array (1), array (2))), array ('i', array (array (3), array (4)))), 'ABCDE');
 test_converter ('A[b]B[i]C[/i]D[/b]E', array (array ('b', array (array (1), array (4))), array ('i', array (array (2), array (3)))), 'ABCDE');
 test_converter ('A[b]B[i]C[/b]D[/i]E', array (array ('b', array (array (1), array (3))), array ('i', array (array (2), array (4)))), 'ABCDE');
-test_converter ('**Bold**', array (array ('b', array (array (0), array (4)))), 'Bold');
-test_converter ('[b]Bold**', array (array ('b', array (array (0), array (4)))), 'Bold');
-test_converter ('**Bold[/b]', array (array ('b', array (array (0), array (4)))), 'Bold');
-test_converter ("##A##B##C\n", array (array ('list', array (array (0), array (1), array (2), array (3)))), 'ABC');
+test_converter ('_italic_', array (array ('i', array (array (0), array (6)))), 'italic');
+test_converter ('__bold__', array (array ('b', array (array (0), array (4)))), 'bold');
+test_converter ('[b]bold__', array (array ('b', array (array (0), array (4)))), 'bold');
+test_converter ('__bold[/b]', array (array ('b', array (array (0), array (4)))), 'bold');
+test_converter ("##A##B##C\n\n", array (array ('list', array (array (0), array (1), array (2), array (3)))), 'ABC');
 
 // Captures
 test_converter ('[url=http://domain.ext]link[/url]', array (array ('a', array (array (0, array ('u' => 'http://domain.ext')), array (4)))), 'link');
@@ -149,12 +151,14 @@ test_converter (mb_convert_encoding ($markup, 'utf-8', $charset), $tags, mb_conv
 // Escape sequences
 test_converter ('\\\\', array (), '\\');
 test_converter ('\\ \\', array (), '\\ \\');
-//test_converter ('\\\\\\\\', array (), '\\\\');
-//test_converter ('\[b][/b]', array (), '[b][/b]');
-//test_converter ('[b]\[/b]', array (), '[b][/b]');
-//test_converter ('\[b]\[/b]', array (), '[b][/b]');
-//test_converter ('[b]Texte\[b]en\[/b]gras[/b]', array (array ('b', array (array (0), array (18)))), 'Texte[b]en[/b]gras');
-//test_converter ('\[b]Texte[b]en[/b]gras\[/b]', array (array ('b', array (array (8), array (10)))), '[b]Texteengras[/b]');
+test_converter ('\\\\\\\\', array (), '\\\\');
+test_converter ('\[b][/b]', array (), '[b][/b]');
+test_converter ('[b]\[/b]', array (), '[b][/b]');
+test_converter ('\[b]\[/b]', array (), '[b][/b]');
+test_converter ('[b]some\[b]bold\[/b]text[/b]', array (array ('b', array (array (0), array (19)))), 'some[b]bold[/b]text');
+test_converter ('\[b]some[b]bold[/b]text\[/b]', array (array ('b', array (array (7), array (11)))), '[b]someboldtext[/b]');
+test_converter ('\__italic__', array (array ('i', array (array (1), array (7)))), '_italic_');
+test_converter ('_\_italic__', array (array ('i', array (array (0), array (7)))), '_italic_');
 
 echo 'OK';
 

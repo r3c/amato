@@ -87,6 +87,14 @@ class PregScanner extends Scanner
 	}
 
 	/*
+	** Override for Scanner:escape.
+	*/
+	public function escape ($plain)
+	{
+		return $this->escape . $plain;
+	}
+
+	/*
 	** Override for Scanner::find.
 	*/
 	public function find ($string)
@@ -95,7 +103,7 @@ class PregScanner extends Scanner
 		$order = 0;
 
 		// Match all escape sequences in input string
-		if (preg_match_all ('/' . preg_quote ($this->escape, '/') . '/', $string, $matches, PREG_OFFSET_CAPTURE) === false) // FIXME: str_find_all?
+		if (preg_match_all ('/' . preg_quote ($this->escape, '/') . '/m', $string, $matches, PREG_OFFSET_CAPTURE) === false) // FIXME: str_find_all?
 			throw new \Exception ('invalid escape pattern "' . $this->escape . '"');
 
 		foreach ($matches[0] as $match)

@@ -70,8 +70,18 @@ class TagConverter extends Converter
 				{
 					list ($key, $offset, $length) = $candidates[$j];
 
+					// Skip disabled candidates
 					if ($length === null)
 						continue;
+
+					// Skip escape sequences along with following escaped candidates
+					if ($key === null)
+					{
+						while ($j + 1 < count ($candidates) && $offset + $length === $candidates[$j + 1][1])
+							++$j;
+
+						continue;
+					}
 
 					list ($id_next, $type, $defaults, $convert) = $this->attributes[$key];
 
@@ -93,16 +103,25 @@ class TagConverter extends Converter
 				$groups[] = array ($id, $matches);
 			}
 
-			// Candidate is an escape sequence and disables next candidate
-			else if ($i + 1 < count ($candidates) && $offset + $length === $candidates[$i + 1][1])
+			// Candidate is an escape sequence
+			else
 			{
-				$candidates[$i + 1][2] = null;
+				$incomplete = true;
+
+				// Disabled following escaped candidates
+				for ($j = $i + 1; $j < count ($candidates) && $offset + $length === $candidates[$j][1]; ++$j)
+				{
+					$candidates[$j][2] = null;
+					$incomplete = false;
+				}
+
+				// Escape sequence doesn't escape anything, ignore it
+				if ($incomplete)
+					continue;
+
+				// Flag escape sequence for removal
 				$matches = array ($i);
 			}
-
-			// Candidate is an escape sequence but doesn't escape any candidate
-			else
-				continue;
 
 			// Remove matches from string and fix offsets
 			foreach ($matches as $match)
@@ -143,7 +162,7 @@ class TagConverter extends Converter
 		if ($pair === null)
 			return null;
 
-		list ($markup, $chains) = $pair;
+		list ($plain, $chains) = $pair;
 
 		// Build linear list of matches, ordered by offset
 		$matches = array ();
@@ -164,15 +183,19 @@ class TagConverter extends Converter
 		ksort ($matches);
 
 		// Build tokens and insert into plain string
-		$shift = 0;
+		$depths = array ();
+		$markup = '';
+		$start = 0;
 
 		foreach ($matches as $match)
 		{
 			list ($id, $offset, $captures, $is_first, $is_last) = $match;
 
-			// Find definition matching current marker
-			$insert = null;
+			// Append plain string before current tag
+			$markup .= $this->build_markup ($depths, mb_substr ($plain, $start, $offset - $start));
+			$start = $offset;
 
+			// Find definition matching current marker
 			foreach ($this->attributes as $key => $attribute)
 			{
 				list ($id_attribute, $type, $defaults, $convert, $revert) = $attribute;
@@ -188,18 +211,23 @@ class TagConverter extends Converter
 				    (count (array_diff_assoc ($defaults, $captures)) > 0))
 					continue;
 
-				$insert = $this->scanner->build ($key, $captures);
+				// Insert reverted tag into plain string
+				$markup .= $this->scanner->build ($key, $captures);
+
+				// Update depth of current marker id
+				if ($type === Tag::FLIP && isset ($depths[$id]))
+					$depths[$id] = ($depths[$id] - 1) ?: null;
+				else if (($type === Tag::FLIP || $type === Tag::PULSE) && !isset ($depths[$id]))
+					$depths[$id] = 1;
+				else if ($type === Tag::START)
+					$depths[$id] = (isset ($depths[$id]) ? $depths[$id] : 0) + 1;
 
 				break;
 			}
-
-			// Insert tag into markup string
-			if ($insert !== null)
-			{
-				$markup = mb_substr ($markup, 0, $offset + $shift) . $insert . mb_substr ($markup, $offset + $shift);
-				$shift += mb_strlen ($insert);
-			}
 		}
+
+		// Append remaining plain string
+		$markup .= $this->build_markup ($depths, mb_substr ($plain, $start));
 
 		return $markup;
 	}
@@ -231,6 +259,46 @@ class TagConverter extends Converter
 		}
 
 		return $chains;
+	}
+
+	/*
+	** Build plain string from given raw string, by escaping tag sequences that
+	** would be matched when converting it.
+	** $depths:	array of id => depth values per id
+	** $raw:	unescaped raw string
+	** return:	escaped plain string
+	*/
+	private function build_markup ($depths, $plain)
+	{
+		$candidates = $this->scanner->find ($plain);
+		$markup = $plain;
+
+		foreach (array_reverse ($candidates) as $candidate)
+		{
+			list ($key, $offset, $length) = $candidate;
+
+			// Candidate is a tag, ensure there is need to escape it
+			if ($key !== null)
+			{
+				list ($id, $type, $defaults) = $this->attributes[$key];
+
+				$captures = $candidate[3];
+
+				if ((($type !== Tag::ALONE) &&
+					 ($type !== Tag::FLIP) &&
+					 ($type !== Tag::PULSE) &&
+					 ($type !== Tag::START) &&
+					 ($type !== Tag::STEP || !isset ($depths[$id])) &&
+					 ($type !== Tag::STOP || !isset ($depths[$id]))) ||
+					count (array_diff_assoc ($defaults, $captures)) > 0)
+					continue;
+			}
+
+			// Escape candidate
+			$markup = mb_substr ($markup, 0, $offset) . $this->scanner->escape (mb_substr ($markup, $offset, $length)) . mb_substr ($markup, $offset + $length);
+		}
+
+		return $markup;
 	}
 }
 
