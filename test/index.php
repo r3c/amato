@@ -5,3 +5,5 @@ Amato Tests
 Converters: <?php require ('suite/converters.php'); ?>
 
 Encoders: <?php require ('suite/encoders.php'); ?>
+
+Renderers: <?php require ('suite/renderers.php'); ?>

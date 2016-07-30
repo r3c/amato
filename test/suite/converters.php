@@ -5,14 +5,15 @@ require_once ('assert/test.php');
 require_once ('assert/token.php');
 
 /*
-** Map of available tags and associated definitions.
-** - tag id => definition[]
-** -- definition: [type, pattern, defaults?, convert?, revert?]
-** --- defaults: name => value
+** Map of available tags and associated conversion definitions:
+** - [tag id => [definition]]
+** -- definition: (type, pattern, defaults?, convert?, revert?)
+** --- defaults: [name => value]
 */
 $syntax = array
 (
 	/*
+	** Pattern expression:
 	** <expression:name>
 	** (pattern)
 	** [characters]

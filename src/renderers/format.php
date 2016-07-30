@@ -22,7 +22,7 @@ class FormatRenderer extends Renderer
 	/*
 	** Override for Renderer::render.
 	*/
-	public function render ($token)
+	public function render ($token, $state = null)
 	{
 		// Parse tokenized string
 		$pack = $this->encoder->decode ($token);
@@ -30,137 +30,128 @@ class FormatRenderer extends Renderer
 		if ($pack === null)
 			return null;
 
-		list ($text, $scopes) = $pack;
+		list ($render, $chains) = $pack;
 
-		// Apply scopes on plain text
+		// Process all chains elements
+		$cursors = array ();
 		$escape = $this->escape;
-		$offset = 0;
-		$stack = array ();
+		$last = 0;
+		$scopes = array ();
+		$stop = 0;
 
-		foreach ($scopes as $scope)
+		if (count ($chains) > 0)
+			$cursors[0] = 0;
+
+		while (count ($cursors) > 0)
 		{
-			list ($delta, $name, $action, $flag, $captures) = $scope;
+			// First best chain and mark indices in current cursors, by offset
+			$best_offset = null;
 
-			// Escape incoming text chunk using provided callback if any
-			if ($escape !== null)
+			foreach ($cursors as $last_chain => $last_mark)
 			{
-				$chunk = $escape (mb_substr ($text, $offset, $delta));
-				$text = mb_substr ($text, 0, $offset) . $chunk . mb_substr ($text, $offset + $delta);
+				$offset = $chains[$last_chain][1][$last_mark][0];
 
-				$offset += mb_strlen ($chunk) - $delta;
-			}
-
-			$offset += $delta;
-
-			// Get formatting rule for current scope
-			if (!isset ($this->format[$name]))
-				continue;
-
-			$rule = $this->format[$name];
-
-			// Initialize action effect
-			switch ($action)
-			{
-				case Tag::ALONE:
-				case Tag::START:
-					// Get precedence level for this modifier
-					$level = isset ($rule['level']) ? (int)$rule['level'] : 1;
-
-					// Jump over pending tags with lower precedence
-					for ($index = count ($stack); $index > 0 && $level > $stack[$index - 1][0]; )
-						--$index;
-
-					break;
-
-				case Tag::STEP:
-				case Tag::STOP:
-					// Search for matching tag in pending stack, cancel if none
-					for ($index = count ($stack) - 1; $index >= 0 && $stack[$index][2] != $name; )
-						--$index;
-
-					if ($index < 0)
-						continue 2;
-
-					// Update tag flag and parameters
-					$tag =& $stack[$index];
-					$tag[3] = $flag;
-					$tag[4] = array_merge ($tag[4], $captures);
-
-					break;
-
-				default:
-					continue 2;
-			}
-
-			// Close and reset crossed scopes
-			for ($i = count ($stack) - 1; $i >= $index; --$i)
-			{
-				$callback = $i === $index && $action === Tag::STEP ? 'onStep' : 'onStop';
-				$cross = $stack[$i][2];
-
-				if (isset ($this->format[$cross][$callback]))
+				if ($best_offset === null || $offset < $best_offset)
 				{
-					$crossOffset = $stack[$i][1];
-					$crossLength = $offset - $crossOffset;
-
-					$result = $this->format[$cross][$callback] ($cross, $stack[$i][3], $stack[$i][4], mb_substr ($text, $crossOffset, $crossLength));
-					$text = mb_substr ($text, 0, $crossOffset) . $result . mb_substr ($text, $crossOffset + $crossLength);
-
-					$offset = $crossOffset + mb_strlen ($result);
+					$best_chain = $last_chain;
+					$best_offset = $offset;
 				}
 			}
 
-			// Execute action effect
-			switch ($action)
+			// Process current chain and mark
+			$best_mark = $cursors[$best_chain];
+
+			list ($id, $marks) = $chains[$best_chain];
+			list ($offset, $captures) = $marks[$best_mark];
+
+			$is_first = $best_mark === 0;
+			$is_last = $best_mark + 1 === count ($marks);
+
+			$start = $stop;
+			$stop += $offset - $last;
+			$last = $offset;
+
+			// Append next chain to cursors when processing first mark of last chain
+			if ($best_chain === $last_chain && $best_mark === 0 && $best_chain + 1 < count ($chains))
+				$cursors[$best_chain + 1] = 0;
+
+			// Remove current chain from cursors when processing its last mark
+			if (++$cursors[$best_chain] >= count ($marks))
+				unset ($cursors[$best_chain]);
+
+			// Escape plain text using provided callback if any
+			if ($escape !== null)
 			{
-				// Generate body and insert into text
-				case Tag::ALONE:
-					if (isset ($rule['onAlone']))
-					{
-						$result = $rule['onAlone'] ($name, $flag, $captures);
-						$text = mb_substr ($text, 0, $offset) . $result . mb_substr ($text, $offset);
+				$length = $stop - $start;
+				$plain = $escape (mb_substr ($render, $start, $length));
 
-						$offset += mb_strlen ($result);
-					}
-
-					break;
-
-				// Insert opened tag into stack
-				case Tag::START:
-					if (isset ($rule['onStart']))
-						$rule['onStart'] ($name, $flag, $captures);
-
-					array_splice ($stack, $index, 0, array (array
-					(
-						$level,
-						0,
-						$name,
-						$flag,
-						$captures
-					)));
-
-					break;
-
-				// Remove closed tag from the stack
-				case Tag::STOP:
-					array_splice ($stack, $index, 1);
-
-					break;
+				$render = mb_substr ($render, 0, $start) . $plain . mb_substr ($render, $stop);
+				$stop += mb_strlen ($plain) - $length;
 			}
 
-			// Update crossed scopes start offsets
-			for ($i = count ($stack) - 1; $i >= $index; --$i)
-				$stack[$i][1] = $offset;
+			// Get formatting rule for current chain
+			if (!isset ($this->format[$id]))
+				continue;
+
+			// Create and insert new scope according to its precedence level
+			if ($is_first)
+			{
+				$callback = isset ($this->format[$id][0]) ? $this->format[$id][0] : null;
+				$level = isset ($this->format[$id][1]) ? $this->format[$id][1] : 1;
+
+				for ($scope_end = count ($scopes); $scope_end > 0 && $level > $scopes[$scope_end - 1][3]; )
+					--$scope_end;
+
+				array_splice ($scopes, $scope_end, 0, array (array ($id, $stop, $callback, $level, $captures)));
+
+				$scope_begin = $scope_end;
+
+				if (!$is_last)
+					++$scope_end;
+			}
+
+			// Find existing scope matching current chain id, cancel if none
+			else
+			{
+				for ($scope_end = count ($scopes) - 1; $scope_end >= 0 && $scopes[$scope_end][0] !== $id; )
+					--$scope_end;
+
+				if ($scope_end < 0)
+					continue;
+
+				$scopes[$scope_end][4] += $captures;
+				$scope_begin = $scope_end;
+			}
+
+			// Invoke callback for crossed scopes
+			for ($i = count ($scopes) - 1; $i >= $scope_end; --$i)
+			{
+				list ($id, $start, $callback) = $scopes[$i];
+
+				if ($callback === null)
+					continue;
+
+				$length = $stop - $start;
+				$markup = $callback ($scopes[$i][4], mb_substr ($render, $start, $length), $i !== $scope_end || $is_last, $state);
+
+				$render = mb_substr ($render, 0, $start) . $markup . mb_substr ($render, $start + $length);
+				$stop += mb_strlen ($markup) - $length;
+			}
+
+			// Remove scope from stack when closed
+			if ($is_last)
+				array_splice ($scopes, $scope_end, 1);
+
+			// Fast-forward offset of crossed scopes
+			for ($i = count ($scopes) - 1; $i >= $scope_begin; --$i)
+				$scopes[$i][1] = $stop;
 		}
 
-		// Escape remaining text chunk using provided callback if any
+		// Escape trailing plain text using provided callback if any
 		if ($escape !== null)
-		{
-			$chunk = $escape (mb_substr ($text, $offset));
-			$text = mb_substr ($text, 0, $offset) . $chunk;
-		}
+			$render = mb_substr ($render, 0, $stop) . $escape (mb_substr ($render, $stop));
 
-		return $text;
+		return $render;
 	}
 }
 
