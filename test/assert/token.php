@@ -22,7 +22,7 @@ function assert_token_equal ($context, $tags, $plain, $tags_expected, $plain_exp
 			list ($offset_expected, $captures_expected) = $matches_expected[$j];
 
 			assert ($offset === $offset_expected, $context . ' - tag #' . $i . ' match #' . $j . ' offset: ' . $offset . ' !== ' . $offset_expected);
-			assert (count ($captures) === count ($captures_expected), $context . ' - ag #' . $i . ' match #' . $j . ' number of captures: ' . count ($captures) . ' !== ' . count ($captures_expected));
+			assert (count ($captures) === count ($captures_expected), $context . ' - tag #' . $i . ' match #' . $j . ' number of captures: ' . count ($captures) . ' !== ' . count ($captures_expected));
 
 			foreach ($captures_expected as $key => $value)
 			{

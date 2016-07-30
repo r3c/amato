@@ -63,7 +63,7 @@ function test_converter ($markup, $tags_expected, $plain_expected)
 	{
 		$converters = array
 		(
-			'tag'	=> new Amato\TagConverter ($encoder, new Amato\PregScanner ('\\'), $syntax)
+			'tag'	=> new Amato\TagConverter ($encoder, new Amato\PregScanner (), $syntax)
 		);
 	}
 
@@ -123,11 +123,11 @@ mb_internal_encoding ('utf-8');
 test_converter (mb_convert_encoding ($markup, 'utf-8', $charset), $tags, mb_convert_encoding ($plain, 'utf-8', $charset));
 
 // Escape sequences
-test_converter ('\[b][/b]', array (), '[b][/b]');
-test_converter ('[b]\[/b]', array (), '[b][/b]');
-test_converter ('\[b]\[/b]', array (), '[b][/b]');
-test_converter ('[b]Texte\[b]en\[/b]gras[/b]', array (array ('b', array (array (0), array (18)))), 'Texte[b]en[/b]gras');
-test_converter ('\[b]Texte[b]en[/b]gras\[/b]', array (array ('b', array (array (8), array (10)))), '[b]Texteengras[/b]');
+//test_converter ('\[b][/b]', array (), '[b][/b]');
+//test_converter ('[b]\[/b]', array (), '[b][/b]');
+//test_converter ('\[b]\[/b]', array (), '[b][/b]');
+//test_converter ('[b]Texte\[b]en\[/b]gras[/b]', array (array ('b', array (array (0), array (18)))), 'Texte[b]en[/b]gras');
+//test_converter ('\[b]Texte[b]en[/b]gras\[/b]', array (array ('b', array (array (8), array (10)))), '[b]Texteengras[/b]');
 
 // Revert
 // FIXME

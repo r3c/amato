@@ -14,31 +14,11 @@ abstract class Scanner
 	public abstract function assign ($pattern);
 
 	/*
-	** Escape given string so it doesn't match any of currently assigned
-	** patterns.
+	** Find matching candidates within given plain string.
 	** $string:		plain text string
-	** $verify:		escape requirement check (match) -> bool
-	** return:		escaped string
+	** return:		array of (key, offset, length, captures) candidates
 	*/
-	public abstract function escape ($string, $verify);
-
-	/*
-	** Make plain text string compatible with given pattern.
-	** $accept:		pattern accept identifier
-	** $captures:	captures array
-	** return:		plain text string
-	*/
-	public abstract function make ($accept, $captures);
-
-	/*
-	** Search given string for known patterns, invoke callback for all matches
-	** and return cleaned up string (with escape characters removed).
-	** $string:		plain text string
-	** $process:	match processor (match, offset, length, captures) -> bool
-	** $verify:		escape requirement check (match) -> bool
-	** return:		cleaned up string
-	*/
-	public abstract function scan ($string, $process, $verify);
+	public abstract function find ($string);
 }
 
 ?>

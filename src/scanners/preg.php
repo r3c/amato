@@ -13,9 +13,8 @@ class PregScanner extends Scanner
 	const DECODE_PLAIN		= 1;
 	const ESCAPE			= '%';
 
-	public function __construct ($escape = '\\')
+	public function __construct ()
 	{
-		$this->escape = $escape;
 		$this->rules = array ();
 	}
 
@@ -73,6 +72,9 @@ class PregScanner extends Scanner
 		return count ($this->rules) - 1;
 	}
 
+	/*
+	** Override for Scanner::find.
+	*/
 	public function find ($string)
 	{
 		$candidates = array ();
@@ -109,133 +111,7 @@ class PregScanner extends Scanner
 		// Order candidates by offset ascending, length descending, rule ascending
 		ksort ($candidates);
 
-		$candidates = array_values ($candidates);
-
-		// Cancel candidates overlapping or starting right after an escape sequence
-		if (preg_match_all ('/' . preg_quote ($this->escape) . '/', $string, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) === false)
-			throw new \Exception ('invalid escape pattern "' . $pattern . '"');
-
-		$i = 0;
-		$shift = 0;
-
-		foreach ($matches as $match)
-		{
-			$escape_length = strlen ($match[0][0]);
-			$escape_offset = $match[0][1];
-
-			for (; $i < count ($candidates); ++$i)
-			{
-				list ($key, $candidate_offset, $candidate_length) = $candidates[$i];
-
-				if ($candidate_offset > $escape_offset + $escape_length)
-					break;
-
-				if ($candidate_offset + $candidate_length > $escape_offset)
-				{
-					$string = substr_replace ($string, '', $escape_offset - $shift, $escape_length);
-					$shift += $escape_length;
-
-					for ($j = $i + 1; $j < count ($candidates); ++$j)
-						$candidates[$j][1] -= $escape_length;
-
-					array_splice ($candidates, $i--, 1);
-				}
-			}
-		}
-
-		// Return clean string and remaining candidates
-		return array ($string, $candidates);
-	}
-
-	/*
-	** Override for Scanner::escape.
-	*/
-	public function escape ($string, $verify)
-	{
-		$candidates = $this->find ($string);
-
-		for ($i = count ($candidates) - 1; $i >= 0; )
-		{
-			list ($offset, $length, $match, $captures) = $candidates[$i--];
-
-			if ($captures === null || $verify ($match))
-			{
-				$string = mb_substr ($string, 0, $offset) . $this->escape . mb_substr ($string, $offset);
-
-				while ($i >= 0 && $candidates[$i][0] + $candidates[$i][1] > $offset)
-					--$i;
-			}
-		}
-
-		return $string;
-	}
-
-	/*
-	** Override for Scanner::make.
-	*/
-	public function make ($accept, $captures)
-	{
-		$decode = $this->table[$accept][1];
-		$string = '';
-
-		foreach ($decode as $segment)
-		{
-			if ($segment[0] === self::DECODE_STRING)
-				$string .= $segment[1];
-			else if (isset ($captures[$segment[1]]))
-				$string .= $captures[$segment[1]];
-		}
-
-		return $string;
-	}
-
-	/*
-	** Override for Scanner::scan.
-	*/
-	public function scan ($string, $process, $verify)
-	{
-		$candidates = $this->find ($string);
-		$count = count ($candidates);
-		$shift = 0;
-
-		// Send candidates to matching callback
-		for ($i = 0; $i < $count; ++$i)
-		{
-			list ($offset, $length, $match, $captures) = $candidates[$i];
-
-			$resume = $offset + $length;
-
-			// Candidate is a match, use callback to validate
-			if ($match !== null)
-			{
-				if (!$process ($match, $offset - $shift, $length, $captures))
-					continue;
-			}
-
-			// Candidate is an escape sequence followed by a valid candidate
-			else if ($i + 1 < $count && $candidates[$i + 1][0] === $offset + $length)
-			{
-				$match = $candidates[$i + 1][2];
-
-				if ($match !== null && !$verify ($match))
-					continue;
-
-				$string = mb_substr ($string, 0, $offset - $shift) . mb_substr ($string, $offset - $shift + $length);
-
-				$resume += 1;
-				$shift += $length;
-			}
-
-			// Remove overlapped matches from candidates list
-			while ($i + 1 < $count && $candidates[$i + 1][0] < $resume)
-			{
-				array_splice ($candidates, $i + 1, 1);
-
-				--$count;
-			}
-		}
-
-		return $string;
+		return array_values ($candidates);
 	}
 }
 
