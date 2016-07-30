@@ -55,7 +55,7 @@ class TagConverter extends Converter
 			list ($id, $type, $defaults, $convert) = $this->attributes[$key];
 
 			// Ignore tag types that can't start a group
-			if ($type !== Tag::ALONE && $type !== Tag::FLIP && $type !== Tag::START)
+			if ($type !== Tag::ALONE && $type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::START)
 				continue;
 
 			// FIXME: call pre-convert callback here if any
@@ -73,12 +73,13 @@ class TagConverter extends Converter
 
 				list ($id_next, $type, $defaults, $convert) = $this->attributes[$key];
 
-				if ($id !== $id_next || ($type !== Tag::FLIP && $type !== Tag::STEP && $type !== Tag::STOP))
+				// Ignore tag types that can't continue a group
+				if ($id !== $id_next || ($type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::STEP && $type !== Tag::STOP))
 					continue;
 
 				// FIXME: call pre-convert callback here if any
 
-				$incomplete = $type === Tag::STEP;
+				$incomplete = $type === Tag::PULSE || $type === Tag::STEP;
 				$matches[] = $j;
 			}
 
@@ -169,6 +170,7 @@ class TagConverter extends Converter
 				if (($id !== $id_attribute) ||
 					($type === Tag::ALONE && (!$is_first || !$is_last)) ||
 					($type === Tag::FLIP && !$is_first && !$is_last) ||
+					($type === Tag::PULSE && $is_last) ||
 					($type === Tag::START && !$is_first) ||
 					($type === Tag::STEP && ($is_first || $is_last)) ||
 					($type === Tag::STOP && !$is_last) ||

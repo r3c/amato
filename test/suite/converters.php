@@ -42,6 +42,11 @@ $syntax = array
 		array (Amato\Tag::START, '[i]'),
 		array (Amato\Tag::STOP, '[/i]')
 	),
+	'list' => array
+	(
+		array (Amato\Tag::PULSE, '##'),
+		array (Amato\Tag::STOP, "\n")
+	),
 	's' => array
 	(
 		array (Amato\Tag::START, '[size=<p:[0-9]+>]'),
@@ -111,6 +116,7 @@ test_converter ('A[b]B[i]C[/b]D[/i]E', array (array ('b', array (array (1), arra
 test_converter ('**Bold**', array (array ('b', array (array (0), array (4)))), 'Bold');
 test_converter ('[b]Bold**', array (array ('b', array (array (0), array (4)))), 'Bold');
 test_converter ('**Bold[/b]', array (array ('b', array (array (0), array (4)))), 'Bold');
+test_converter ("##A##B##C\n", array (array ('list', array (array (0), array (1), array (2), array (3)))), 'ABC');
 
 // Captures
 test_converter ('[url=http://domain.ext]link[/url]', array (array ('a', array (array (0, array ('u' => 'http://domain.ext')), array (4)))), 'link');

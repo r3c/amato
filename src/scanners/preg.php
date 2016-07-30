@@ -110,6 +110,7 @@ class PregScanner extends Scanner
 					$captures[$names[$i]] = $match[$i + 1][0];
 
 				// Append to candidates array, using custom key for fast sorting
+				// (using custom key + ksort is way faster than usort)
 				$length = mb_strlen ($match[0][0]);
 				$offset = mb_strlen (substr ($string, 0, $match[0][1]));
 

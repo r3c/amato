@@ -8,9 +8,10 @@ class Tag
 {
 	const ALONE = 0;
 	const FLIP = 1;
-	const START = 2;
-	const STEP = 3;
-	const STOP = 4;
+	const PULSE = 2;
+	const START = 3;
+	const STEP = 4;
+	const STOP = 5;
 }
 
 ?>
