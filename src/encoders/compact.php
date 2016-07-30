@@ -82,6 +82,7 @@ class CompactEncoder extends Encoder
 
 				while ($i < $length && $token[$i] === self::CAPTURE)
 				{
+					// Read capture key
 					$key = '';
 
 					for (++$i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
@@ -92,16 +93,21 @@ class CompactEncoder extends Encoder
 						$key .= $token[$i];
 					}
 
+					// Read capture value if any
 					$value = '';
 
-					for (++$i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
+					if ($i < $length && $token[$i] === self::CAPTURE_VALUE)
 					{
-						if ($token[$i] === self::ESCAPE && $i + 1 < $length)
-							++$i;
+						for (++$i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
+						{
+							if ($token[$i] === self::ESCAPE && $i + 1 < $length)
+								++$i;
 
-						$value .= $token[$i];
+							$value .= $token[$i];
+						}
 					}
 
+					// Store in captures array
 					$captures[$key] = $value;
 				}
 
@@ -137,7 +143,7 @@ class CompactEncoder extends Encoder
 			if ($token !== '')
 				$token .= self::CHAIN;
 
-			$token .= $this->escape ((string)$id);
+			$token .= self::escape ((string)$id);
 
 			// Write markers
 			$shift = $shift_chain;
@@ -149,7 +155,13 @@ class CompactEncoder extends Encoder
 
 				// Write captures
 				foreach ($marker[1] as $key => $value)
-					$token .= self::CAPTURE . $this->escape ($key) . self::CAPTURE_VALUE . $this->escape ((string)$value);
+				{
+					$token .= self::CAPTURE . self::escape ($key);
+					$value = (string)$value;
+
+					if ($value !== '')
+						$token .= self::CAPTURE_VALUE . self::escape ((string)$value);
+				}
 
 				$shift = $marker[0];
 			}
@@ -160,7 +172,7 @@ class CompactEncoder extends Encoder
 		return $token . self::PLAIN . $plain;
 	}
 
-	private function escape ($string)
+	private static function escape ($string)
 	{
 		$escape = '';
 		$length = strlen ($string);

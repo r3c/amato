@@ -1,14 +1,14 @@
 <?php
 
-function assert_token_equal ($context, $tags, $plain, $tags_expected, $plain_expected)
+function assert_token_equal ($context, $chains, $plain, $chains_expected, $plain_expected)
 {
 	assert_test_equal ($plain, $plain_expected, $context . ' plain');
-	assert_test_equal (count ($tags), count ($tags_expected), $context . ' number of tags');
+	assert_test_equal (count ($chains), count ($chains_expected), $context . ' number of tags');
 
-	for ($i = 0; $i < count ($tags); ++$i)
+	for ($i = 0; $i < count ($chains); ++$i)
 	{
-		list ($id, $matches) = $tags[$i];
-		list ($id_expected, $matches_expected) = $tags_expected[$i];
+		list ($id, $matches) = $chains[$i];
+		list ($id_expected, $matches_expected) = $chains_expected[$i];
 
 		assert_test_equal ($id, $id_expected, $context . ' tag #' . $i . ' id');
 		assert_test_equal (count ($matches), count ($matches_expected), $context . ' tag #' . $i . ' number of matches');
