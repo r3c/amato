@@ -30,7 +30,7 @@ class FormatRenderer extends Renderer
 		if ($pack === null)
 			return null;
 
-		list ($scopes, $text) = $pack;
+		list ($text, $scopes) = $pack;
 
 		// Apply scopes on plain text
 		$escape = $this->escape;

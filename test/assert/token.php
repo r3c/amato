@@ -1,6 +1,6 @@
 <?php
 
-function assert_token_equal ($context, $chains, $plain, $chains_expected, $plain_expected)
+function assert_token_equal ($context, $plain, $chains, $plain_expected, $chains_expected)
 {
 	assert_test_equal ($plain, $plain_expected, $context . ' plain');
 	assert_test_equal (count ($chains), count ($chains_expected), $context . ' number of tags');

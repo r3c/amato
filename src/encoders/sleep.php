@@ -17,9 +17,9 @@ class SleepEncoder extends Encoder
 	/*
 	** Override for Encoder::encode.
 	*/
-	public function encode ($tags, $plain)
+	public function encode ($plain, $chains)
 	{
-		return serialize (array ($tags, $plain));
+		return serialize (array ($plain, $chains));
 	}
 }
 

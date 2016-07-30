@@ -124,13 +124,13 @@ class CompactEncoder extends Encoder
 		if ($i >= $length || $token[$i++] !== self::PLAIN)
 			return null;
 
-		return array ($chains, (string)substr ($token, $i));
+		return array ((string)substr ($token, $i), $chains);
 	}
 
 	/*
 	** Override for Encoder::encode.
 	*/
-	public function encode ($chains, $plain)
+	public function encode ($plain, $chains)
 	{
 		$shift_chain = 0;
 		$token = '';

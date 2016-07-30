@@ -16,23 +16,25 @@ class ConcatEncoder extends Encoder
 		if (count ($pack) < 2)
 			return null;
 
+		list ($chains_string, $plain) = $pack;
+
 		$unescape = function ($string)
 		{
 			return str_replace (array ('%a', '%c', '%e', '%p', '%s', '%%'), array ('@', ',', '=', '|', ';', '%'), $string);
 		};
 
-		$tags = array ();
+		$chains = array ();
 
-		if ($pack[0] !== '')
+		if ($chains_string !== '')
 		{
-			foreach (explode (';', $pack[0]) as $tag_string)
+			foreach (explode (';', $chains_string) as $chain_string)
 			{
-				$tag = explode ('@', $tag_string);
+				$chain = explode ('@', $chain_string);
 
-				$id = $unescape (array_shift ($tag));
+				$id = $unescape (array_shift ($chain));
 				$markers = array ();
 
-				foreach ($tag as $marker_string)
+				foreach ($chain as $marker_string)
 				{
 					$marker = explode (',', $marker_string);
 
@@ -50,42 +52,42 @@ class ConcatEncoder extends Encoder
 					$markers[] = array ($offset, $captures);
 				}
 
-				$tags[] = array ($id, $markers);
+				$chains[] = array ($id, $markers);
 			}
 		}
 
-		return array ($tags, $pack[1]);
+		return array ($plain, $chains);
 	}
 
 	/*
 	** Override for Encoder::encode.
 	*/
-	public function encode ($tags, $plain)
+	public function encode ($plain, $chains)
 	{
 		$escape = function ($string)
 		{
 			return str_replace (array ('%', '@', ',', '=', '|', ';'), array ('%%', '%a', '%c', '%e', '%p', '%s'), $string);
 		};
 
-		$token = '';
+		$chains_string = '';
 
-		foreach ($tags as $tag)
+		foreach ($chains as $chain)
 		{
-			if ($token !== '')
-				$token .= ';';
+			if ($chains_string !== '')
+				$chains_string .= ';';
 
-			$token .= $escape ($tag[0]);
+			$chains_string .= $escape ($chain[0]);
 
-			foreach ($tag[1] as $marker)
+			foreach ($chain[1] as $marker)
 			{
-				$token .= '@' . $marker[0];
+				$chains_string .= '@' . $marker[0];
 
 				foreach ($marker[1] as $key => $value)
-					$token .= ',' . $escape ($key) . '=' . $escape ($value);
+					$chains_string .= ',' . $escape ($key) . '=' . $escape ($value);
 			}
 		}
 
-		return $token . '|' . $plain;
+		return $chains_string . '|' . $plain;
 	}
 }
 

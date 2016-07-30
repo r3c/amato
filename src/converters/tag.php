@@ -117,7 +117,7 @@ class TagConverter extends Converter
 		}
 
 		// Encode into tokenized string and return
-		return $this->encoder->encode ($this->build_chains ($candidates, $groups), $markup);
+		return $this->encoder->encode ($markup, $this->build_chains ($candidates, $groups));
 	}
 
 	/*
@@ -131,7 +131,7 @@ class TagConverter extends Converter
 		if ($pair === null)
 			return null;
 
-		list ($chains, $markup) = $pair;
+		list ($markup, $chains) = $pair;
 
 		// Build linear list of matches, ordered by offset
 		$matches = array ();

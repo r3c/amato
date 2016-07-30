@@ -51,7 +51,7 @@ $syntax = array
 
 Amato\autoload ();
 
-function test_converter ($markup, $tags_expected, $plain_expected)
+function test_converter ($markup, $chains_expected, $plain_expected)
 {
 	global $syntax;
 	static $converters;
@@ -75,18 +75,18 @@ function test_converter ($markup, $tags_expected, $plain_expected)
 		// Convert once and assert result
 		$token1 = $converter->convert ($markup);
 
-		list ($chains1, $plain1) = $encoder->decode ($token1);
+		list ($plain1, $chains1) = $encoder->decode ($token1);
 
-		assert_token_equal ($context, $chains1, $plain1, $tags_expected, $plain_expected);
+		assert_token_equal ($context, $plain1, $chains1, $plain_expected, $chains_expected);
 
 		$markup_revert1 = $converter->revert ($token1);
 
 		// Convert twice and assert again
 		$token2 = $converter->convert ($markup_revert1);
 
-		list ($chains2, $plain2) = $encoder->decode ($token2);
+		list ($plain2, $chains2) = $encoder->decode ($token2);
 
-		assert_token_equal ($context, $chains2, $plain2, $tags_expected, $plain_expected);
+		assert_token_equal ($context, $plain2, $chains2, $plain_expected, $chains_expected);
 
 		$markup_revert2 = $converter->revert ($token2);
 

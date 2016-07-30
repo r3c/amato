@@ -9,17 +9,17 @@ abstract class Encoder
 	/*
 	** Decode tokenized string into tag chains and plain string.
 	** $token:	tokenized string
-	** return:	(chains, plain) array or null on parsing error
+	** return:	(plain, chains) array or null on parsing error
 	*/
 	public abstract function decode ($token);
 
 	/*
 	** Encode tag chains and plain string into tokenized string.
-	** $chains:	resolved tag chains
 	** $plain:	plain string
+	** $chains:	resolved tag chains
 	** return:	tokenized string
 	*/
-	public abstract function encode ($chains, $plain);
+	public abstract function encode ($plain, $chains);
 }
 
 ?>
