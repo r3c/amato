@@ -123,6 +123,7 @@ test_converter ('__bold__', array (array ('b', array (array (0), array (4)))), '
 test_converter ('[b]bold__', array (array ('b', array (array (0), array (4)))), 'bold');
 test_converter ('__bold[/b]', array (array ('b', array (array (0), array (4)))), 'bold');
 test_converter ("##A##B##C\n\n", array (array ('list', array (array (0), array (1), array (2), array (3)))), 'ABC');
+test_converter ("####A\n\n", array (array ('list', array (array (0), array (0), array (1)))), 'A');
 
 // Captures
 test_converter ('[url=http://domain.ext]link[/url]', array (array ('a', array (array (0, array ('u' => 'http://domain.ext')), array (4)))), 'link');
@@ -140,6 +141,7 @@ test_converter ('[b][b]Text[/b]', array (array ('b', array (array (0), array (7)
 // Overlapping matches
 test_converter ('[url]http://google.fr[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr'))))), '');
 test_converter ('[url=http://google.fr]test[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr')), array (4)))), 'test');
+test_converter ('[b][i]text[/i][/b]', array (array ('b', array (array (0), array (4))), array ('i', array (array (0), array (4)))), 'text');
 
 // Crossed matches
 test_converter ('[b][pre]text[/b][/pre]', array (array ('b', array (array (0), array (9)))), '[pre]text[/pre]');

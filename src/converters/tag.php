@@ -168,7 +168,7 @@ class TagConverter extends Converter
 		// Build linear list of matches, ordered by offset
 		$matches = array ();
 
-		foreach ($groups as $precedence => $group)
+		foreach ($groups as $group_id => $group)
 		{
 			list ($id, $markers) = $group;
 
@@ -176,7 +176,8 @@ class TagConverter extends Converter
 			{
 				list ($offset, $captures) = $markers[$i];
 
-				$index = str_pad ($offset, 8, '0', STR_PAD_LEFT) . ':' . str_pad ($precedence, 8, '0', STR_PAD_LEFT);
+				$index = str_pad ($offset, 8, '0', STR_PAD_LEFT) . ':' . str_pad ($group_id, 8, '0', STR_PAD_LEFT) . ':' . str_pad ($i, 8, '0', STR_PAD_LEFT);
+
 				$matches[$index] = array ($id, $offset, $captures, $i === 0, $i + 1 === count ($markers));
 			}
 		}
