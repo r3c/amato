@@ -1,12 +1,7 @@
-<html>
-	<head>
-		<title>Amato Tests</title>
-	</head>
-	<body>
-		<h1>Amato Tests</h1>
-		<ul>
-			<li>Converters: <?php require ('suite/converters.php'); ?></li>
-			<li>Encoders: <?php require ('suite/encoders.php'); ?></li>
-		</ul>
-	</body>
-</html>
+<?php header ('Content-Type: text/plain'); ?>
+Amato Tests
+===========
+
+Converters: <?php require ('suite/converters.php'); ?>
+
+Encoders: <?php require ('suite/encoders.php'); ?>

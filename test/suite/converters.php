@@ -50,7 +50,7 @@ $syntax = array
 
 Amato\autoload ();
 
-function test_converter ($markup, $tags_expected, $plain_expected)
+function test_converter ($markup, $tags_expected, $plain_expected, $markup_expected = null)
 {
 	global $syntax;
 	static $converters;
@@ -75,6 +75,11 @@ function test_converter ($markup, $tags_expected, $plain_expected)
 		list ($tags, $plain) = $encoder->decode ($token);
 
 		assert_token_equal ($context, $tags, $plain, $tags_expected, $plain_expected);
+
+		$markup_reference = $markup_expected !== null ? $markup_expected : $markup;
+		$markup_revert = $converter->revert ($token);
+
+		assert ($markup_revert === $markup_reference, $context . ' - markup revert not equal: ' . assert_token_dump ($markup_revert) . ' !== ' . assert_token_dump ($markup_reference));
 	}
 }
 

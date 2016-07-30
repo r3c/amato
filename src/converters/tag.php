@@ -41,34 +41,34 @@ class TagConverter extends Converter
 	*/
 	public function convert ($markup, $context = null)
 	{
-		// Resolve candidate into matched tags chains
+		// Resolve candidate into matched groups
 		$candidates = $this->scanner->find ($markup);
 		$groups = array ();
 
 		for ($i = 0; $i < count ($candidates); ++$i)
 		{
-			list ($key, $offset, $length, $captures) = $candidates[$i];
+			list ($key, $offset, $length) = $candidates[$i];
 
-			if ($key === null)
+			if ($length === null)
 				continue;
 
 			list ($id, $type, $defaults, $convert) = $this->attributes[$key];
 
-			// Ignore tag types that can't start a chain
+			// Ignore tag types that can't start a group
 			if ($type !== Tag::ALONE && $type !== Tag::FLIP && $type !== Tag::START)
 				continue;
 
 			// FIXME: call pre-convert callback here if any
 
 			// Search for compatible matches in candidates
-			$matches = array (array ($i, $captures + $defaults));
-			$search = $type !== Tag::ALONE;
+			$incomplete = $type !== Tag::ALONE;
+			$matches = array ($i);
 
-			for ($j = $i + 1; $search && $j < count ($candidates); ++$j)
+			for ($j = $i + 1; $incomplete && $j < count ($candidates); ++$j)
 			{
-				list ($key, $offset, $length, $captures) = $candidates[$j];
+				list ($key, $offset, $length) = $candidates[$j];
 
-				if ($key === null)
+				if ($length === null)
 					continue;
 
 				list ($id_next, $type, $defaults, $convert) = $this->attributes[$key];
@@ -78,12 +78,12 @@ class TagConverter extends Converter
 
 				// FIXME: call pre-convert callback here if any
 
-				$matches[] = array ($j, $captures + $defaults);
-				$search = $type === Tag::STEP;
+				$incomplete = $type === Tag::STEP;
+				$matches[] = $j;
 			}
 
-			// Matches chain is incomplete, ignore it
-			if ($search)
+			// Matches group is incomplete, ignore it
+			if ($incomplete)
 				continue;
 
 			// Search for escape sequences before matches
@@ -92,32 +92,32 @@ class TagConverter extends Converter
 			// Remove matches from string and fix offsets
 			foreach ($matches as $match)
 			{
-				list ($index, $captures) = $match;
-				list ($key1, $offset1, $length1) = $candidates[$index];
+				list ($key1, $offset1, $length1) = $candidates[$match];
 
 				// Disable current candidate
-				$candidates[$index][0] = null;
+				$candidates[$match][2] = null;
 
 				// Disable overlapped candidates, shift successors
-				for (++$index; $index < count ($candidates); ++$index)
+				for ($next = $match + 1; $next < count ($candidates); ++$next)
 				{
-					list ($key2, $offset2, $length2) = $candidates[$index];
+					list ($key2, $offset2, $length2) = $candidates[$next];
 
-					if ($offset1 < $offset2 + $length2 && $offset2 < $offset1 + $length1)
-						$candidates[$index][0] = null;
+					if ($length2 !== null && $offset1 < $offset2 + $length2 && $offset2 < $offset1 + $length1)
+						$candidates[$next][2] = null;
 
-					$candidates[$index][1] -= $length1;
+					$candidates[$next][1] -= $length1;
 				}
 
 				// Remove match from string
 				$markup = mb_substr ($markup, 0, $offset1) . mb_substr ($markup, $offset1 + $length1);
 			}
 
+			// Append to completed groups
 			$groups[] = array ($id, $matches);
 		}
 
 		// Encode into tokenized string and return
-		return $this->encoder->encode (self::build_tags ($candidates, $groups), $markup);
+		return $this->encoder->encode ($this->build_chains ($candidates, $groups), $markup);
 	}
 
 	/*
@@ -125,14 +125,78 @@ class TagConverter extends Converter
 	*/
 	public function revert ($token, $context = null)
 	{
+		// Decode tokenized string into chains and pairs
+		$pair = $this->encoder->decode ($token);
+
+		if ($pair === null)
+			return null;
+
+		list ($chains, $markup) = $pair;
+
+		// Build tokens and insert into plain string
+		$shift = 0;
+
+		while (count ($chains) > 0)
+		{
+			// Find next marker occurrence by offset
+			$index = 0;
+			$min = $chains[$index][1][0][0];
+
+			for ($i = 1; $i < count ($chains) && $chains[$i][1][0][0] < $min; ++$i)
+			{
+				$index = $i;
+				$min = $chains[$i][1][0][0];
+			}
+
+			// Remove marker from chains, and chain if no markers are left
+			list ($offset, $captures) = array_shift ($chains[$index][1]);
+			list ($id, $markers) = $chains[$index];
+
+			if (count ($markers) === 0)
+				array_splice ($chains, $index, 1);
+
+			// Find definition matching current marker
+			$insert = null;
+
+			foreach ($this->attributes as $key => $attribute)
+			{
+				list ($id_attribute, $type, $defaults, $convert, $revert) = $attribute;
+
+				// Skip definition if ids don't match
+				if ($id !== $id_attribute)
+					continue;
+
+				// FIXME: check if type is compatible
+
+				// Skip definition if captures and defaults don't match
+				if (count (array_diff_assoc ($defaults, $captures)) > 0)
+					continue;
+
+				$insert = $this->scanner->build ($key, $captures);
+
+				break;
+			}
+
+			// Insert tag into markup string
+			if ($insert !== null)
+			{
+				$markup = mb_substr ($markup, 0, $offset + $shift) . $insert . mb_substr ($markup, $offset + $shift);
+				$shift += mb_strlen ($insert);
+			}
+		}
+
+		return $markup;
 	}
 
 	/*
-	** Build tags from matched groups.
+	** Build chains from matched groups.
+	** $candidates:	array of (key, offset, length, captures) candidates
+	** $groups:		array of (id, array of matches) completed groups
+	** return:		array of (id, array of (offset, captures)) chains
 	*/
-	private static function build_tags ($candidates, $groups)
+	private function build_chains ($candidates, $groups)
 	{
-		$tags = array ();
+		$chains = array ();
 
 		foreach ($groups as $group)
 		{
@@ -142,15 +206,15 @@ class TagConverter extends Converter
 
 			foreach ($matches as $match)
 			{
-				list ($key, $captures) = $match;
+				list ($key, $offset, $length, $captures) = $candidates[$match];
 
-				$markers[] = array ($candidates[$key][1], $captures);
+				$markers[] = array ($offset, $captures + $this->attributes[$key][2]);
 			}
 
-			$tags[] = array ($id, $markers);
+			$chains[] = array ($id, $markers);
 		}
 
-		return $tags;
+		return $chains;
 	}
 }
 

@@ -1,8 +1,13 @@
 <?php
 
+function assert_token_dump ($input)
+{
+	return mb_convert_encoding (preg_replace ("/\s+/m", ' ', var_export ($input, true)), 'utf-8');
+}
+
 function assert_token_equal ($context, $tags, $plain, $tags_expected, $plain_expected)
 {
-	assert ($plain === $plain_expected, $context . ' - plain not equal: ' . mb_convert_encoding (var_export ($plain, true), 'utf-8') . ' !== ' . mb_convert_encoding (var_export ($plain_expected, true), 'utf-8'));
+	assert ($plain === $plain_expected, $context . ' - plain not equal: ' . assert_token_dump ($plain) . ' !== ' . assert_token_dump ($plain_expected));
 	assert (count ($tags) === count ($tags_expected), $context . ' - number of tags: ' . count ($tags) . ' !== ' . count ($tags_expected));
 
 	for ($i = 0; $i < count ($tags); ++$i)
@@ -27,7 +32,7 @@ function assert_token_equal ($context, $tags, $plain, $tags_expected, $plain_exp
 			foreach ($captures_expected as $key => $value)
 			{
 				assert (isset ($captures[$key]), $context . ' - tag #' . $i . ' match #' . $j . ' capture[' . $key . ']: undefined');
-				assert ($captures[$key] === $value, $context . ' - tag #' . $i . ' match #' . $j . ' capture[' . $key . ']: ' . $captures[$key] . ' !== ' . $value);
+				assert ($captures[$key] === $value, $context . ' - tag #' . $i . ' match #' . $j . ' capture[' . $key . ']: ' . assert_token_dump ($captures[$key]) . ' !== ' . assert_token_dump ($value));
 			}
 		}
 	}

@@ -73,6 +73,14 @@ class PregScanner extends Scanner
 	}
 
 	/*
+	** Override for Scanner::build.
+	*/
+	public function build ($key, $captures)
+	{
+		return '[fixme]';
+	}
+
+	/*
 	** Override for Scanner::find.
 	*/
 	public function find ($string)
