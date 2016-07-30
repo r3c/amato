@@ -1,4 +1,4 @@
-div.umen blockquote
+.amato blockquote
 {
 	padding:		4px 8px;
 	margin:			8px 24px;
@@ -8,42 +8,42 @@ div.umen blockquote
 	border-left:	5px solid #336699;
 }
 
-div.umen blockquote blockquote
+.amato blockquote blockquote
 {
 	border-left-color:	#3B77B1;
 }
 
-div.umen blockquote blockquote blockquote
+.amato blockquote blockquote blockquote
 {
 	border-left-color:	#4987C3;
 }
 
-div.umen blockquote blockquote blockquote blockquote
+.amato blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#6197CB;
 }
 
-div.umen blockquote blockquote blockquote blockquote blockquote
+.amato blockquote blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#79A7D2;
 }
 
-div.umen blockquote blockquote blockquote blockquote blockquote blockquote
+.amato blockquote blockquote blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#91B6DA;
 }
 
-div.umen blockquote blockquote blockquote blockquote blockquote blockquote blockquote
+.amato blockquote blockquote blockquote blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#A9C6E3;
 }
 
-div.umen blockquote blockquote blockquote blockquote blockquote blockquote blockquote blockquote
+.amato blockquote blockquote blockquote blockquote blockquote blockquote blockquote blockquote
 {
 	border-left-color:	#C1D6EA;
 }
 
-div.umen div.box
+.amato div.box
 {
 	padding:	3px;
 	margin:		5px;
@@ -51,22 +51,22 @@ div.umen div.box
 	border:		1px solid #DDDDDD;
 }
 
-div.umen div.box div
+.amato div.box div
 {
 	padding:	4px 4px 0px 4px;
 }
 
-div.umen div.box_0 div
+.amato div.box_0 div
 {
 	display:	none;
 }
 
-div.umen div.box_1 div
+.amato div.box_1 div
 {
 	display:	block;
 }
 
-div.umen div.box h1
+.amato div.box h1
 {
 	padding:		3px 3px 3px 20px;
 	margin:			0px;
@@ -75,23 +75,23 @@ div.umen div.box h1
 	cursor:			pointer;
 }
 
-div.umen div.box_0 h1
+.amato div.box_0 h1
 {
 	background:		#EEEEEE url('box_0.png') no-repeat 2px 1px;
 }
 
-div.umen div.box_1 h1
+.amato div.box_1 h1
 {
 	background:		#EEEEEE url('box_1.png') no-repeat 2px 1px;
 }
 
-div.umen div.center
+.amato div.center
 {
 	margin:		auto;
 	text-align:	center;
 }
 
-div.umen div.cmd
+.amato div.cmd
 {
 	padding-left:	5px;
 	margin-left:	10px;
@@ -101,7 +101,7 @@ div.umen div.cmd
 	border-bottom:	0;
 }
 
-div.umen div.modo
+.amato div.modo
 {
 	padding:		3px 3px 3px 10px;
 	margin:			0px 30px 0px 50px;
@@ -112,7 +112,7 @@ div.umen div.modo
 	color:			#993333;
 }
 
-div.umen pre
+.amato pre
 {
 	padding:	2px 4px;
 	margin:		8px 24px;
@@ -121,125 +121,125 @@ div.umen pre
 	font:		normal normal normal 11px "Courier New", "fixedsys", Courier, monospace;
 }
 
-div.umen span.color0
+.amato span.color0
 {
 	color:	white;
 }
 
-div.umen span.color1
+.amato span.color1
 {
 	color:	black;
 }
 
-div.umen span.color2
+.amato span.color2
 {
 	color:	#000066;
 }
 
-div.umen span.color3
+.amato span.color3
 {
 	color:	#009900;
 }
 
-div.umen span.color4
+.amato span.color4
 {
 	color:	#CC3300;
 }
 
-div.umen span.color5
+.amato span.color5
 {
 	color:	#660000;
 }
 
-div.umen span.color6
+.amato span.color6
 {
 	color:	#990099;
 }
 
-div.umen span.color7
+.amato span.color7
 {
 	color:	#FF6600;
 }
 
-div.umen span.color8
+.amato span.color8
 {
 	color:	yellow;
 }
 
-div.umen span.color9
+.amato span.color9
 {
 	color:	lime;
 }
 
-div.umen span.color10
+.amato span.color10
 {
 	color:	#009999;
 }
 
-div.umen span.color11
+.amato span.color11
 {
 	color:	aqua;
 }
 
-div.umen span.color12
+.amato span.color12
 {
 	color:	blue;
 }
 
-div.umen span.color13
+.amato span.color13
 {
 	color:	fuchsia;
 }
 
-div.umen span.color14
+.amato span.color14
 {
 	color:	#666666;
 }
 
-div.umen span.color15
+.amato span.color15
 {
 	color:	#CCCCCC;
 }
 
-div.umen span.s
+.amato span.s
 {
 	text-decoration:	line-through;
 }
 
-div.umen span.spoil
+.amato span.spoil
 {
 	padding:	0 3px 0 3px;
 	background:	white;
 	color:		white;
 }
 
-div.umen span.spoil *
+.amato span.spoil *
 {
 	visibility:	hidden;
 }
 
-div.umen span.spoil:hover
+.amato span.spoil:hover
 {
 	color:	black;
 }
 
-div.umen span.spoil:hover *
+.amato span.spoil:hover *
 {
 	visibility:	visible;
 }
 
-div.umen span.u
+.amato span.u
 {
 	text-decoration:	underline;
 }
 
-div.umen table.table
+.amato table.table
 {
 	background:			#EFEFEF;
 	border-collapse:	collapse;
 }
 
-div.umen table.table td
+.amato table.table td
 {
 	padding:		4px 6px;
 	background:		#E0E0E0;
@@ -247,7 +247,7 @@ div.umen table.table td
 	border-top:		1px solid transparent;
 }
 
-div.umen table.table th
+.amato table.table th
 {
 	padding:		4px;
 	background:		#C0C0C0;

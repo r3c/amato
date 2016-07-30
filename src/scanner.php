@@ -1,18 +1,17 @@
 <?php
 
-namespace Umen;
+namespace Amato;
 
-defined ('UMEN') or die;
+defined ('AMATO') or die;
 
 abstract class Scanner
 {
 	/*
 	** Register a new pattern into this scanner instance.
 	** $pattern:	registered pattern
-	** $match:		associated matching object
-	** return:		pattern accept identifier
+	** return:		pattern accept key
 	*/
-	public abstract function assign ($pattern, $match);
+	public abstract function assign ($pattern);
 
 	/*
 	** Escape given string so it doesn't match any of currently assigned

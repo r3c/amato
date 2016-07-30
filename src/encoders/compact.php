@@ -1,50 +1,35 @@
 <?php
 
-namespace Umen;
+namespace Amato;
 
-defined ('UMEN') or die;
+defined ('AMATO') or die;
 
 class CompactEncoder extends Encoder
 {
-	const TOKEN_ESCAPE	= '\\';
-	const TOKEN_PARAM	= ',';
-	const TOKEN_PLAIN	= '|';
-	const TOKEN_SCOPE	= ';';
-	const TOKEN_VALUE	= '=';
+	const CAPTURE = ',';
+	const CAPTURE_VALUE = '=';
+	const ESCAPE = '\\';
+	const PLAIN = '|';
+	const TAG = ';';
+	const TAG_MARKER = '@';
 
-	const VERSION		= 3;
-
-	private static	$actions_decode = array
+	private static $escapes_decode = array
 	(
-		'/'	=> Action::ALONE,
-		'<'	=> Action::START,
-		'-'	=> Action::STEP,
-		'>'	=> Action::STOP
+		self::CAPTURE		=> true,
+		self::CAPTURE_VALUE	=> true,
+		self::PLAIN			=> true,
+		self::TAG			=> true,
+		self::TAG_MARKER	=> true
 	);
 
-	private static	$actions_encode = array
+	private static $escapes_encode = array
 	(
-		Action::ALONE	=> '/',
-		Action::START	=> '<',
-		Action::STEP	=> '-',
-		Action::STOP	=> '>'
-	);
-
-	private static	$escapes_decode = array
-	(
-		self::TOKEN_PARAM	=> true,
-		self::TOKEN_PLAIN	=> true,
-		self::TOKEN_SCOPE	=> true,
-		self::TOKEN_VALUE	=> true
-	);
-
-	private static	$escapes_encode = array
-	(
-		self::TOKEN_ESCAPE	=> true,
-		self::TOKEN_PARAM	=> true,
-		self::TOKEN_PLAIN	=> true,
-		self::TOKEN_SCOPE	=> true,
-		self::TOKEN_VALUE	=> true
+		self::CAPTURE		=> true,
+		self::CAPTURE_VALUE	=> true,
+		self::ESCAPE		=> true,
+		self::PLAIN			=> true,
+		self::TAG			=> true,
+		self::TAG_MARKER	=> true
 	);
 
 	/*
@@ -53,168 +38,144 @@ class CompactEncoder extends Encoder
 	public function decode ($token)
 	{
 		$length = strlen ($token);
-		$scopes = array ();
 
-		// Parse version
-		for ($i = 0; $i < $length && $token[$i] >= '0' && $token[$i] <= '9'; )
-			++$i;
+		// Parse tags
+		$shift_tag = 0;
+		$tags = array ();
 
-		$version = (int)substr ($token, 0, $i);
-
-		if ($version !== self::VERSION)
-			return null;
-
-		// Parse header
-		while ($i < $length && $token[$i] === self::TOKEN_SCOPE)
+		for ($i = 0; $i < $length && $token[$i] !== self::PLAIN; )
 		{
-			++$i;
-
-			// Read tag delta
-			for ($j = $i; $i < $length && $token[$i] >= '0' && $token[$i] <= '9'; )
-				++$i;
-
-			if ($i > $j)
-				$delta = (int)substr ($token, $j, $i - $j);
-			else
-				continue;
-
-			// Read tag action
-			if ($i < $length && isset (self::$actions_decode[$token[$i]]))
-				$action = self::$actions_decode[$token[$i++]];
-			else
-				continue;
-
-			// Read tag name
-			$name = '';
-
-			for ($i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
+			// Skip to next tag
+			if ($i > 0)
 			{
-				if ($token[$i] === self::TOKEN_ESCAPE && $i + 1 < $length)
+				if ($token[$i] !== self::TAG)
+					return null;
+
+				++$i;
+			}
+
+			// Read tag id
+			$id = '';
+
+			for (; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
+			{
+				if ($token[$i] === self::ESCAPE && $i + 1 < $length)
 					++$i;
 
-				$name .= $token[$i];
+				$id .= $token[$i];
 			}
 
-			// Read tag flag
-			$flag = '';
+			// Read markers
+			$markers = array ();
+			$shift = $shift_tag;
 
-			if ($i < $length && $token[$i] === self::TOKEN_VALUE)
+			while ($i < $length && $token[$i] === self::TAG_MARKER)
 			{
-				for (++$i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
+				// Read offset delta
+				for ($j = ++$i; $i < $length && $token[$i] >= '0' && $token[$i] <= '9'; )
+					++$i;
+
+				$shift += (int)substr ($token, $j, $i - $j);
+
+				// Read captures
+				$captures = array ();
+
+				while ($i < $length && $token[$i] === self::CAPTURE)
 				{
-					if ($token[$i] === self::TOKEN_ESCAPE && $i + 1 < $length)
-						++$i;
+					$key = '';
 
-					$flag .= $token[$i];
-				}
-			}
-
-			// Read tag captures
-			$captures = array ();
-
-			while ($i < $length && $token[$i] === self::TOKEN_PARAM)
-			{
-				$key = '';
-
-				for (++$i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
-				{
-					if ($token[$i] === self::TOKEN_ESCAPE && $i + 1 < $length)
-						++$i;
-
-					$key .= $token[$i];
-				}
-
-				$value = '';
-
-				if ($i < $length && $token[$i] === self::TOKEN_VALUE)
-				{
 					for (++$i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
 					{
-						if ($token[$i] === self::TOKEN_ESCAPE && $i + 1 < $length)
+						if ($token[$i] === self::ESCAPE && $i + 1 < $length)
+							++$i;
+
+						$key .= $token[$i];
+					}
+
+					$value = '';
+
+					for (++$i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
+					{
+						if ($token[$i] === self::ESCAPE && $i + 1 < $length)
 							++$i;
 
 						$value .= $token[$i];
 					}
+
+					$captures[$key] = $value;
 				}
 
-				$captures[$key] = $value;
+				// Append to tag markers
+				$markers[] = array ($shift, $captures);
 			}
 
-			$scopes[] = array ($delta, $name, $action, $flag, $captures);
+			// Append to tags
+			$shift_tag = $markers[0][0];
+
+			$tags[] = array ($id, $markers);
 		}
 
-		if ($i >= $length || $token[$i++] !== self::TOKEN_PLAIN)
+		if ($i >= $length || $token[$i++] !== self::PLAIN)
 			return null;
 
-		return array ($scopes, substr ($token, $i));
+		return array ($tags, (string)substr ($token, $i));
 	}
 
 	/*
 	** Override for Encoder::encode.
 	*/
-	public function encode ($scopes, $plain)
+	public function encode ($tags, $plain)
 	{
-		$token = self::VERSION;
+		$shift_tag = 0;
+		$token = '';
 
-		foreach ($scopes as $scope)
+		foreach ($tags as $tag)
 		{
-			list ($delta, $name, $action, $flag, $captures) = $scope;
+			list ($id, $markers) = $tag;
 
-			// Append offset delta and action to tokenized header
-			$token .= self::TOKEN_SCOPE . $delta . self::$actions_encode[$action];
+			// Write tag id
+			if ($token !== '')
+				$token .= self::TAG;
 
-			// Write tag name
-			foreach (str_split ($name) as $character)
+			$token .= $this->escape ((string)$id);
+
+			// Write markers
+			$shift = $shift_tag;
+
+			foreach ($markers as $marker)
 			{
-				if (isset (self::$escapes_encode[$character]))
-					$token .= self::TOKEN_ESCAPE;
+				// Write offset delta
+				$token .= self::TAG_MARKER . ($marker[0] - $shift);
 
-				$token .= $character;
+				// Write captures
+				foreach ($marker[1] as $key => $value)
+					$token .= self::CAPTURE . $this->escape ($key) . self::CAPTURE_VALUE . $this->escape ((string)$value);
+
+				$shift = $marker[0];
 			}
 
-			// Write tag flag
-			if ($flag !== '')
-			{
-				$token .= self::TOKEN_VALUE;
-
-				foreach (str_split ($flag) as $character)
-				{
-					if (isset (self::$escapes_encode[$character]))
-						$token .= self::TOKEN_ESCAPE;
-
-					$token .= $character;
-				}
-			}
-
-			// Write tag parameters
-			foreach ($captures as $key => $value)
-			{
-				$token .= self::TOKEN_PARAM;
-
-				foreach (str_split ($key) as $character)
-				{
-					if (isset (self::$escapes_encode[$character]))
-						$token .= self::TOKEN_ESCAPE;
-
-					$token .= $character;
-				}
-
-				if ($value !== '')
-				{
-					$token .= self::TOKEN_VALUE;
-
-					foreach (str_split ($value) as $character)
-					{
-						if (isset (self::$escapes_encode[$character]))
-							$token .= self::TOKEN_ESCAPE;
-
-						$token .= $character;
-					}
-				}
-			}
+			$shift_tag = $markers[0][0];
 		}
 
-		return $token . self::TOKEN_PLAIN . $plain;
+		return $token . self::PLAIN . $plain;
+	}
+
+	private function escape ($string)
+	{
+		$escape = '';
+		$length = strlen ($string);
+
+		for ($i = 0; $i < $length; ++$i)
+		{
+			$character = $string[$i];
+
+			if (isset (self::$escapes_encode[$character]))
+				$escape .= self::ESCAPE;
+
+			$escape .= $character;
+		}
+
+		return $escape;
 	}
 }
 

@@ -1,17 +1,19 @@
 <?php
 
-define ('CHARSET',	'utf-8');
+define ('CHARSET', 'utf-8');
 
-require ('src/umen.php');
+mb_internal_encoding (CHARSET);
 
-Umen\autoload ();
+require ('../src/amato.php');
 
-function	escape ($str)
+Amato\autoload ();
+
+function escape ($str)
 {
 	return htmlspecialchars ($str, ENT_COMPAT, CHARSET);
 }
 
-function	formatHTML ($str)
+function format_html ($str)
 {
 	$depth = 0;
 	$offset = 0;
@@ -38,7 +40,7 @@ function	formatHTML ($str)
 	return $out;
 }
 
-function	formatW3C ($str)
+function format_w3c ($str)
 {
 	return escape ('<!DOCTYPE html>
 <html>
@@ -54,7 +56,7 @@ function	formatW3C ($str)
 </html>');
 }
 
-function	getOptions ($options, $selected)
+function render_options ($options, $selected)
 {
 	$html = '';
 
@@ -67,64 +69,64 @@ function	getOptions ($options, $selected)
 echo '<!DOCTYPE html>
 <html>
 	<head>
-		<link href="res/style.css" rel="stylesheet" type="text/css" />
-		<link href="res/umen.css" rel="stylesheet" type="text/css" />
+		<link href="res/amato.css" rel="stylesheet" type="text/css" />
+		<link href="res/demo.css" rel="stylesheet" type="text/css" />
 		<meta charset="' . CHARSET . '" /> 
-		<title>Universal Markup Engine v' . escape (UMEN) . ' - Demo Page</title>
+		<title>Agnostic Markup Tokenizer v' . escape (AMATO) . ' Demo</title>
 	</head>
 	<body>
 		<div class="box">
-			<h1>Input string:</h1>
+			<h1>Markup:</h1>
 			<div class="body">
 				<form action="" method="POST">
-					<textarea name="string" rows="10" style="box-sizing: border-box; width: 100%;">' . escape (isset ($_POST['string']) ? $_POST['string'] : file_get_contents ('sample/demo.txt')) . '</textarea>
+					<textarea name="markup" rows="10" style="box-sizing: border-box; width: 100%;">' . escape (isset ($_POST['markup']) ? $_POST['markup'] : file_get_contents ('data/demo.txt')) . '</textarea>
 					<div class="buttons" id="actions">
-						Display
-						<select name="action">' . getOptions (array ('print' => 'actual result', 'tree' => 'syntax tree', 'debug' => 'debug mode'), isset ($_POST['action']) ? $_POST['action'] : 'html') . '</select>
-						using
-						<select name="syntax">' . getOptions (array ('bbcode' => 'BBCode', 'test' => 'Test'), isset ($_POST['syntax']) ? $_POST['syntax'] : null) . '</select>
-						to
-						<select name="format">' . getOptions (array ('html' => 'HTML'), isset ($_POST['format']) ? $_POST['format'] : null) . '</select>
+						Convert
+						<select name="syntax">' . render_options (array ('bbcode' => 'BBCode', 'test' => 'Test'), isset ($_POST['syntax']) ? $_POST['syntax'] : null) . '</select>
+						syntax into
+						<select name="format">' . render_options (array ('html' => 'HTML'), isset ($_POST['format']) ? $_POST['format'] : null) . '</select>
+						format and
+						<select name="action">' . render_options (array ('print' => 'print output', 'html' => 'display HTML', 'debug' => 'debug cycle'), isset ($_POST['action']) ? $_POST['action'] : 'print') . '</select>
 						<input type="submit" value="Submit" />
 						<input onclick="var i = document.getElementById(\'options_input\'), p = document.getElementById(\'options_panel\'); if (i.value) { i.value = \'\'; p.style.display = \'none\'; } else { i.value = \'1\'; p.style.display = \'block\'; }" type="button" value="Options" />
 						<input id="options_input" name="options" type="hidden" value="' . escape (isset ($_POST['options']) ? $_POST['options'] : '')  . '" />
 					</div>
 					<div class="buttons" id="options_panel" style="display: ' . (isset ($_POST['options']) && $_POST['options'] ? 'block' : 'none') . ';">
-						Parse using
-						<select name="scanner">' . getOptions (array ('regex' => 'regexp', 'default' => 'default'), isset ($_POST['scanner']) ? $_POST['scanner'] : null) . '</select>
+						Tokenize using
+						<select name="scanner">' . render_options (array ('preg' => 'preg'), isset ($_POST['scanner']) ? $_POST['scanner'] : null) . '</select>
 						scanner and
-						<select name="converter">' . getOptions (array ('syntax' => 'syntax'), isset ($_POST['converter']) ? $_POST['converter'] : null) . '</select>
-						converter, store using
-						<select name="encoder">' . getOptions (array ('compact' => 'compact', 'concat' => 'concat', 'json' => 'json', 'sleep' => 'sleep'), isset ($_POST['encoder']) ? $_POST['encoder'] : null) . '</select>
-						encoding, render with
-						<select name="renderer">' . getOptions (array ('format' => 'format'), isset ($_POST['renderer']) ? $_POST['renderer'] : null) . '</select>
+						<select name="converter">' . render_options (array ('tag' => 'tag'), isset ($_POST['converter']) ? $_POST['converter'] : null) . '</select>
+						converter, serialize using
+						<select name="encoder">' . render_options (array ('compact' => 'compact', 'concat' => 'concat', 'json' => 'json', 'sleep' => 'sleep'), isset ($_POST['encoder']) ? $_POST['encoder'] : null) . '</select>
+						encoder, render with
+						<select name="renderer">' . render_options (array ('format' => 'format'), isset ($_POST['renderer']) ? $_POST['renderer'] : null) . '</select>
 						renderer
 					</div>
 				</form>
 			</div>
 		</div>';
 
-if (isset ($_POST['action']) && isset ($_POST['string']))
+if (isset ($_POST['action']) && isset ($_POST['markup']))
 {
 	switch (isset ($_POST['encoder']) ? $_POST['encoder'] : null)
 	{
 		case 'compact':
-			$encoder = new Umen\CompactEncoder ();
+			$encoder = new Amato\CompactEncoder ();
 
 			break;
 
 		case 'concat':
-			$encoder = new Umen\ConcatEncoder ();
+			$encoder = new Amato\ConcatEncoder ();
 
 			break;
 
 		case 'json':
-			$encoder = new Umen\JSONEncoder ();
+			$encoder = new Amato\JSONEncoder ();
 
 			break;
 
 		case 'sleep':
-			$encoder = new Umen\SleepEncoder ();
+			$encoder = new Amato\SleepEncoder ();
 
 			break;
 
@@ -134,13 +136,8 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 
 	switch (isset ($_POST['scanner']) ? $_POST['scanner'] : null)
 	{
-		case 'default':
-			$scanner = new Umen\DefaultScanner ();
-
-			break;
-
-		case 'regex':
-			$scanner = new Umen\RegExpScanner ();
+		case 'preg':
+			$scanner = new Amato\PregScanner ();
 
 			break;
 
@@ -150,16 +147,16 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 
 	switch (isset ($_POST['converter']) ? $_POST['converter'] : null)
 	{
-		case 'syntax':
+		case 'tag':
 			switch (isset ($_POST['syntax']) ? $_POST['syntax'] : null)
 			{
 				case 'bbcode':
-					require ('sample/syntax/bbcode.php');
+					require ('config/syntax/bbcode.php');
 
 					break;
 
 				case 'test':
-					require ('sample/syntax/test.php');
+					require ('config/syntax/test.php');
 
 					break;
 
@@ -167,7 +164,7 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 					throw new Exception ('invalid syntax');
 			}
 
-			$converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax, 1000);
+			$converter = new Amato\TagConverter ($encoder, $scanner, $syntax);
 
 			break;
 
@@ -181,7 +178,7 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 			switch (isset ($_POST['format']) ? $_POST['format'] : null)
 			{
 				case 'html':
-					include ('sample/format/html.php');
+					include ('config/format/html.php');
 
 					break;
 
@@ -189,7 +186,7 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 					throw new Exception ('invalid format');
 			}
 		
-			$renderer = new Umen\FormatRenderer ($encoder, $format);
+			$renderer = new Amato\FormatRenderer ($encoder, $format, 'escape');
 
 			break;
 
@@ -197,9 +194,9 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 			throw new Exception ('invalid renderer');
 	}
 
-	$string = str_replace ("\r", '', $_POST['string']);
-	$token = $converter->convert ($string);
-	$print = $renderer->render ($token, 'escape');
+	$markup = str_replace ("\r", '', $_POST['markup']);
+	$token = $converter->convert ($markup);
+	$render = $renderer->render ($token);
 
 	switch ($_POST['action'])
 	{
@@ -207,24 +204,24 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 			$inverse = $converter->revert ($token);
 
 			$output =
-				'<h2>string (' . strlen ($string) . ' characters):</h2>' . 
-				'<div class="code">' . escape ($string) . '</div><hr />' .
+				'<h2>markup (' . strlen ($markup) . ' characters):</h2>' . 
+				'<div class="code">' . escape ($markup) . '</div><hr />' .
 				'<h2>token (' . strlen ($token) . ' characters):</h2>' .
 				'<div class="code">' . escape ($token) . '</div><hr />' .
-				'<h2>print (' . strlen ($print) . ' characters):</h2>' .
-				'<div class="code">' . escape ($print) . '</div><hr />' .
+				'<h2>print (' . strlen ($render) . ' characters):</h2>' .
+				'<div class="code">' . escape ($render) . '</div><hr />' .
 				'<h2>inverse (' . strlen ($inverse) . ' characters):</h2>' .
-				'<div class="code" style="color: ' . (str_replace ('\\', '', $inverse) === str_replace ('\\', '', $string) ? 'green' : 'red') . ';">' . escape ($inverse) . '</div>';
+				'<div class="code" style="color: ' . (str_replace ('\\', '', $inverse) === str_replace ('\\', '', $markup) ? 'green' : 'red') . ';">' . escape ($inverse) . '</div>';
+
+			break;
+
+		case 'html':
+			$output = '<div class="code">' . format_html ($render) . '</div>';
 
 			break;
 
 		case 'print':
-			$output = '<div class="umen">' . $print . '</div>';
-
-			break;
-
-		case 'tree':
-			$output = '<div class="code">' . formatHTML ($print) . '</div>';
+			$output = '<div class="amato">' . $render . '</div>';
 
 			break;
 
@@ -236,13 +233,13 @@ if (isset ($_POST['action']) && isset ($_POST['string']))
 
 	echo '
 		<div class="box">
-			<h1>Output render:</h1>
+			<h1>Output:</h1>
 			<div class="body">
 				' . $output . '
 			</div>
 			<div class="body">
 				<form action="http://validator.w3.org/check" method="POST" target="_blank">
-					<textarea cols="1" name="fragment" rows="1" style="display: none;">' . formatW3C ($print) . '</textarea>
+					<textarea cols="1" name="fragment" rows="1" style="display: none;">' . format_w3c ($render) . '</textarea>
 					<input name="charset" type="hidden" value="' . CHARSET . '" />
 					<input type="submit" value="Submit to w3c validator" />
 				</form>

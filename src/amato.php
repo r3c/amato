@@ -1,68 +1,69 @@
 <?php
 
 /*
-** Universal Markup ENgine
+** Agnostic Markup Tokenizer
 */
 
-namespace Umen;
+namespace Amato;
 
-define ('UMEN',	'1.0.3.0');
+define ('AMATO', '1.0.0.0');
 
-require (dirname (__FILE__) . '/action.php');
+require (dirname (__FILE__) . '/tag.php');
 
-function	autoload ()
+function autoload ()
 {
+	static $loaded;
+
+	if (isset ($loaded))
+		return;
+
+	$loaded = true;
+
 	spl_autoload_register (function ($class)
 	{
 		$path = dirname (__FILE__);
 
 		switch ($class)
 		{
-			case 'Umen\SyntaxConverter':
+			case 'Amato\TagConverter':
 				require_once ($path . '/converter.php');
-				require ($path . '/converters/syntax.php');
+				require ($path . '/converters/tag.php');
 
 				break;
 
-			case 'Umen\CompactEncoder':
+			case 'Amato\CompactEncoder':
 				require_once ($path . '/encoder.php');
 				require ($path . '/encoders/compact.php');
 
 				break;
 
-			case 'Umen\ConcatEncoder':
+			case 'Amato\ConcatEncoder':
 				require_once ($path . '/encoder.php');
 				require ($path . '/encoders/concat.php');
 
 				break;
 
-			case 'Umen\JSONEncoder':
+			case 'Amato\JSONEncoder':
 				require_once ($path . '/encoder.php');
 				require ($path . '/encoders/json.php');
 
 				break;
 
-			case 'Umen\SleepEncoder':
+			case 'Amato\SleepEncoder':
 				require_once ($path . '/encoder.php');
 				require ($path . '/encoders/sleep.php');
 
 				break;
 
-			case 'Umen\FormatRenderer':
+			case 'Amato\FormatRenderer':
 				require_once ($path . '/renderer.php');
 				require ($path . '/renderers/format.php');
 
 				break;
 
-			case 'Umen\DefaultScanner':
+			case 'Amato\PregScanner':
 				require_once ($path . '/scanner.php');
-				require ($path . '/scanners/default.php');
-
-				break;
-
-			case 'Umen\RegExpScanner':
-				require_once ($path . '/scanner.php');
-				require ($path . '/scanners/regexp.php');
+				require ($path . '/scanners/preg.php');
 
 				break;
 		}

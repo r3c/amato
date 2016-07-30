@@ -1,71 +1,91 @@
 <?php
 
-namespace Umen;
+namespace Amato;
 
-defined ('UMEN') or die;
+defined ('AMATO') or die;
 
 class ConcatEncoder extends Encoder
 {
-	const VERSION	= 1;
-
 	/*
 	** Override for Encoder::decode.
 	*/
 	public function decode ($token)
 	{
-		$pack = explode ('|', $token, 3);
+		$pack = explode ('|', $token, 2);
 
-		if (count ($pack) < 3 || (int)$pack[0] !== self::VERSION)
+		if (count ($pack) < 2)
 			return null;
 
-		return array (array_map (function ($scope)
+		$unescape = function ($string)
 		{
-			$array = explode (',', $scope);
+			return str_replace (array ('%a', '%c', '%e', '%p', '%s', '%%'), array ('@', ',', '=', '|', ';', '%'), $string);
+		};
 
-			$action = (int)$array[2];
-			$captures = array ();
-			$delta = (int)$array[0];
-			$flag = str_replace (array ('%p', '%s', '%c', '%%'), array ('|', ';', ',', '%'), $array[3]);
-			$name = str_replace (array ('%p', '%s', '%c', '%%'), array ('|', ';', ',', '%'), $array[1]);
+		$tags = array ();
 
-			for ($i = 4; $i < count ($array); ++$i)
+		if ($pack[0] !== '')
+		{
+			foreach (explode (';', $pack[0]) as $tag_string)
 			{
-				list ($key, $value) = explode ('=', $array[$i], 2);
+				$tag = explode ('@', $tag_string);
 
-				$key = str_replace (array ('%p', '%s', '%c', '%e', '%%'), array ('|', ';', ',', '=', '%'), $key);
-				$value = str_replace (array ('%p', '%s', '%c', '%%'), array ('|', ';', ',', '%'), $value);
+				$id = $unescape (array_shift ($tag));
+				$markers = array ();
 
-				$captures[$key] = $value;
+				foreach ($tag as $marker_string)
+				{
+					$marker = explode (',', $marker_string);
+
+					$captures = array ();
+					$offset = (int)array_shift ($marker);
+
+					foreach ($marker as $capture)
+					{
+						$pair = explode ('=', $capture, 2);
+
+						if (count ($pair) > 1)
+							$captures[$unescape ($pair[0])] = $unescape ($pair[1]);
+					}
+
+					$markers[] = array ($offset, $captures);
+				}
+
+				$tags[] = array ($id, $markers);
 			}
+		}
 
-			return array ($delta, $name, $action, $flag, $captures);
-		}, explode (';', $pack[1])), $pack[2]);
+		return array ($tags, $pack[1]);
 	}
 
 	/*
 	** Override for Encoder::encode.
 	*/
-	public function encode ($scopes, $plain)
+	public function encode ($tags, $plain)
 	{
-		return (string)self::VERSION . '|' . implode (';', array_map (function ($scope)
+		$escape = function ($string)
 		{
-			list ($delta, $name, $action, $flag, $captures) = $scope;
+			return str_replace (array ('%', '@', ',', '=', '|', ';'), array ('%%', '%a', '%c', '%e', '%p', '%s'), $string);
+		};
 
-			$string =
-				(string)$delta . ',' .
-				str_replace (array ('%', '|', ';', ','), array ('%%', '%p', '%s', '%c'), $name) . ',' .
-				(string)$action . ',' .
-				str_replace (array ('%', '|', ';', ','), array ('%%', '%p', '%s', '%c'), $flag);
+		$token = '';
 
-			foreach ($captures as $key => $value)
+		foreach ($tags as $tag)
+		{
+			if ($token !== '')
+				$token .= ';';
+
+			$token .= $escape ($tag[0]);
+
+			foreach ($tag[1] as $marker)
 			{
-				$string .= ',' .
-					str_replace (array ('%', '|', ';', ',', '='), array ('%%', '%p', '%s', '%c', '%e'), $key) . '=' .
-					str_replace (array ('%', '|', ';', ','), array ('%%', '%p', '%s', '%c'), $value);
-			}
+				$token .= '@' . $marker[0];
 
-			return $string;
-		}, $scopes)) . '|' . $plain;
+				foreach ($marker[1] as $key => $value)
+					$token .= ',' . $escape ($key) . '=' . $escape ($value);
+			}
+		}
+
+		return $token . '|' . $plain;
 	}
 }
 

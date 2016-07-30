@@ -1,26 +1,26 @@
 <?php
 
-namespace Umen;
+namespace Amato;
 
-defined ('UMEN') or die;
+defined ('AMATO') or die;
 
 abstract class Converter
 {
 	/*
-	** Convert plain text string to tokenized format.
-	** $text:	plain text string
-	** $custom:	optional custom convert information
-	** return:	tokenized string
+	** Convert markup string to tokenized string.
+	** $markup:		markup string
+	** $context:	optional context information
+	** return:		tokenized string
 	*/
-	public abstract function convert ($text, $custom = null);
+	public abstract function convert ($markup, $context = null);
 
 	/*
-	** Convert tokenized string back to plain text format.
-	** $token:	tokenized string
-	** $custom:	optional custom revert information
-	** return:	plain text string
+	** Convert tokenized string back to markup string.
+	** $token:		tokenized string
+	** $context:	optional context information
+	** return:		markup string
 	*/
-	public abstract function revert ($token, $custom = null);
+	public abstract function revert ($token, $context = null);
 }
 
 ?>

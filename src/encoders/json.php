@@ -1,8 +1,8 @@
 <?php
 
-namespace Umen;
+namespace Amato;
 
-defined ('UMEN') or die;
+defined ('AMATO') or die;
 
 class JSONEncoder extends Encoder
 {
@@ -17,9 +17,9 @@ class JSONEncoder extends Encoder
 	/*
 	** Override for Encoder::encode.
 	*/
-	public function encode ($scopes, $plain)
+	public function encode ($tags, $plain)
 	{
-		return json_encode (array ($scopes, $plain));
+		return json_encode (array ($tags, $plain));
 	}
 }
 

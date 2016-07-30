@@ -2,7 +2,7 @@
 
 define ('CHARSET',	'utf-8');
 
-function	profile ($name)
+function profile ($name)
 {
 	global	$times;
 
@@ -29,12 +29,11 @@ function	profile ($name)
 	}
 }
 
-include ('../src/umen.php');
+include ('../src/amato.php');
+include ('../demo/format/html.php');
+include ('../demo/syntax/bbcode.php');
 
-include ('../sample/format/html.php');
-include ('../sample/syntax/bbcode.php');
-
-Umen\autoload ();
+Amato\autoload ();
 
 include ('bench-yml-regexp.php');
 
@@ -47,10 +46,10 @@ function	bench ($count, $init, $loop, $stop)
 	return (int)((microtime (true) - $time) * 1000);
 }
 
-$encoder = new Umen\CompactEncoder ();
-$scanner = new Umen\RegExpScanner ();
-$converter = new Umen\SyntaxConverter ($encoder, $scanner, $syntax);
-$renderer = new Umen\FormatRenderer ($encoder, $format, function ($s) { return $s; });
+$encoder = new Amato\CompactEncoder ();
+$scanner = new Amato\PregScanner ();
+$converter = new Amato\SyntaxConverter ($encoder, $scanner, $syntax);
+$renderer = new Amato\FormatRenderer ($encoder, $format, function ($s) { return $s; });
 
 $out = '';
 $i = 1;
@@ -111,8 +110,8 @@ foreach ($test as $label => $params)
 
 	$out .= '
 		<div class="box">
-			<h1>#' . $i++ . ' - <a href="' . htmlspecialchars ($params['file']) . '">' . htmlspecialchars ($label) . '</a> (' . strlen ($plain) . ' bytes, ' . $params['count'] . ' loops): umen = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[0]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a></h1>
-			<div class="body umen" style="display: none;">
+			<h1>#' . $i++ . ' - <a href="' . htmlspecialchars ($params['file']) . '">' . htmlspecialchars ($label) . '</a> (' . strlen ($plain) . ' bytes, ' . $params['count'] . ' loops): amato = ' . $time1 . 'ms, regexp = ' . $time2 . 'ms, ratio = ' . (int)(($time2 + 1) * 100 / ($time1 + 1)) . '% - <a href="#" onclick="var node = this.parentNode.parentNode.getElementsByTagName (\'DIV\')[0]; if (node.style.display == \'block\') node.style.display = \'none\'; else node.style.display = \'block\'; return false;">Show</a></h1>
+			<div class="body amato" style="display: none;">
 				' . $renderer->render ($token, function ($string) { return htmlspecialchars ($string, ENT_COMPAT, CHARSET); }) . '
 			</div>
 		</div>';
@@ -123,10 +122,10 @@ profile (null);
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
-		<link href="../res/style.css" rel="stylesheet" type="text/css" />
-		<link href="../res/umen.css" rel="stylesheet" type="text/css" />
+		<link href="../demo/res/amato.css" rel="stylesheet" type="text/css" />
+		<link href="../demo/res/style.css" rel="stylesheet" type="text/css" />
 		<meta http-equiv="Content-Type" content="application/xhtml+xml;charset=' . CHARSET . '" />
-		<title>Umen Bench</title>
+		<title>Amato Bench</title>
 	</head>
 	<body>' . $out . '
 	</body>

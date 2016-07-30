@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<link type="text/css" rel="stylesheet" href="../res/test.css" />
+		<link type="text/css" rel="stylesheet" href="res/test.css" />
 	</head>
 	<body>
 		<ul class="test tree">
@@ -9,9 +9,8 @@
 define ('CHARSET',	'iso-8859-1');
 
 include ('../src/umen.php');
-
-include ('../sample/format/html.php');
-include ('../sample/syntax/bbcode.php');
+include ('../demo/format/html.php');
+include ('../demo/syntax/bbcode.php');
 
 Umen\autoload ();
 
@@ -57,14 +56,13 @@ function html_encode ($string)
 	return htmlspecialchars ($string, ENT_COMPAT, CHARSET);
 }
 
-$encoder1 = new Umen\CompactEncoder ();
-$scanner1 = new Umen\DefaultScanner ('\\');
-$scanner2 = new Umen\RegExpScanner ('\\');
+$encoder = new Umen\CompactEncoder ();
+$scanner = new Umen\PregScanner ('\\');
 
 $pairs = array
 (
-	'compact + default'	=> array (new Umen\SyntaxConverter ($encoder1, $scanner1, $syntax), new Umen\FormatRenderer ($encoder1, $format, 'html_encode')),
-	'compact + regex'	=> array (new Umen\SyntaxConverter ($encoder1, $scanner2, $syntax), new Umen\FormatRenderer ($encoder1, $format, 'html_encode'))
+	'compact + default'	=> array (new Umen\SyntaxConverter ($encoder, $scanner, $syntax), new Umen\FormatRenderer ($encoder, $format, 'html_encode')),
+	'compact + regex'	=> array (new Umen\SyntaxConverter ($encoder, $scanner, $syntax), new Umen\FormatRenderer ($encoder, $format, 'html_encode'))
 );
 
 $tests = array

@@ -1,8 +1,8 @@
 <?php
 
-namespace Umen;
+namespace Amato;
 
-defined ('UMEN') or die;
+defined ('AMATO') or die;
 
 class FormatRenderer extends Renderer
 {
@@ -10,9 +10,9 @@ class FormatRenderer extends Renderer
 	** Initialize a new renderer.
 	** $encoder:	encoder instance
 	** $format:		render format definition
-	** $escape:		plain text escape callback (string) -> string
+	** $escape:		optional plain text escape callback (string) -> string
 	*/
-	public function __construct ($encoder, $format, $escape)
+	public function __construct ($encoder, $format, $escape = null)
 	{
 		$this->encoder = $encoder;
 		$this->escape = $escape;
@@ -61,8 +61,8 @@ class FormatRenderer extends Renderer
 			// Initialize action effect
 			switch ($action)
 			{
-				case Action::ALONE:
-				case Action::START:
+				case Tag::ALONE:
+				case Tag::START:
 					// Get precedence level for this modifier
 					$level = isset ($rule['level']) ? (int)$rule['level'] : 1;
 
@@ -72,8 +72,8 @@ class FormatRenderer extends Renderer
 
 					break;
 
-				case Action::STEP:
-				case Action::STOP:
+				case Tag::STEP:
+				case Tag::STOP:
 					// Search for matching tag in pending stack, cancel if none
 					for ($index = count ($stack) - 1; $index >= 0 && $stack[$index][2] != $name; )
 						--$index;
@@ -95,7 +95,7 @@ class FormatRenderer extends Renderer
 			// Close and reset crossed scopes
 			for ($i = count ($stack) - 1; $i >= $index; --$i)
 			{
-				$callback = $i === $index && $action === Action::STEP ? 'onStep' : 'onStop';
+				$callback = $i === $index && $action === Tag::STEP ? 'onStep' : 'onStop';
 				$cross = $stack[$i][2];
 
 				if (isset ($this->format[$cross][$callback]))
@@ -114,7 +114,7 @@ class FormatRenderer extends Renderer
 			switch ($action)
 			{
 				// Generate body and insert into text
-				case Action::ALONE:
+				case Tag::ALONE:
 					if (isset ($rule['onAlone']))
 					{
 						$result = $rule['onAlone'] ($name, $flag, $captures);
@@ -126,7 +126,7 @@ class FormatRenderer extends Renderer
 					break;
 
 				// Insert opened tag into stack
-				case Action::START:
+				case Tag::START:
 					if (isset ($rule['onStart']))
 						$rule['onStart'] ($name, $flag, $captures);
 
@@ -142,7 +142,7 @@ class FormatRenderer extends Renderer
 					break;
 
 				// Remove closed tag from the stack
-				case Action::STOP:
+				case Tag::STOP:
 					array_splice ($stack, $index, 1);
 
 					break;
