@@ -83,7 +83,7 @@ function test_converter ($markup, $chains_expected, $plain_expected)
 
 		list ($plain1, $chains1) = $encoder->decode ($token1);
 
-		assert_token_equal ($context, $plain1, $chains1, $plain_expected, $chains_expected);
+		assert_token_equal ($context . ' first decode', $plain1, $chains1, $plain_expected, $chains_expected);
 
 		$markup_revert1 = $converter->revert ($token1);
 
@@ -92,12 +92,12 @@ function test_converter ($markup, $chains_expected, $plain_expected)
 
 		list ($plain2, $chains2) = $encoder->decode ($token2);
 
-		assert_token_equal ($context, $plain2, $chains2, $plain_expected, $chains_expected);
+		assert_token_equal ($context . ' second decode', $plain2, $chains2, $plain_expected, $chains_expected);
 
 		$markup_revert2 = $converter->revert ($token2);
 
 		// Compare first and second reverts
-		assert_test_equal ($markup_revert2, $markup_revert1, $context . ' markup revert');
+		assert_test_equal ($markup_revert2, $markup_revert1, $context . ' revert');
 	}
 }
 
@@ -147,6 +147,9 @@ mb_internal_encoding ('utf-8');
 test_converter (mb_convert_encoding ($markup, 'utf-8', $charset), $tags, mb_convert_encoding ($plain, 'utf-8', $charset));
 
 // Escape sequences
+test_converter ('\\\\', array (), '\\');
+test_converter ('\\ \\', array (), '\\ \\');
+//test_converter ('\\\\\\\\', array (), '\\\\');
 //test_converter ('\[b][/b]', array (), '[b][/b]');
 //test_converter ('[b]\[/b]', array (), '[b][/b]');
 //test_converter ('\[b]\[/b]', array (), '[b][/b]');

@@ -13,8 +13,9 @@ class PregScanner extends Scanner
 	const DECODE_PLAIN		= 1;
 	const ESCAPE			= '%';
 
-	public function __construct ()
+	public function __construct ($escape = '\\')
 	{
+		$this->escape = $escape;
 		$this->rules = array ();
 	}
 
@@ -93,13 +94,27 @@ class PregScanner extends Scanner
 		$candidates = array ();
 		$order = 0;
 
-		// Match all candidates from input string
+		// Match all escape sequences in input string
+		if (preg_match_all ('/' . preg_quote ($this->escape, '/') . '/', $string, $matches, PREG_OFFSET_CAPTURE) === false) // FIXME: str_find_all?
+			throw new \Exception ('invalid escape pattern "' . $this->escape . '"');
+
+		foreach ($matches[0] as $match)
+		{
+			$length = mb_strlen ($match[0]);
+			$offset = mb_strlen (substr ($string, 0, $match[1]));
+
+			$candidates[self::index ($offset, $length, $order)] = array (null, $offset, $length);
+		}
+
+		// Match all tag sequences in input string
 		foreach ($this->rules as $key => $rule)
 		{
 			list ($pattern, $names) = $rule;
 
 			if (preg_match_all ($pattern, $string, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) === false)
 				throw new \Exception ('invalid tag pattern "' . $pattern . '"');
+
+			++$order;
 
 			foreach ($matches as $match)
 			{
@@ -110,22 +125,26 @@ class PregScanner extends Scanner
 					$captures[$names[$i]] = $match[$i + 1][0];
 
 				// Append to candidates array, using custom key for fast sorting
-				// (using custom key + ksort is way faster than usort)
 				$length = mb_strlen ($match[0][0]);
 				$offset = mb_strlen (substr ($string, 0, $match[0][1]));
 
-				$index = str_pad ($offset, 8, '0', STR_PAD_LEFT) . ':' . str_pad (100000000 - $length, 8, '0', STR_PAD_LEFT) . ':' . str_pad ($order, 8, '0', STR_PAD_LEFT);
-
-				$candidates[$index] = array ($key, $offset, $length, $captures);
+				$candidates[self::index ($offset, $length, $order)] = array ($key, $offset, $length, $captures);
 			}
-
-			++$order;
 		}
 
 		// Order candidates by offset ascending, length descending, rule ascending
 		ksort ($candidates);
 
 		return array_values ($candidates);
+	}
+
+	/*
+	** Build array index to allow sorting of candidates using "ksort" instead
+	** of "usort" (ugly but way faster).
+	*/
+	private static function index ($offset, $length, $order)
+	{
+		return str_pad ($offset, 8, '0', STR_PAD_LEFT) . ':' . str_pad (100000000 - $length, 8, '0', STR_PAD_LEFT) . ':' . str_pad ($order, 8, '0', STR_PAD_LEFT);
 	}
 }
 

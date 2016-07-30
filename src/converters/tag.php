@@ -11,13 +11,11 @@ class TagConverter extends Converter
 	** $encoder:	encoder instance
 	** $scanner:	scanner instance
 	** $syntax:		syntax configuration
-	** $escape:		escape sequence
 	*/
-	public function __construct ($encoder, $scanner, $syntax, $escape = '\\')
+	public function __construct ($encoder, $scanner, $syntax)
 	{
 		$this->attributes = array ();
 		$this->encoder = $encoder;
-		$this->escape = $escape;
 		$this->scanner = $scanner;
 
 		foreach ($syntax as $id => $definitions)
@@ -49,46 +47,62 @@ class TagConverter extends Converter
 		{
 			list ($key, $offset, $length) = $candidates[$i];
 
+			// Skip disabled candidates
 			if ($length === null)
 				continue;
 
-			list ($id, $type, $defaults, $convert) = $this->attributes[$key];
-
-			// Ignore tag types that can't start a group
-			if ($type !== Tag::ALONE && $type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::START)
-				continue;
-
-			// FIXME: call pre-convert callback here if any
-
-			// Search for compatible matches in candidates
-			$incomplete = $type !== Tag::ALONE;
-			$matches = array ($i);
-
-			for ($j = $i + 1; $incomplete && $j < count ($candidates); ++$j)
+			// Candidate is a tag sequence
+			if ($key !== null)
 			{
-				list ($key, $offset, $length) = $candidates[$j];
+				list ($id, $type, $defaults, $convert) = $this->attributes[$key];
 
-				if ($length === null)
-					continue;
-
-				list ($id_next, $type, $defaults, $convert) = $this->attributes[$key];
-
-				// Ignore tag types that can't continue a group
-				if ($id !== $id_next || ($type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::STEP && $type !== Tag::STOP))
+				// Ignore tag types that can't start a group
+				if ($type !== Tag::ALONE && $type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::START)
 					continue;
 
 				// FIXME: call pre-convert callback here if any
 
-				$incomplete = $type === Tag::PULSE || $type === Tag::STEP;
-				$matches[] = $j;
+				// Search for compatible matches in candidates
+				$incomplete = $type !== Tag::ALONE;
+				$matches = array ($i);
+
+				for ($j = $i + 1; $incomplete && $j < count ($candidates); ++$j)
+				{
+					list ($key, $offset, $length) = $candidates[$j];
+
+					if ($length === null)
+						continue;
+
+					list ($id_next, $type, $defaults, $convert) = $this->attributes[$key];
+
+					// Ignore tag types that can't continue a group
+					if ($id !== $id_next || ($type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::STEP && $type !== Tag::STOP))
+						continue;
+
+					// FIXME: call pre-convert callback here if any
+
+					$incomplete = $type === Tag::PULSE || $type === Tag::STEP;
+					$matches[] = $j;
+				}
+
+				// Matches group is incomplete, ignore it
+				if ($incomplete)
+					continue;
+
+				// Append completed tag sequence to groups
+				$groups[] = array ($id, $matches);
 			}
 
-			// Matches group is incomplete, ignore it
-			if ($incomplete)
-				continue;
+			// Candidate is an escape sequence and disables next candidate
+			else if ($i + 1 < count ($candidates) && $offset + $length === $candidates[$i + 1][1])
+			{
+				$candidates[$i + 1][2] = null;
+				$matches = array ($i);
+			}
 
-			// Search for escape sequences before matches
-			// FIXME
+			// Candidate is an escape sequence but doesn't escape any candidate
+			else
+				continue;
 
 			// Remove matches from string and fix offsets
 			foreach ($matches as $match)
@@ -112,9 +126,6 @@ class TagConverter extends Converter
 				// Remove match from string
 				$markup = mb_substr ($markup, 0, $offset1) . mb_substr ($markup, $offset1 + $length1);
 			}
-
-			// Append to completed groups
-			$groups[] = array ($id, $matches);
 		}
 
 		// Encode into tokenized string and return
