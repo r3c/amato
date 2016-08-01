@@ -59,42 +59,46 @@ class TagConverter extends Converter
 				if ($type !== Tag::ALONE && $type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::START)
 					continue;
 
-				// Search for compatible matches in candidates
+				// Search for compatible matches in following candidates
 				$incomplete = $type !== Tag::ALONE;
 				$matches = array (array ($i, $candidates[$i][3] + $defaults, $convert));
+				$min = $offset + $length;
 
 				for ($j = $i + 1; $incomplete && $j < count ($candidates); ++$j)
 				{
 					list ($key, $offset, $length) = $candidates[$j];
 
-					// Skip disabled candidates
-					if ($length === null)
+					// Skip disabled candidates or overlaps
+					if ($length === null || $offset < $min)
 						continue;
 
-					// Skip escape sequences along with following escaped candidates
-					if ($key === null)
+					// Follower is a tag sequence
+					if ($key !== null)
+					{
+						list ($id_next, $type, $defaults, $convert) = $this->attributes[$key];
+
+						// Ignore tag types that can't continue a group
+						if ($id !== $id_next || ($type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::STEP && $type !== Tag::STOP))
+							continue;
+
+						$incomplete = $type === Tag::PULSE || $type === Tag::STEP;
+						$matches[] = array ($j, $candidates[$j][3] + $defaults, $convert);
+						$min = $offset + $length;
+					}
+
+					// Follower is an escape sequence, skip it along with escaped candidates
+					else
 					{
 						while ($j + 1 < count ($candidates) && $offset + $length === $candidates[$j + 1][1])
 							++$j;
-
-						continue;
 					}
-
-					list ($id_next, $type, $defaults, $convert) = $this->attributes[$key];
-
-					// Ignore tag types that can't continue a group
-					if ($id !== $id_next || ($type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::STEP && $type !== Tag::STOP))
-						continue;
-
-					$incomplete = $type === Tag::PULSE || $type === Tag::STEP;
-					$matches[] = array ($j, $candidates[$j][3] + $defaults, $convert);
 				}
 
 				// Matches list is incomplete, ignore it
 				if ($incomplete)
 					continue;
 
-				// Call pre-convert callbacks and cancel tag sequence if one fails
+				// Call pre-convert callbacks and cancel matches if one fails
 				foreach ($matches as &$match)
 				{
 					$convert = $match[2];

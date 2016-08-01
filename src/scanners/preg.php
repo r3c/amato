@@ -39,7 +39,7 @@ class PregScanner extends Scanner
 					$name .= $pattern[$i] === self::ESCAPE ? $pattern[++$i] : $pattern[$i];
 
 				if ($i >= $length)
-					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected capture regular pattern');
+					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected capture name separator');
 
 				$value = '';
 

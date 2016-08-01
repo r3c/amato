@@ -7,7 +7,7 @@ require_once ('assert/token.php');
 /*
 ** Map of available tags and associated conversion definitions:
 ** - [tag id => [definition]]
-** -- definition: (type, pattern, defaults?, convert?, revert?)
+** -- definition: (type, pattern, defaults?, convert?)
 ** --- defaults: [name => value]
 */
 $syntax = array
