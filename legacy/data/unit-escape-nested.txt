@@ -1,1 +1,0 @@
-[img]\http://domain.com/image.png[/img]
