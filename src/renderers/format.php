@@ -57,8 +57,8 @@ class FormatRenderer extends Renderer
 				$stop += mb_strlen ($plain) - $length;
 			}
 
-			// Get formatting rule for current group
-			if (!isset ($this->format[$id]))
+			// Get formatting rule for current group if any
+			if (!isset ($this->format[$id]) || !isset ($this->format[$id][0]))
 				continue;
 
 			// Create and insert new scope according to its precedence level
@@ -67,51 +67,49 @@ class FormatRenderer extends Renderer
 				$callback = isset ($this->format[$id][0]) ? $this->format[$id][0] : null;
 				$level = isset ($this->format[$id][1]) ? $this->format[$id][1] : 1;
 
-				for ($scope_end = count ($scopes); $scope_end > 0 && $level > $scopes[$scope_end - 1][3]; )
-					--$scope_end;
+				for ($scope_shift = count ($scopes); $scope_shift > 0 && $level > $scopes[$scope_shift - 1][3]; )
+					--$scope_shift;
 
-				array_splice ($scopes, $scope_end, 0, array (array ($id, $stop, $callback, $level, $captures)));
+				array_splice ($scopes, $scope_shift, 0, array (array ($id, $stop, $callback, $level, $captures)));
 
-				$scope_begin = $scope_end;
-
-				if (!$is_last)
-					++$scope_end;
+				$scope_current = $scope_shift + ($is_last ? 0 : 1);
 			}
 
 			// Find existing scope matching current group id, cancel if none
 			else
 			{
-				for ($scope_end = count ($scopes) - 1; $scope_end >= 0 && $scopes[$scope_end][0] !== $id; )
-					--$scope_end;
+				for ($scope_shift = count ($scopes) - 1; $scope_shift >= 0 && $scopes[$scope_shift][0] !== $id; )
+					--$scope_shift;
 
-				if ($scope_end < 0)
+				if ($scope_shift < 0)
 					continue;
 
-				$scopes[$scope_end][4] = $captures + $scopes[$scope_end][4];
-				$scope_begin = $scope_end;
+				$scopes[$scope_shift][4] = $captures + $scopes[$scope_shift][4];
+				$scope_current = $scope_shift;
 			}
 
-			// Invoke callback for crossed scopes
-			for ($i = count ($scopes) - 1; $i >= $scope_end; --$i)
+			// Invoke callback of both crossed scopes and current one
+			for ($i = count ($scopes) - 1; $i >= $scope_current; --$i)
 			{
 				list ($id, $start, $callback) = $scopes[$i];
 
-				if ($callback === null)
-					continue;
+				// Fast-forward offset of current one if just added and about to be closed
+				if ($i === $scope_current && $is_first && $is_last)
+					$start = $stop;
 
 				$length = $stop - $start;
-				$markup = $callback ($scopes[$i][4], mb_substr ($render, $start, $length), $i !== $scope_end || $is_last, $state);
+				$markup = $callback ($scopes[$i][4], mb_substr ($render, $start, $length), $i !== $scope_current || $is_last, $state);
 
-				$render = mb_substr ($render, 0, $start) . $markup . mb_substr ($render, $start + $length);
+				$render = mb_substr ($render, 0, $start) . $markup . mb_substr ($render, $stop);
 				$stop += mb_strlen ($markup) - $length;
 			}
 
 			// Remove scope from stack when closed
 			if ($is_last)
-				array_splice ($scopes, $scope_end, 1);
+				array_splice ($scopes, $scope_current, 1);
 
-			// Fast-forward offset of crossed scopes
-			for ($i = count ($scopes) - 1; $i >= $scope_begin; --$i)
+			// Shift forward offset of both crossed scopes and current one
+			for ($i = count ($scopes) - 1; $i >= $scope_shift; --$i)
 				$scopes[$i][1] = $stop;
 		}
 

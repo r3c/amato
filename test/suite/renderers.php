@@ -1,6 +1,7 @@
 <?php
 
 require_once ('../src/amato.php');
+require_once ('assert/test.php');
 require_once ('assert/token.php');
 
 /*
@@ -112,6 +113,7 @@ test_renderer ('ABCDE', array (array ('b', array (array (0), array (5))), array 
 // Nested tags with conflicting levels
 test_renderer ('abc', array (array ('div', array (array (0), array (3))), array ('b', array (array (1), array (2)))), '<div>a<b>b</b>c</div>');
 test_renderer ('abc', array (array ('b', array (array (0), array (3))), array ('div', array (array (1), array (2)))), '<b>a</b><div><b>b</b></div><b>c</b>');
+test_renderer ('ab', array (array ('u', array (array (0), array (2))), array ('hr', array (array (1)))), '<u>a</u><hr /><u>b</u>');
 
 // Basic captures
 test_renderer ('', array (array ('a', array (array (0, array ('u' => 'http://www.lol.net'))))), '<a href="http://www.lol.net">http://www.lol.net</a>');
