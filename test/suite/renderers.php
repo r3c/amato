@@ -36,7 +36,7 @@ function amato_render_direct ($id)
 {
 	return function ($captures, $markup, $closing) use ($id)
 	{
-		return $markup !== '' ? '<' . $id . '>' . $markup . '</' . $id . '>' : '';
+		return '<' . $id . '>' . $markup . '</' . $id . '>';
 	};
 }
 
@@ -106,6 +106,9 @@ test_renderer ('x', array (array ('b', array (array (0), array (1)))), '<b>x</b>
 test_renderer ('abc', array (array ('b', array (array (0), array (3)))), '<b>abc</b>');
 test_renderer ('abc', array (array ('b', array (array (1), array (2)))), 'a<b>b</b>c');
 
+// Consecutive tags
+test_renderer ('ab', array (array ('b', array (array (0), array (1))), array ('u', array (array (1), array (2)))), '<b>a</b><u>b</u>');
+
 // Nested tags with same level
 test_renderer ('ABCD', array (array ('b', array (array (0), array (4))), array ('i', array (array (1), array (2))), array ('u', array (array (2), array (3)))), '<b>A<i>B</i><u>C</u>D</b>');
 test_renderer ('ABCDE', array (array ('b', array (array (0), array (5))), array ('i', array (array (1), array (4))), array ('u', array (array (2), array (3)))), '<b>A<i>B<u>C</u>D</i>E</b>');
@@ -121,7 +124,7 @@ test_renderer ('some.text', array (array ('a', array (array (0, array ('u' => 'h
 
 // Steps
 test_renderer ('firstsecond', array (array ('list', array (array (0), array (5), array (11)))), '<ul><li>first</li><li>second</li></ul>');
-test_renderer ('firstsecond', array (array ('b', array (array (0), array (11))), array ('list', array (array (0), array (5), array (11)))), '<ul><li><b>first</b></li><li><b>second</b></li></ul>');
+test_renderer ('firstsecond', array (array ('b', array (array (0), array (11))), array ('list', array (array (0), array (5), array (11)))), '<b></b><ul><li><b>first</b></li><li><b>second</b></li></ul><b></b>');
 
 echo 'OK';
 

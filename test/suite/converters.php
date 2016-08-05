@@ -152,6 +152,9 @@ test_converter ("####A\n\n", array (array ('list', array (array (0), array (0), 
 test_converter ('[b]_plain_[/b]', array (array ('b', array (array (0), array (5))), array ('i', array (array (0), array (5)))), 'plain');
 test_converter ('_[b]plain[/b]_', array (array ('i', array (array (0), array (5))), array ('b', array (array (0), array (5)))), 'plain');
 
+// Consecutive tags
+test_converter ('[b]A[/b]_B_', array (array ('b', array (array (0), array (1))), array ('i', array (array (1), array (2)))), 'AB');
+
 // Captures
 test_converter ('[url=http://domain.ext]link[/url]', array (array ('a', array (array (0, array ('u' => 'http://domain.ext')), array (4)))), 'link');
 test_converter ('[size=big]text[/size]', array (array ('s', array (array (0, array ('p' => '200')), array (4)))), 'text');

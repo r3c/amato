@@ -41,36 +41,37 @@ abstract class Encoder
 	*/
 	public static function next (&$groups, &$cursors)
 	{
-		// First best group and marker indices in current cursors, by offset
+		// First best group and marker indices in current cursors by offset ascending, marker descending
 		$best_offset = null;
 
 		foreach ($cursors as $last_group => $last_marker)
 		{
 			$offset = $groups[$last_group][1][$last_marker][0];
 
-			if ($best_offset === null || $offset <= $best_offset)
+			if ($best_offset === null || ($offset < $best_offset) || ($offset === $best_offset && $last_marker >= $best_marker))
 			{
-				$best_group = $last_group;
+				$best_marker = $last_marker;
 				$best_offset = $offset;
+				$index = $last_group;
 			}
 		}
 
 		// Process current group and marker
-		$best_marker = $cursors[$best_group];
+		$best_marker = $cursors[$index];
 
-		list ($id, $markers) = $groups[$best_group];
+		list ($id, $markers) = $groups[$index];
 		list ($offset, $captures) = $markers[$best_marker];
 
 		$is_first = $best_marker === 0;
 		$is_last = $best_marker + 1 === count ($markers);
 
 		// Append next group to cursors when processing first marker of last group
-		if ($best_group === $last_group && $best_marker === 0 && $best_group + 1 < count ($groups))
-			$cursors[$best_group + 1] = 0;
+		if ($index === $last_group && $best_marker === 0 && $index + 1 < count ($groups))
+			$cursors[$index + 1] = 0;
 
 		// Remove current group from cursors when processing its last marker
-		if (++$cursors[$best_group] >= count ($markers))
-			unset ($cursors[$best_group]);
+		if (++$cursors[$index] >= count ($markers))
+			unset ($cursors[$index]);
 
 		return array ($id, $offset, $captures, $is_first, $is_last);
 	}
