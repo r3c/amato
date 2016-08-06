@@ -72,26 +72,25 @@ class TagConverter extends Converter
 					if ($length === null || $offset < $min)
 						continue;
 
-					// Follower is a tag sequence
-					if ($key !== null)
-					{
-						list ($id_next, $type, $defaults, $convert) = $this->attributes[$key];
-
-						// Ignore tag types that can't continue a group
-						if ($id !== $id_next || ($type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::STEP && $type !== Tag::STOP))
-							continue;
-
-						$incomplete = $type === Tag::PULSE || $type === Tag::STEP;
-						$matches[] = array ($j, $candidates[$j][3] + $defaults, $convert);
-						$min = $offset + $length;
-					}
-
 					// Follower is an escape sequence, skip it along with escaped candidates
-					else
+					if ($key === null)
 					{
-						while ($j + 1 < count ($candidates) && $offset + $length === $candidates[$j + 1][1])
+						while ($j + 1 < count ($candidates) && $offset + $length >= $candidates[$j + 1][1])
 							++$j;
+
+						continue;
 					}
+
+					// Otherwise follower is a non-escaped tag sequence
+					list ($id_next, $type, $defaults, $convert) = $this->attributes[$key];
+
+					// Ignore tag types that can't continue a group
+					if ($id !== $id_next || ($type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::STEP && $type !== Tag::STOP))
+						continue;
+
+					$incomplete = $type === Tag::PULSE || $type === Tag::STEP;
+					$matches[] = array ($j, $candidates[$j][3] + $defaults, $convert);
+					$min = $offset + $length;
 				}
 
 				// Matches list is incomplete, ignore it
@@ -121,7 +120,7 @@ class TagConverter extends Converter
 				$incomplete = true;
 
 				// Disabled following escaped candidates
-				for ($j = $i + 1; $j < count ($candidates) && $offset + $length === $candidates[$j][1]; ++$j)
+				for ($j = $i + 1; $j < count ($candidates) && $offset + $length >= $candidates[$j][1]; ++$j)
 				{
 					$candidates[$j][2] = null;
 					$incomplete = false;
