@@ -2,24 +2,26 @@
 
 define ('CHARSET', 'utf-8');
 
+header ('Content-Type: text/html; charset=' . CHARSET);
+
 mb_internal_encoding (CHARSET);
 
 require ('../src/amato.php');
 
 Amato\autoload ();
 
-function escape ($str)
+function escape ($input)
 {
-	return htmlspecialchars ($str, ENT_COMPAT, CHARSET);
+	return htmlspecialchars ($input, ENT_COMPAT, CHARSET);
 }
 
-function format_html ($str)
+function format_html ($input)
 {
 	$depth = 0;
 	$offset = 0;
 	$out = '';
 
-	while (preg_match ('@[\\s]*(<(/?)[^<>]*?(/?)>|[^<>]+)@s', $str, $matches, PREG_OFFSET_CAPTURE, $offset))
+	while (preg_match ('@[\\s]*(<(/?)[^<>]*?(/?)>|[^<>]+)@s', $input, $matches, PREG_OFFSET_CAPTURE, $offset))
 	{
 		if ($matches[1][0][0] == '<')
 		{
@@ -40,7 +42,7 @@ function format_html ($str)
 	return $out;
 }
 
-function format_w3c ($str)
+function format_w3c ($input)
 {
 	return escape ('<!DOCTYPE html>
 <html>
@@ -50,7 +52,7 @@ function format_w3c ($str)
 	</head>
 	<body>
 		<div>
-			' . $str . '
+			' . $input . '
 		</div>
 	</body>
 </html>');
@@ -66,45 +68,46 @@ function render_options ($options, $selected)
 	return $html;
 }
 
-echo '<!DOCTYPE html>
+?>
+<!DOCTYPE html>
 <html>
 	<head>
 		<link href="res/amato.css" rel="stylesheet" type="text/css" />
 		<link href="res/demo.css" rel="stylesheet" type="text/css" />
-		<meta charset="' . CHARSET . '" /> 
-		<title>Agnostic Markup Tokenizer v' . escape (AMATO) . ' Demo</title>
+		<title>Agnostic Markup Tokenizer v<?php echo escape (AMATO); ?> Demo</title>
 	</head>
 	<body>
 		<div class="box">
 			<h1>Markup:</h1>
 			<div class="body">
 				<form action="" method="POST">
-					<textarea name="markup" rows="10" style="box-sizing: border-box; width: 100%;">' . escape (isset ($_POST['markup']) ? $_POST['markup'] : file_get_contents ('data/demo.txt')) . '</textarea>
+					<textarea name="markup" rows="10" style="box-sizing: border-box; width: 100%;"><?php echo escape (isset ($_POST['markup']) ? $_POST['markup'] : file_get_contents ('data/demo.txt')); ?></textarea>
 					<div class="buttons" id="actions">
 						Convert
-						<select name="syntax">' . render_options (array ('bbcode' => 'BBCode', 'test' => 'Test'), isset ($_POST['syntax']) ? $_POST['syntax'] : null) . '</select>
-						syntax into
-						<select name="format">' . render_options (array ('html' => 'HTML'), isset ($_POST['format']) ? $_POST['format'] : null) . '</select>
-						format and
-						<select name="action">' . render_options (array ('print' => 'print output', 'html' => 'display HTML', 'debug' => 'debug cycle'), isset ($_POST['action']) ? $_POST['action'] : 'print') . '</select>
+						<select name="syntax"><?php echo render_options (array ('bbcode' => 'BBCode', 'wiki' => 'Wiki Markup'), isset ($_POST['syntax']) ? $_POST['syntax'] : null); ?></select>
+						into
+						<select name="format"><?php echo render_options (array ('html' => 'HTML'), isset ($_POST['format']) ? $_POST['format'] : null); ?></select>
+						and
+						<select name="action"><?php echo render_options (array ('print' => 'print result', 'html' => 'show HTML', 'debug' => 'debug cycle'), isset ($_POST['action']) ? $_POST['action'] : 'print'); ?></select>
 						<input type="submit" value="Submit" />
 						<input onclick="var i = document.getElementById(\'options_input\'), p = document.getElementById(\'options_panel\'); if (i.value) { i.value = \'\'; p.style.display = \'none\'; } else { i.value = \'1\'; p.style.display = \'block\'; }" type="button" value="Options" />
-						<input id="options_input" name="options" type="hidden" value="' . escape (isset ($_POST['options']) ? $_POST['options'] : '')  . '" />
+						<input id="options_input" name="options" type="hidden" value="<?php echo escape (isset ($_POST['options']) ? $_POST['options'] : '') ; ?>" />
 					</div>
-					<div class="buttons" id="options_panel" style="display: ' . (isset ($_POST['options']) && $_POST['options'] ? 'block' : 'none') . ';">
+					<div class="buttons" id="options_panel" style="display: <?php echo (isset ($_POST['options']) && $_POST['options'] ? 'block' : 'none'); ?>;">
 						Tokenize using
-						<select name="scanner">' . render_options (array ('preg' => 'preg'), isset ($_POST['scanner']) ? $_POST['scanner'] : null) . '</select>
+						<select name="scanner"><?php echo render_options (array ('preg' => 'preg'), isset ($_POST['scanner']) ? $_POST['scanner'] : null); ?></select>
 						scanner and
-						<select name="converter">' . render_options (array ('tag' => 'tag'), isset ($_POST['converter']) ? $_POST['converter'] : null) . '</select>
+						<select name="converter"><?php echo render_options (array ('tag' => 'tag'), isset ($_POST['converter']) ? $_POST['converter'] : null); ?></select>
 						converter, serialize using
-						<select name="encoder">' . render_options (array ('compact' => 'compact', 'concat' => 'concat', 'json' => 'json', 'sleep' => 'sleep'), isset ($_POST['encoder']) ? $_POST['encoder'] : null) . '</select>
+						<select name="encoder"><?php echo render_options (array ('compact' => 'compact', 'concat' => 'concat', 'json' => 'json', 'sleep' => 'sleep'), isset ($_POST['encoder']) ? $_POST['encoder'] : null); ?></select>
 						encoder, render with
-						<select name="renderer">' . render_options (array ('format' => 'format'), isset ($_POST['renderer']) ? $_POST['renderer'] : null) . '</select>
+						<select name="renderer"><?php echo render_options (array ('format' => 'format'), isset ($_POST['renderer']) ? $_POST['renderer'] : null); ?></select>
 						renderer
 					</div>
 				</form>
 			</div>
-		</div>';
+		</div>
+<?php
 
 if (isset ($_POST['action']) && isset ($_POST['markup']))
 {
@@ -155,8 +158,8 @@ if (isset ($_POST['action']) && isset ($_POST['markup']))
 
 					break;
 
-				case 'test':
-					require ('config/syntax/test.php');
+				case 'wiki':
+					require ('config/syntax/wiki.php');
 
 					break;
 
@@ -231,24 +234,24 @@ if (isset ($_POST['action']) && isset ($_POST['markup']))
 			break;
 	}
 
-	echo '
+?>
 		<div class="box">
 			<h1>Output:</h1>
 			<div class="body">
-				' . $output . '
+				<?php echo $output; ?>
 			</div>
 			<div class="body">
-				<form action="http://validator.w3.org/check" method="POST" target="_blank">
-					<textarea cols="1" name="fragment" rows="1" style="display: none;">' . format_w3c ($render) . '</textarea>
-					<input name="charset" type="hidden" value="' . CHARSET . '" />
+				<form action="http://validator.w3.org/check" method="POST" enctype="multipart/form-data" target="_blank">
+					<textarea name="fragment" style="display: none;"><?php echo format_w3c ($render); ?></textarea>
+					<input name="charset" type="hidden" value="<?php echo CHARSET; ?>" />
 					<input type="submit" value="Submit to w3c validator" />
 				</form>
 			</div>
-		</div>';
+		</div>
+<?php
+
 }
 
-echo '
-	</body>
-</html>';
-
 ?>
+	</body>
+</html>
