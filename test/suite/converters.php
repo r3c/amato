@@ -81,7 +81,7 @@ function c_convert_stop (&$captures, $context)
 
 Amato\autoload ();
 
-function test_converter ($markup, $chains_expected, $plain_expected, $not_canonical = false)
+function test_converter ($markup, $chains_expected, $plain_expected, $canonical = null)
 {
 	global $syntax;
 	static $converters;
@@ -111,6 +111,8 @@ function test_converter ($markup, $chains_expected, $plain_expected, $not_canoni
 
 		$markup_revert1 = $converter->revert ($token1);
 
+		assert_test_equal ($markup_revert1, $canonical !== null ? $canonical : $markup, $context . ' canonical');
+
 		// Convert twice and assert again
 		$token2 = $converter->convert ($markup_revert1);
 
@@ -121,11 +123,7 @@ function test_converter ($markup, $chains_expected, $plain_expected, $not_canoni
 		$markup_revert2 = $converter->revert ($token2);
 
 		// Compare first and second reverts
-		assert_test_equal ($markup_revert2, $markup_revert1, $context . ' revert');
-
-		// Ensure final markup is equal to initial one if possible
-		if (!$not_canonical)
-			assert_test_equal ($markup_revert2, $markup, $context . ' iso');
+		assert_test_equal ($markup_revert2, $markup_revert1, $context . ' stable');
 	}
 }
 
@@ -138,13 +136,13 @@ mb_internal_encoding ($charset);
 // Basic tests
 test_converter ('Hello, World!', array (), 'Hello, World!');
 test_converter ('[b]Hello, World![/b]', array (array ('b', array (array (0), array (13)))), 'Hello, World!');
-test_converter ('A[b]B[/b]C[i]D[/i]E', array (array ('b', array (array (1), array (2))), array ('i', array (array (3), array (4)))), 'ABCDE', true);
-test_converter ('A[b]B[i]C[/i]D[/b]E', array (array ('b', array (array (1), array (4))), array ('i', array (array (2), array (3)))), 'ABCDE', true);
-test_converter ('A[b]B[i]C[/b]D[/i]E', array (array ('b', array (array (1), array (3))), array ('i', array (array (2), array (4)))), 'ABCDE', true);
+test_converter ('A[b]B[/b]C[i]D[/i]E', array (array ('b', array (array (1), array (2))), array ('i', array (array (3), array (4)))), 'ABCDE', 'A[b]B[/b]C_D_E');
+test_converter ('A[b]B[i]C[/i]D[/b]E', array (array ('b', array (array (1), array (4))), array ('i', array (array (2), array (3)))), 'ABCDE', 'A[b]B_C_D[/b]E');
+test_converter ('A[b]B[i]C[/b]D[/i]E', array (array ('b', array (array (1), array (3))), array ('i', array (array (2), array (4)))), 'ABCDE', 'A[b]B_C[/b]D_E');
 test_converter ('_italic_', array (array ('i', array (array (0), array (6)))), 'italic');
-test_converter ('__bold__', array (array ('b', array (array (0), array (4)))), 'bold', true); // Non-canonical: flip tag will be changed to start/stop
-test_converter ('[b]bold__', array (array ('b', array (array (0), array (4)))), 'bold', true); // Non-canonical: flip tag will be changed to start/stop
-test_converter ('__bold[/b]', array (array ('b', array (array (0), array (4)))), 'bold', true); // Non-canonical: flip tag will be changed to start/stop
+test_converter ('__bold__', array (array ('b', array (array (0), array (4)))), 'bold', '[b]bold[/b]');
+test_converter ('[b]bold__', array (array ('b', array (array (0), array (4)))), 'bold', '[b]bold[/b]');
+test_converter ('__bold[/b]', array (array ('b', array (array (0), array (4)))), 'bold', '[b]bold[/b]');
 test_converter ("##A##B##C\n\n", array (array ('list', array (array (0), array (1), array (2), array (3)))), 'ABC');
 test_converter ("####A\n\n", array (array ('list', array (array (0), array (0), array (1)))), 'A');
 
@@ -154,6 +152,7 @@ test_converter ('_[b]plain[/b]_', array (array ('i', array (array (0), array (5)
 
 // Consecutive tags
 test_converter ('[b]A[/b]_B_', array (array ('b', array (array (0), array (1))), array ('i', array (array (1), array (2)))), 'AB');
+test_converter ('[b]A_[/b]B_', array (array ('b', array (array (0), array (1))), array ('i', array (array (1), array (2)))), 'AB', '[b]A[/b]_B_');
 
 // Captures
 test_converter ('[url=http://domain.ext]link[/url]', array (array ('a', array (array (0, array ('u' => 'http://domain.ext')), array (4)))), 'link');
@@ -161,15 +160,15 @@ test_converter ('[size=big]text[/size]', array (array ('s', array (array (0, arr
 test_converter ('[size=50]text[/size]', array (array ('s', array (array (0, array ('p' => '50')), array (4)))), 'text');
 
 // Failed matches
-test_converter ('[b]', array (), '[b]', true); // Non-canonical: start tag will be escaped
+test_converter ('[b]', array (), '[b]', '\\[b]');
 test_converter ('[/b]', array (), '[/b]');
-test_converter ('[b]Text', array (), '[b]Text', true); // Non-canonical: start tag will be escaped
+test_converter ('[b]Text', array (), '[b]Text', '\\[b]Text');
 test_converter ('Text[/b]', array (), 'Text[/b]');
-test_converter ('[i]Text[/b]', array (), '[i]Text[/b]', true); // Non-canonical: start tag will be escaped
-test_converter ('[b][b]Text[/b]', array (array ('b', array (array (0), array (7)))), '[b]Text', true); // Non-canonical: start tag will be escaped
+test_converter ('[i]Text[/b]', array (), '[i]Text[/b]', '\\[i]Text[/b]');
+test_converter ('[b][b]Text[/b]', array (array ('b', array (array (0), array (7)))), '[b]Text', '[b]\\[b]Text[/b]');
 
 // Overlapping matches
-test_converter ('[url]http://google.fr[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr'))))), '', true);
+test_converter ('[url]http://google.fr[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr'))))), '', 'http://google.fr');
 test_converter ('[url=http://google.fr]test[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr')), array (4)))), 'test');
 
 // Crossed matches
@@ -188,22 +187,22 @@ mb_internal_encoding ('utf-8');
 test_converter (mb_convert_encoding ($markup, 'utf-8', $charset), $tags, mb_convert_encoding ($plain, 'utf-8', $charset));
 
 // Escape sequences
-test_converter ('\\', array (), '\\', true); // Non-canonical: escape sequence will be escaped
+test_converter ('\\', array (), '\\', '\\\\');
 test_converter ('\\\\', array (), '\\');
-test_converter ('\\ \\', array (), '\\ \\', true); // Non-canonical: escape sequence will be escaped
+test_converter ('\\ \\', array (), '\\ \\', '\\\\ \\\\');
 test_converter ('\\\\\\\\', array (), '\\\\');
 test_converter ('\[b][/b]', array (), '[b][/b]');
-test_converter ('[b]\[/b]', array (), '[b][/b]', true); // Non-canonical: start tag will be escaped
-test_converter ('\[b]\[/b]', array (), '[b][/b]', true); // Non-canonical: start tag will be escaped
+test_converter ('[b]\[/b]', array (), '[b][/b]', '\\[b][/b]');
+test_converter ('\[b]\[/b]', array (), '[b][/b]', '\\[b][/b]');
 test_converter ('[b]some\[b]bold\[/b]text[/b]', array (array ('b', array (array (0), array (19)))), 'some[b]bold[/b]text');
 test_converter ('\[b]some[b]bold[/b]text\[/b]', array (array ('b', array (array (7), array (11)))), '[b]someboldtext[/b]');
-test_converter ('\__italic__', array (array ('i', array (array (1), array (7)))), '_italic_', true); // Non-canonical: start tag will be escaped
-test_converter ('_\_italic__', array (array ('i', array (array (0), array (7)))), '_italic_', true); // Non-canonical: start tag will be escaped
+test_converter ('\__italic__', array (array ('i', array (array (1), array (7)))), '_italic_', '\\__italic_\\_');
+test_converter ('_\_italic__', array (array ('i', array (array (0), array (7)))), '_italic_', '_\\_italic_\\_');
 
 // Convert callbacks
-test_converter ('[c=0]abc[/c=0]', array (), '[c=0]abc[/c=0]', true); // Non-canonical: tag will be escaped because callback failed
-test_converter ('[c=1]abc[/c=0]', array (), '[c=1]abc[/c=0]', true); // Non-canonical: tag will be escaped because callback failed
-test_converter ('[c=0]abc[/c=1]', array (), '[c=0]abc[/c=1]', true); // Non-canonical: tag will be escaped because callback failed
+test_converter ('[c=0]abc[/c=0]', array (), '[c=0]abc[/c=0]', '\\[c=0]abc[/c=0]');
+test_converter ('[c=1]abc[/c=0]', array (), '[c=1]abc[/c=0]', '\\[c=1]abc[/c=0]');
+test_converter ('[c=0]abc[/c=1]', array (), '[c=0]abc[/c=1]', '\\[c=0]abc[/c=1]');
 test_converter ('[c=1]abc[/c=1]', array (array ('c', array (array (0, array ('n' => '1', 'test' => '5')), array (3, array ('n' => '1', 'test' => '7'))))), 'abc');
 
 echo 'OK';
