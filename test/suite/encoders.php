@@ -32,14 +32,14 @@ function test_encoder ($plain_expected, $chains_expected)
 
 	foreach ($encoders as $name => $encoder)
 	{
-		$context = $name . ' encoder';
+		$context = '[encoder \'' . $name . '\']';
 		$token = $encoder->encode ($plain_expected, $chains_expected);
 
-		assert_test_true ($token !== null, $context . ' token is null');
+		assert_test_true ($token !== null, $context . '[token is null]');
 
 		list ($plain, $chains) = $encoder->decode ($token);
 
-		assert_token_equal ($context, $plain, $chains, $plain_expected, $chains_expected);
+		assert_token_equal ($plain, $chains, $plain_expected, $chains_expected, $context);
 	}
 }
 

@@ -100,30 +100,30 @@ function test_converter ($markup, $chains_expected, $plain_expected, $canonical 
 
 	foreach ($converters as $name => $converter)
 	{
-		$context = $name . ' converter';
+		$context = '[converter \'' . $name . '\']';
 
 		// Convert once and assert result
 		$token1 = $converter->convert ($markup);
 
 		list ($plain1, $chains1) = $encoder->decode ($token1);
 
-		assert_token_equal ($context . ' first decode', $plain1, $chains1, $plain_expected, $chains_expected);
+		assert_token_equal ($plain1, $chains1, $plain_expected, $chains_expected, $context . '[first decode]');
 
 		$markup_revert1 = $converter->revert ($token1);
 
-		assert_test_equal ($markup_revert1, $canonical !== null ? $canonical : $markup, $context . ' canonical');
+		assert_test_equal ($markup_revert1, $canonical !== null ? $canonical : $markup, $context . '[canonical revert]');
 
 		// Convert twice and assert again
 		$token2 = $converter->convert ($markup_revert1);
 
 		list ($plain2, $chains2) = $encoder->decode ($token2);
 
-		assert_token_equal ($context . ' second decode', $plain2, $chains2, $plain_expected, $chains_expected);
+		assert_token_equal ($plain2, $chains2, $plain_expected, $chains_expected, $context . '[second decode]');
 
 		$markup_revert2 = $converter->revert ($token2);
 
 		// Compare first and second reverts
-		assert_test_equal ($markup_revert2, $markup_revert1, $context . ' stable');
+		assert_test_equal ($markup_revert2, $markup_revert1, $context . '[stable revert]');
 	}
 }
 

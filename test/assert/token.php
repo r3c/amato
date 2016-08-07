@@ -1,33 +1,39 @@
 <?php
 
-function assert_token_equal ($context, $plain, $chains, $plain_expected, $chains_expected)
+function assert_token_equal ($plain, $groups, $plain_expected, $groups_expected, $context)
 {
-	assert_test_equal ($plain, $plain_expected, $context . ' plain');
-	assert_test_equal (count ($chains), count ($chains_expected), $context . ' number of tags');
+	assert_test_equal ($plain, $plain_expected, $context . '[plain]');
+	assert_test_equal (count ($groups), count ($groups_expected), $context . '[number of groups]');
 
-	for ($i = 0; $i < count ($chains); ++$i)
+	for ($i = 0; $i < count ($groups); ++$i)
 	{
-		list ($id, $matches) = $chains[$i];
-		list ($id_expected, $matches_expected) = $chains_expected[$i];
+		list ($id, $markers) = $groups[$i];
+		list ($id_expected, $markers_expected) = $groups_expected[$i];
 
-		assert_test_equal ($id, $id_expected, $context . ' tag #' . $i . ' id');
-		assert_test_equal (count ($matches), count ($matches_expected), $context . ' tag #' . $i . ' number of matches');
+		$context_group = $context . '[group #' . $i . ']';
 
-		for ($j = 0; $j < count ($matches); ++$j)
+		assert_test_equal ($id, $id_expected, $context_group . '[id]');
+		assert_test_equal (count ($markers), count ($markers_expected), $context_group . '[number of markers]');
+
+		for ($j = 0; $j < count ($markers); ++$j)
 		{
-			if (!isset ($matches_expected[$j][1]))
-				$matches_expected[$j][1] = array ();
+			if (!isset ($markers_expected[$j][1]))
+				$markers_expected[$j][1] = array ();
 
-			list ($offset, $captures) = $matches[$j];
-			list ($offset_expected, $captures_expected) = $matches_expected[$j];
+			list ($offset, $captures) = $markers[$j];
+			list ($offset_expected, $captures_expected) = $markers_expected[$j];
 
-			assert_test_equal ($offset, $offset_expected, $context . ' tag #' . $i . ' match #' . $j . ' offset');
-			assert_test_equal (count ($captures), count ($captures_expected), $context . ' tag #' . $i . ' match #' . $j . ' number of captures');
+			$context_marker = $context_group . '[marker #' . $j . ']';
+
+			assert_test_equal ($offset, $offset_expected, $context_marker . '[offset]');
+			assert_test_equal (count ($captures), count ($captures_expected), $context_marker . '[number of captures]');
 
 			foreach ($captures_expected as $key => $value)
 			{
-				assert_test_true (isset ($captures[$key]), $context . ' tag #' . $i . ' match #' . $j . ' capture[' . $key . '] isset');
-				assert_test_equal ($captures[$key], $value, $context . ' tag #' . $i . ' match #' . $j . ' capture[' . $key . ']');
+				$context_capture = $context_marker . '[capture \'' . $key . '\']';
+
+				assert_test_true (isset ($captures[$key]), $context_capture . '[isset]');
+				assert_test_equal ($captures[$key], $value, $context_capture . '[value]');
 			}
 		}
 	}
