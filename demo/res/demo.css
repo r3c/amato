@@ -1,105 +1,108 @@
-a
-{
-	color		: #6666FF;
-}
 
 body
 {
-	padding		: 16px;
-	margin		: 0px;
-	background	: #F6F6FF;
-	font		: normal normal normal 10px verdana;
+	padding:	16px;
+	margin:		0px;
+	background:	white;
+	font:		normal normal normal 11px tahoma;
 }
 
-div.box
-{
-	padding		: 2px 2px 0px 2px;
-	margin		: 0px 0px 8px 0px;
-	background	: #CCCCFF;
-	border		: 1px solid #AAAAFF;
+div.window {
+	padding:		3px;
+	margin:			0 auto 16px auto;
+	background:		white;
+	border:			1px solid #9AB;
+	border-radius:	6px;
+	box-shadow:		0 3px 10px #9AB;
 }
 
-div.box div.body
-{
-	padding		: 2px 4px 2px 4px;
-	margin		: 0px 0px 2px 0px;
-	background	: #F6F6FF; 
-	border		: 1px solid #BBBBFF;
+div.window a {
+	color:				#667;
+	text-decoration:	none;
 }
 
-div.box div.body div.buttons
-{
-	line-height	: 20px;
+div.window a:hover {
+	color:				#C92;
+	text-decoration:	underline;
 }
 
-div.box div.body div.code
-{
+div.window div.body {
+	padding:	6px 8px;
+	margin-top:	3px;
+	background:	#CDE;
+}
+
+div.window div.body div.buttons {
+	margin-top:	4px;
+}
+
+div.window div.body div.code {
 	font:	normal normal normal 11px monospace;
 }
 
-div.box h1
-{
-	padding		: 2px 4px 2px 4px;
-	margin		: 0px 0px 2px 0px;
-	background	: #D6D6FF;
-	border		: 1px solid #AAAAFF;
-	font-size	: 100%;
-	text-weight	: bold;
+div.window h2 {
+	padding:		2px 8px;
+	margin:			0;
+	background:		#7AD;
+	border-color:	#BCC #68A #68A #BCC;
+	border-radius:	4px;
+	border-style:	solid;
+	border-width:	1px;
+	font-size:		140%;
+	font-variant:	small-caps;
+	font-weight:	bold;
+	color:			white;
 }
 
-div.box h2
-{
-	padding		: 0px;
-	margin		: 0px 0px 4px 0px;
-	font-size	: 100%;
-	text-weight	: bold;
+div.window h3 {
+	padding:		0 0 4px 0;
+	margin:			0;
+	font-size:		120%;
+	font-weight:	bold;
 }
 
-form input, form select
-{
-	background	: #FFFFFF;
-	border		: 1px solid #8CA2AC;
-	color		: #333366;
-	font		: normal normal normal 10px verdana;
+div.window hr {
+	border-bottom:	1px solid #CCF;
+	border-top:		1px solid #66A;
 }
 
-form textarea
-{
-	background	: #FFFFFF;
-	border		: 1px solid #8CA2AC;
-	color		: #333366;
-	font		: normal normal normal 12px courier new;
+input[type="button"],
+input[type="submit"] {
+	padding:		4px 8px;
+	margin:			4px 4px 4px 0;
+	background:		#DDD;
+	border-color:	white #BBB #BBB white;
+	border-radius:	3px;
+	border-style:	solid;
+	border-width:	1px;
+	line-height:	100%;
+	color:			#444;
 }
 
-hr
-{
-	border-bottom	: 1px solid #C0C0F0;
-	border-top		: 1px solid #6060A0;
+input[type="button"]:active,
+input[type="submit"]:active {
+	background:		#DDD;
+	border-color:	#BBB white white #BBB;
 }
 
-table
-{
-	border-collapse	: collapse;
-	border-bottom	: 1px solid #6060A0;
-	border-right	: 1px solid #6060A0;
+input[type="password"],
+input[type="text"],
+select {
+	padding:		2px 4px;
+	border-color:	#8AA #BBB #BBB #8AA;
+	border-radius:	3px;
+	border-style:	solid;
+	border-width:	1px;
+	color: 			#478;
 }
 
-table td
-{
-	background	: #E0E0FF;
-	border-left	: 1px solid #6060A0;
-	border-top	: 1px solid #6060A0;
+form {
+	margin:		0;
+	padding:	0;
 }
 
-table th
-{
-	background	: #C0C0F0;
-	border-left	: 1px solid #6060A0;
-	border-top	: 1px solid #6060A0;
-}
-
-ol, ul
-{
-	padding	: 0px 0px 0px 32px;
-	margin	: 0px;
+ul {
+	padding:	0 0 0 24px;
+	margin:		8px 0;
+	list-style:	circle outside none;
 }

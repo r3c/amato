@@ -77,8 +77,8 @@ function render_options ($options, $selected)
 		<title>Agnostic Markup Tokenizer v<?php echo escape (AMATO); ?> Demo</title>
 	</head>
 	<body>
-		<div class="box">
-			<h1>Markup:</h1>
+		<div class="window">
+			<h2>Markup</h2>
 			<div class="body">
 				<form action="" method="POST">
 					<textarea name="markup" rows="10" style="box-sizing: border-box; width: 100%;"><?php echo escape (isset ($_POST['markup']) ? $_POST['markup'] : file_get_contents ('data/demo.txt')); ?></textarea>
@@ -90,8 +90,7 @@ function render_options ($options, $selected)
 						and
 						<select name="action"><?php echo render_options (array ('print' => 'print result', 'html' => 'show HTML', 'debug' => 'debug cycle'), isset ($_POST['action']) ? $_POST['action'] : 'print'); ?></select>
 						<input type="submit" value="Submit" />
-						<input onclick="var i = document.getElementById(\'options_input\'), p = document.getElementById(\'options_panel\'); if (i.value) { i.value = \'\'; p.style.display = \'none\'; } else { i.value = \'1\'; p.style.display = \'block\'; }" type="button" value="Options" />
-						<input id="options_input" name="options" type="hidden" value="<?php echo escape (isset ($_POST['options']) ? $_POST['options'] : '') ; ?>" />
+						<input onclick="var p = document.getElementById('options_panel'); p.style.display = p.style.display === 'none' ? 'block' : 'none';" type="button" value="Options" />
 					</div>
 					<div class="buttons" id="options_panel" style="display: <?php echo (isset ($_POST['options']) && $_POST['options'] ? 'block' : 'none'); ?>;">
 						Tokenize using
@@ -207,13 +206,13 @@ if (isset ($_POST['action']) && isset ($_POST['markup']))
 			$revert = $converter->revert ($token);
 
 			$output =
-				'<h2>markup string (' . mb_strlen ($markup) . ' characters):</h2>' . 
+				'<h3>markup string (' . mb_strlen ($markup) . ' characters):</h3>' . 
 				'<div class="code">' . escape ($markup) . '</div><hr />' .
-				'<h2>token string (' . mb_strlen ($token) . ' characters):</h2>' .
+				'<h3>token string (' . mb_strlen ($token) . ' characters):</h3>' .
 				'<div class="code">' . escape ($token) . '</div><hr />' .
-				'<h2>render string (' . mb_strlen ($render) . ' characters):</h2>' .
+				'<h3>render string (' . mb_strlen ($render) . ' characters):</h3>' .
 				'<div class="code">' . escape ($render) . '</div><hr />' .
-				'<h2>revert string (' . mb_strlen ($revert) . ' characters):</h2>' .
+				'<h3>revert string (' . mb_strlen ($revert) . ' characters):</h3>' .
 				'<div class="code" style="color: ' . ($markup === $revert ? 'green' : 'red') . ';">' . escape ($revert) . '</div>';
 
 			break;
@@ -235,8 +234,8 @@ if (isset ($_POST['action']) && isset ($_POST['markup']))
 	}
 
 ?>
-		<div class="box">
-			<h1>Output:</h1>
+		<div class="window">
+			<h2>Output</h2>
 			<div class="body">
 				<?php echo $output; ?>
 			</div>
