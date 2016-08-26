@@ -129,9 +129,9 @@ function test_converter ($markup, $chains_expected, $plain_expected, $canonical 
 
 assert_options (ASSERT_BAIL, true);
 
-$charset = 'utf-8';
+$native = 'utf-8';
 
-mb_internal_encoding ($charset);
+mb_internal_encoding ($native);
 
 // Basic tests
 test_converter ('Hello, World!', array (), 'Hello, World!');
@@ -157,6 +157,7 @@ test_converter ('[b]A_[/b]B_', array (array ('b', array (array (0), array (1))),
 // Captures
 test_converter ('[url=http://domain.ext]link[/url]', array (array ('a', array (array (0, array ('u' => 'http://domain.ext')), array (4)))), 'link');
 test_converter ('[size=big]text[/size]', array (array ('s', array (array (0, array ('p' => '200')), array (4)))), 'text');
+test_converter ('[size=200]text[/size]', array (array ('s', array (array (0, array ('p' => '200')), array (4)))), 'text', '[size=big]text[/size]');
 test_converter ('[size=50]text[/size]', array (array ('s', array (array (0, array ('p' => '50')), array (4)))), 'text');
 
 // Failed matches
@@ -180,11 +181,13 @@ $markup = 'Voilà [hr] une [b]chaîne[/b] qui _devrait_ être convertie sans [b]
 $plain = 'Voilà  une chaîne qui devrait être convertie sans problèmes.';
 $tags = array (array ('hr', array (array (6))), array ('b', array (array (11), array (17))), array ('i', array (array (22), array (29))), array ('b', array (array (50), array (59))));
 
-mb_internal_encoding ('iso-8859-1');
-test_converter (mb_convert_encoding ($markup, 'iso-8859-1', $charset), $tags, mb_convert_encoding ($plain, 'iso-8859-1', $charset));
+foreach (array ('ascii', 'iso-8859-1', 'utf-8') as $charset)
+{
+	mb_internal_encoding ($charset);
+	test_converter (mb_convert_encoding ($markup, $charset, $native), $tags, mb_convert_encoding ($plain, $charset, $native));
+}
 
-mb_internal_encoding ('utf-8');
-test_converter (mb_convert_encoding ($markup, 'utf-8', $charset), $tags, mb_convert_encoding ($plain, 'utf-8', $charset));
+mb_internal_encoding ($native);
 
 // Escape sequences
 test_converter ('\\', array (), '\\', '\\\\');
