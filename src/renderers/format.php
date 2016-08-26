@@ -33,15 +33,14 @@ class FormatRenderer extends Renderer
 		list ($render, $groups) = $pack;
 
 		// Process all groups elements
-		$cursors = Encoder::begin ($groups);
 		$escape = $this->escape;
 		$last = 0;
 		$scopes = array ();
 		$stop = 0;
 
-		while (count ($cursors) > 0)
+		for ($cursors = Encoder::begin ($groups); Encoder::next ($groups, $cursors, $next); )
 		{
-			list ($id, $offset, $captures, $is_first, $is_last) = Encoder::next ($groups, $cursors);
+			list ($id, $offset, $captures, $is_first, $is_last) = $next;
 
 			$start = $stop;
 			$stop += $offset - $last;

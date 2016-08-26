@@ -37,43 +37,49 @@ abstract class Encoder
 	** stored in cursors array, and updated by this method.
 	** &groups:		tag groups
 	** &cursors:	pending (group_index => marker_index) sorted array
-	** return:		(id, offset, captures, is_first, is_last) of next tag
+	** &next:		(id, offset, captures, is_first, is_last) of next tag if any
+	** return:		true if a tag was found, false otherwise
 	*/
-	public static function next (&$groups, &$cursors)
+	public static function next (&$groups, &$cursors, &$next)
 	{
+		if (count ($cursors) < 1)
+			return false;
+
 		// First best group and marker indices in current cursors by offset ascending, marker descending
 		$best_offset = null;
 
-		foreach ($cursors as $last_group => $last_marker)
+		foreach ($cursors as $last_group_index => $last_marker_index)
 		{
-			$offset = $groups[$last_group][1][$last_marker][0];
+			$offset = $groups[$last_group_index][1][$last_marker_index][0];
 
-			if ($best_offset === null || ($offset < $best_offset) || ($offset === $best_offset && $last_marker >= $best_marker))
+			if ($best_offset === null || ($offset < $best_offset) || ($offset === $best_offset && $last_marker_index >= $best_marker_index))
 			{
-				$best_marker = $last_marker;
+				$best_marker_index = $last_marker_index;
 				$best_offset = $offset;
-				$index = $last_group;
+
+				$group_index = $last_group_index;
+				$marker_index = $last_marker_index;
 			}
 		}
 
 		// Process current group and marker
-		$best_marker = $cursors[$index];
+		list ($id, $markers) = $groups[$group_index];
+		list ($offset, $captures) = $markers[$marker_index];
 
-		list ($id, $markers) = $groups[$index];
-		list ($offset, $captures) = $markers[$best_marker];
-
-		$is_first = $best_marker === 0;
-		$is_last = $best_marker + 1 === count ($markers);
+		$is_first = $marker_index === 0;
+		$is_last = $marker_index + 1 === count ($markers);
 
 		// Append next group to cursors when processing first marker of last group
-		if ($index === $last_group && $best_marker === 0 && $index + 1 < count ($groups))
-			$cursors[$index + 1] = 0;
+		if ($group_index === $last_group_index && $marker_index === 0 && $group_index + 1 < count ($groups))
+			$cursors[$group_index + 1] = 0;
 
 		// Remove current group from cursors when processing its last marker
-		if (++$cursors[$index] >= count ($markers))
-			unset ($cursors[$index]);
+		if (++$cursors[$group_index] >= count ($markers))
+			unset ($cursors[$group_index]);
 
-		return array ($id, $offset, $captures, $is_first, $is_last);
+		$next = array ($id, $offset, $captures, $is_first, $is_last);
+
+		return true;
 	}
 }
 

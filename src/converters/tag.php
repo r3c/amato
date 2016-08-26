@@ -189,14 +189,13 @@ class TagConverter extends Converter
 		list ($plain, $groups) = $pair;
 
 		// Browse groups and markers, revert them into text and insert into plain string
-		$cursors = Encoder::begin ($groups);
 		$levels = array ();
 		$markup = '';
 		$start = 0;
 
-		while (count ($cursors) > 0)
+		for ($cursors = Encoder::begin ($groups); Encoder::next ($groups, $cursors, $next); )
 		{
-			list ($id, $offset, $captures, $is_first, $is_last) = Encoder::next ($groups, $cursors);
+			list ($id, $offset, $captures, $is_first, $is_last) = $next;
 
 			// Escape and append skipped plain string to markup
 			$markup .= $this->build_markup ($levels, mb_substr ($plain, $start, $offset - $start));
