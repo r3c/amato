@@ -65,14 +65,14 @@ $syntax = array
 	)
 );
 
-function c_convert_start (&$captures, $context)
+function c_convert_start ($type, &$captures, $context)
 {
 	$captures['test'] = 5;
 
 	return (int)$captures['n'] !== 0;
 }
 
-function c_convert_stop (&$captures, $context)
+function c_convert_stop ($type, &$captures, $context)
 {
 	$captures['test'] = 7;
 
@@ -100,7 +100,7 @@ function test_converter ($markup, $chains_expected, $plain_expected, $canonical 
 
 	foreach ($converters as $name => $converter)
 	{
-		$context = '[converter \'' . $name . '\']';
+		$context = '[markup \'' . str_replace ("\n", ' ', $markup) . '\'][converter \'' . $name . '\']';
 
 		// Convert once and assert result
 		$token1 = $converter->convert ($markup);

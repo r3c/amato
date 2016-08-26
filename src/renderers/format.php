@@ -22,7 +22,7 @@ class FormatRenderer extends Renderer
 	/*
 	** Override for Renderer::render.
 	*/
-	public function render ($token, $state = null)
+	public function render ($token, $context = null)
 	{
 		// Parse tokenized string
 		$pack = $this->encoder->decode ($token);
@@ -98,7 +98,7 @@ class FormatRenderer extends Renderer
 					$start = $stop;
 
 				$length = $stop - $start;
-				$markup = $callback ($scopes[$i][4], mb_substr ($render, $start, $length), $i !== $scope_current || $is_last, $state);
+				$markup = $callback ($scopes[$i][4], mb_substr ($render, $start, $length), $i !== $scope_current || $is_last, $context);
 
 				$render = mb_substr ($render, 0, $start) . $markup . mb_substr ($render, $stop);
 				$stop += mb_strlen ($markup) - $length;

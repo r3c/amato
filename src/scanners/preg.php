@@ -99,7 +99,7 @@ class PregScanner extends Scanner
 	*/
 	public function find ($string)
 	{
-		$candidates = array ();
+		$sequences = array ();
 		$order = 0;
 
 		// Match all escape sequences in input string
@@ -111,7 +111,7 @@ class PregScanner extends Scanner
 			$length = mb_strlen ($match[0]);
 			$offset = mb_strlen (substr ($string, 0, $match[1]));
 
-			$candidates[self::index ($offset, $length, $order)] = array (null, $offset, $length);
+			$sequences[self::index ($offset, $length, $order)] = array (null, $offset, $length);
 		}
 
 		// Match all tag sequences in input string
@@ -132,22 +132,22 @@ class PregScanner extends Scanner
 				for ($i = min (count ($match) - 1, count ($names)); $i-- > 0; )
 					$captures[$names[$i]] = $match[$i + 1][0];
 
-				// Append to candidates array, using custom key for fast sorting
+				// Append to sequences array, using custom key for fast sorting
 				$length = mb_strlen ($match[0][0]);
 				$offset = mb_strlen (substr ($string, 0, $match[0][1]));
 
-				$candidates[self::index ($offset, $length, $order)] = array ($key, $offset, $length, $captures);
+				$sequences[self::index ($offset, $length, $order)] = array ($key, $offset, $length, $captures);
 			}
 		}
 
-		// Order candidates by offset ascending, length descending, rule ascending
-		ksort ($candidates);
+		// Order sequences by offset ascending, length descending, rule ascending
+		ksort ($sequences);
 
-		return array_values ($candidates);
+		return array_values ($sequences);
 	}
 
 	/*
-	** Build array index to allow sorting of candidates using "ksort" instead
+	** Build array index to allow sorting of sequences using "ksort" instead
 	** of "usort" (ugly but way faster).
 	*/
 	private static function index ($offset, $length, $order)

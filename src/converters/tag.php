@@ -38,129 +38,141 @@ class TagConverter extends Converter
 	*/
 	public function convert ($markup, $context = null)
 	{
-		// Resolve candidate into matched references
-		$candidates = $this->scanner->find ($markup);
-		$references = array ();
+		// Group compatible sequences into array of matches by group candidate
+		$candidates = array ();
+		$sequences = $this->scanner->find ($markup);
+		$trims = array ();
 
-		for ($i = 0; $i < count ($candidates); ++$i)
+		for ($i = 0; $i < count ($sequences); ++$i)
 		{
-			list ($key, $offset, $length) = $candidates[$i];
+			list ($key, $offset, $length) = $sequences[$i];
 
-			// Ignore disabled candidates
-			if ($length === null)
+			// Current sequence is an escape sequence
+			if ($key === null)
+			{
+				// Skip sequences following this escape sequence if any
+				for ($escape = false; $i + 1 < count ($sequences) && $sequences[$i + 1][1] <= $offset + $length; ++$i)
+					$escape = true;
+
+				// Flag escape sequence for removal if it had an effect
+				if ($escape)
+					$trims[] = array ($offset, $length);
+
+				continue;
+			}
+
+			// Current sequence is a tag sequence
+			list ($id, $type, $defaults, $convert) = $this->attributes[$key];
+
+			// Build captures array and call conversion callback if any
+			$captures = $sequences[$i][3] + $defaults;
+
+			if ($convert !== null && $convert ($type, $captures, $context) === false)
 				continue;
 
-			// Candidate is a tag sequence
-			if ($key !== null)
+			$inserts = array ();
+
+			// Tag sequence can continue an existing group, find compatible candidates
+			if ($type === Tag::FLIP || $type === Tag::PULSE || $type === Tag::STEP || $type === Tag::STOP)
 			{
-				list ($id, $type, $defaults, $convert) = $this->attributes[$key];
-
-				// Ignore tag types that can't start a group
-				if ($type !== Tag::ALONE && $type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::START)
-					continue;
-
-				// Search for compatible matches in following candidates
-				$incomplete = $type !== Tag::ALONE;
-				$matches = array (array ($i, $candidates[$i][3] + $defaults, $convert));
-				$min = $offset + $length;
-
-				for ($j = $i + 1; $incomplete && $j < count ($candidates); ++$j)
+				for ($j = 0; $j < count ($candidates); ++$j)
 				{
-					list ($key, $offset, $length) = $candidates[$j];
+					if ($candidates[$j][0] === $id)
+						$inserts[$j] = $type === Tag::PULSE || $type === Tag::STEP;
+				}
+			}
 
-					// Skip disabled candidates or overlaps
-					if ($length === null || $offset < $min)
-						continue;
+			// Tag sequence can start a new group, create new candidate
+			if ($type === Tag::ALONE || $type === Tag::PULSE || $type === Tag::FLIP || $type === Tag::START)
+			{
+				$candidates[] = array ($id, array ());
+				$inserts[count ($candidates) - 1] = $type !== Tag::ALONE;
+			}
 
-					// Follower is an escape sequence, skip it along with escaped candidates
-					if ($key === null)
+			// Append match to compatible candidates
+			foreach ($inserts as $index => $incomplete)
+				$candidates[$index][1][] = array ($offset, $length, $captures, $incomplete);
+		}
+
+		// Resolve compatible candidates into groups and flag them for removal
+		$groups = array ();
+
+		while (count ($candidates) > 0)
+		{
+			list ($id, $matches) = array_shift ($candidates);
+
+			// Find first match able to close current candidate group
+			for ($i = 0; $i < count ($matches) && $matches[$i][3]; )
+				++$i;
+
+			if ($i >= count ($matches))
+				continue;
+
+			// Save candidate and remove other overlapped candidates
+			$matches = array_splice ($matches, 0, $i + 1);
+			$markers = array ();
+
+			foreach ($matches as $match)
+			{
+				list ($offset1, $length1, $captures) = $match;
+
+				for ($i = count ($candidates); $i-- > 0; )
+				{
+					for ($j = count ($candidates[$i][1]); $j-- > 0; )
 					{
-						while ($j + 1 < count ($candidates) && $offset + $length >= $candidates[$j + 1][1])
-							++$j;
+						list ($offset2, $length2) = $candidates[$i][1][$j];
 
-						continue;
+						if ($offset1 < $offset2 + $length2 && $offset2 < $offset1 + $length1)
+						{
+							// Drop entire candidate if its first match is removed
+							if ($j === 0)
+							{
+								array_splice ($candidates, $i, 1);
+
+								break;
+							}
+
+							// Otherwise just remove overlapped match
+							array_splice ($candidates[$i][1], $j, 1);
+						}
 					}
-
-					// Otherwise follower is a non-escaped tag sequence
-					list ($id_next, $type, $defaults, $convert) = $this->attributes[$key];
-
-					// Ignore tag types that can't continue a group
-					if ($id !== $id_next || ($type !== Tag::FLIP && $type !== Tag::PULSE && $type !== Tag::STEP && $type !== Tag::STOP))
-						continue;
-
-					$incomplete = $type === Tag::PULSE || $type === Tag::STEP;
-					$matches[] = array ($j, $candidates[$j][3] + $defaults, $convert);
-					$min = $offset + $length;
 				}
 
-				// Matches list is incomplete, ignore it
-				if ($incomplete)
-					continue;
-
-				// Call pre-convert callbacks and cancel matches if one fails
-				foreach ($matches as &$match)
-				{
-					$convert = $match[2];
-
-					if ($convert === null)
-						continue;
-
-					if ($convert ($match[1], $context) === false)
-						continue 2;
-				}
-
-				// Append completed tag sequence to references
-				$references[] = array ($id, $matches);
-				$strips = array_map (function ($match) { return $match[0]; }, $matches);
+				$markers[] = array ($offset1, $captures);
+				$trims[] = array ($offset1, $length1);
 			}
 
-			// Candidate is an escape sequence
-			else
+			$groups[] = array ($id, $markers);
+		}
+
+		// Remove groups from markup string and fix offsets
+		// FIXME: could be optimized by doing a single pass on $trims
+		for ($i = 0; $i < count ($trims); ++$i)
+		{
+			list ($offset, $length) = $trims[$i];
+
+			foreach ($groups as &$group)
 			{
-				$incomplete = true;
-
-				// Disabled following escaped candidates
-				for ($j = $i + 1; $j < count ($candidates) && $offset + $length >= $candidates[$j][1]; ++$j)
+				foreach ($group[1] as &$marker)
 				{
-					$candidates[$j][2] = null;
-					$incomplete = false;
+					if ($marker[0] > $offset)
+						$marker[0] -= $length;
 				}
-
-				// Escape sequence doesn't escape anything, ignore it
-				if ($incomplete)
-					continue;
-
-				// Flag escape sequence for removal
-				$strips = array ($i);
 			}
 
-			// Remove escape or tag sequences from string and fix offsets
-			foreach ($strips as $strip)
+			for ($j = 0; $j < count ($trims); ++$j)
 			{
-				list ($key1, $offset1, $length1) = $candidates[$strip];
+				list ($offset2, $length2) = $trims[$j];
 
-				// Disable current candidate
-				$candidates[$strip][2] = null;
-
-				// Disable overlapped candidates, shift successors
-				for ($next = 0; $next < count ($candidates); ++$next)
-				{
-					list ($key2, $offset2, $length2) = $candidates[$next];
-
-					if ($length2 !== null && $offset1 < $offset2 + $length2 && $offset2 < $offset1 + $length1)
-						$candidates[$next][2] = null;
-
-					if ($strip < $next)
-						$candidates[$next][1] -= $length1;
-				}
-
-				// Remove match from string
-				$markup = mb_substr ($markup, 0, $offset1) . mb_substr ($markup, $offset1 + $length1);
+				if ($offset2 > $offset)
+					$trims[$j][0] -= $length;
 			}
+
+			$markup = mb_substr ($markup, 0, $offset) . mb_substr ($markup, $offset + $length);
 		}
 
 		// Encode into tokenized string and return
-		return $this->encoder->encode ($markup, $this->build_groups ($candidates, $references));
+		return $this->encoder->encode ($markup, $groups);
 	}
 
 	/*
@@ -225,35 +237,6 @@ class TagConverter extends Converter
 		$markup .= $this->build_markup ($levels, mb_substr ($plain, $start));
 
 		return $markup;
-	}
-
-	/*
-	** Build groups from matched references.
-	** $candidates:	array of (key, offset, length, captures) candidates
-	** $references:	array of (id, array of matches) references
-	** return:		array of (id, array of (offset, captures)) groups
-	*/
-	private function build_groups ($candidates, $references)
-	{
-		$groups = array ();
-
-		foreach ($references as $reference)
-		{
-			list ($id, $matches) = $reference;
-
-			$markers = array ();
-
-			foreach ($matches as $match)
-			{
-				list ($i, $captures) = $match;
-
-				$markers[] = array ($candidates[$i][1], $captures);
-			}
-
-			$groups[] = array ($id, $markers);
-		}
-
-		return $groups;
 	}
 
 	/*
