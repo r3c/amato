@@ -41,24 +41,30 @@ class TagConverter extends Converter
 		// Group compatible sequences into array of matches by group candidate
 		$candidates = array ();
 		$groups = array ();
-		$min = 0;
 		$sequences = $this->scanner->find ($markup);
+		$shift = 0;
 		$trims = array ();
 
 		for ($i = 0; $i < count ($sequences); ++$i)
 		{
 			list ($key, $offset, $length) = $sequences[$i];
 
+			// Fix offset to take removed escape sequences into account
+			$offset -= $shift;
+
 			// Current sequence is an escape sequence
 			if ($key === null)
 			{
 				// Skip sequences following this escape sequence if any
-				for ($escape = false; $i + 1 < count ($sequences) && $sequences[$i + 1][1] <= $offset + $length; ++$i)
+				for ($escape = false; $i + 1 < count ($sequences) && $sequences[$i + 1][1] - $shift <= $offset + $length; ++$i)
 					$escape = true;
 
 				// Flag escape sequence for removal if it had an effect
 				if ($escape)
-					$trims[] = array ($offset, $length);
+				{
+					$markup = mb_substr ($markup, 0, $offset) . mb_substr ($markup, $offset + $length);
+					$shift += $length;
+				}
 			}
 
 			// Current sequence is a tag sequence, insert into candidates
@@ -76,17 +82,17 @@ class TagConverter extends Converter
 				self::candidate_register ($candidates, $id, $type, $offset, $length, $params);
 
 				// Try to resolve candidates
-				while (count ($candidates) > 0 && self::candidate_resolve ($candidates, $groups, $trims, $min))
+				for ($min = 0; count ($candidates) > 0 && self::candidate_resolve ($candidates, $groups, $trims, $min); )
 				{
 					// Skip following overlapped sequences
-					while ($i + 1 < count ($sequences) && $sequences[$i + 1][1] < $min)
+					while ($i + 1 < count ($sequences) && $sequences[$i + 1][1] - $shift < $min)
 						++$i;
 				}
 			}
 		}
 
 		// Resolve compatible candidates into groups and flag them for removal
-		while (count ($candidates) > 0)
+		for ($min = 0; count ($candidates) > 0; )
 		{
 			if (!self::candidate_resolve ($candidates, $groups, $trims, $min))
 				array_shift ($candidates);
