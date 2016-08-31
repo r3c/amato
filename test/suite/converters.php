@@ -8,23 +8,16 @@ require_once ('assert/token.php');
 ** Map of available tags and associated conversion definitions:
 ** - [tag id => [definition]]
 ** -- definition: (type, pattern, defaults?, convert?)
+** --- pattern: plain1<pattern:name>plain2<pattern#default>plain3
 ** --- defaults: [name => value]
 */
 $syntax = array
 (
-	/*
-	** Pattern expression:
-	** <capture_name:capture_regex>
-	** (pattern)
-	** [characters]
-	** {} or {exact} or {min,max} or {min,max,default}
-	*/
 	'a' => array
 	(
-		array (Amato\Tag::ALONE, '<u:https?://[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>'),
-		array (Amato\Tag::ALONE, '<u:www.[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>'), // FIXME: How to distinguish from previous pattern? They could be merged if some group + options syntax is allowed
-		array (Amato\Tag::ALONE, '[url]<u:[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>[/url]'),
-		array (Amato\Tag::START, '[url=<u:[-0-9A-Za-z._~:/?#@!$%%&\'*+,;=(%)*]+>]'),
+		array (Amato\Tag::ALONE, '<(https?%://|www\\.)[-0-9A-Za-z._~%:/?%#@!$%%&\'*+,;=(%)*]+:u>'),
+		array (Amato\Tag::ALONE, '[url]<[-0-9A-Za-z._~%:/?%#@!$%%&\'*+,;=(%)*]+:u>[/url]'),
+		array (Amato\Tag::START, '[url=<[-0-9A-Za-z._~%:/?%#@!$%%&\'*+,;=(%)*]+:u>]'),
 		array (Amato\Tag::STOP, '[/url]')
 	),
 	'b' => array
@@ -35,8 +28,8 @@ $syntax = array
 	),
 	'c'	=> array
 	(
-		array (Amato\Tag::START, '[c=<n:[01]>]', null, 'c_convert_start'),
-		array (Amato\Tag::STOP, '[/c=<n:[01]>]', null, 'c_convert_stop')
+		array (Amato\Tag::START, '[c=<[01]:n>]', null, 'c_convert_start'),
+		array (Amato\Tag::STOP, '[/c=<[01]:n>]', null, 'c_convert_stop')
 	),
 	'hr' => array
 	(
@@ -55,12 +48,12 @@ $syntax = array
 	),
 	'pre' => array
 	(
-		array (Amato\Tag::ALONE, '[pre]<b:.*>[/pre]')
+		array (Amato\Tag::ALONE, '[pre]<.*:b>[/pre]')
 	),
 	's' => array
 	(
 		array (Amato\Tag::START, '[size=big]', array ('p' => 200)),
-		array (Amato\Tag::START, '[size=<p:[0-9]+>]'),
+		array (Amato\Tag::START, '[size=<[0-9]+:p>]'),
 		array (Amato\Tag::STOP, '[/size]')
 	)
 );
@@ -81,7 +74,7 @@ function c_convert_stop ($type, &$captures, $context)
 
 Amato\autoload ();
 
-function test_converter ($markup, $chains_expected, $plain_expected, $canonical = null)
+function test_converter ($markup, $groups_expected, $plain_expected, $canonical = null)
 {
 	global $syntax;
 	static $converters;
@@ -105,9 +98,9 @@ function test_converter ($markup, $chains_expected, $plain_expected, $canonical 
 		// Convert once and assert result
 		$token1 = $converter->convert ($markup);
 
-		list ($plain1, $chains1) = $encoder->decode ($token1);
+		list ($plain1, $groups1) = $encoder->decode ($token1);
 
-		assert_token_equal ($plain1, $chains1, $plain_expected, $chains_expected, $context . '[first decode]');
+		assert_token_equal ($plain1, $groups1, $plain_expected, $groups_expected, $context . '[first decode]');
 
 		$markup_revert1 = $converter->revert ($token1);
 
@@ -116,9 +109,9 @@ function test_converter ($markup, $chains_expected, $plain_expected, $canonical 
 		// Convert twice and assert again
 		$token2 = $converter->convert ($markup_revert1);
 
-		list ($plain2, $chains2) = $encoder->decode ($token2);
+		list ($plain2, $groups2) = $encoder->decode ($token2);
 
-		assert_token_equal ($plain2, $chains2, $plain_expected, $chains_expected, $context . '[second decode]');
+		assert_token_equal ($plain2, $groups2, $plain_expected, $groups_expected, $context . '[second decode]');
 
 		$markup_revert2 = $converter->revert ($token2);
 
@@ -145,6 +138,8 @@ test_converter ('[b]bold__', array (array ('b', array (array (0), array (4)))), 
 test_converter ('__bold[/b]', array (array ('b', array (array (0), array (4)))), 'bold', '[b]bold[/b]');
 test_converter ("##A##B##C\n\n", array (array ('list', array (array (0), array (1), array (2), array (3)))), 'ABC');
 test_converter ("####A\n\n", array (array ('list', array (array (0), array (0), array (1)))), 'A');
+test_converter ('http://www.mirari.fr/', array (array ('a', array (array (0, array ('u' => 'http://www.mirari.fr/'))))), '');
+test_converter ('www.mirari.fr', array (array ('a', array (array (0, array ('u' => 'www.mirari.fr'))))), '');
 
 // Nested tags
 test_converter ('[b]_plain_[/b]', array (array ('b', array (array (0), array (5))), array ('i', array (array (0), array (5)))), 'plain');

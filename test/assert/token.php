@@ -26,15 +26,7 @@ function assert_token_equal ($plain, $groups, $plain_expected, $groups_expected,
 			$context_marker = $context_group . '[marker #' . $j . ']';
 
 			assert_test_equal ($offset, $offset_expected, $context_marker . '[offset]');
-			assert_test_equal (count ($captures), count ($captures_expected), $context_marker . '[number of captures]');
-
-			foreach ($captures_expected as $key => $value)
-			{
-				$context_capture = $context_marker . '[capture \'' . $key . '\']';
-
-				assert_test_true (isset ($captures[$key]), $context_capture . '[isset]');
-				assert_test_equal ($captures[$key], $value, $context_capture . '[value]');
-			}
+			assert_test_equal ($captures, $captures_expected, $context_marker . '[captures]');
 		}
 	}
 }

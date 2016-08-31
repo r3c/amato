@@ -7,12 +7,33 @@ function _assert_test_dump ($value)
 
 function assert_test_equal ($result, $expected, $context)
 {
-	assert ($result === $expected, $context . ' not equal: ' . _assert_test_dump ($result) . ' !== ' . _assert_test_dump ($expected));
+	if (is_scalar ($expected))
+	{
+		assert_test_true (is_scalar ($result), $context . '[is scalar]');
+		assert ($result === $expected, $context . ' ' . _assert_test_dump ($result) . ' === ' . _assert_test_dump ($expected));
+	}
+
+	else if (is_array ($expected))
+	{
+		assert_test_true (is_array ($result), $context . '[is array]');
+		assert_test_equal (count ($result), count ($expected), $context . '[number of values]');
+
+		foreach ($expected as $key => $value)
+		{
+			$context_element = $context . '[key \'' . $key . '\']';
+
+			assert_test_true (isset ($result[$key]), $context_element . '[isset]');
+			assert_test_equal ($result[$key], $value, $context_element . '[value]');
+		}
+	}
+
+	else
+		assert (false, $context . ' known type');
 }
 
 function assert_test_true ($result, $context)
 {
-	assert ($result, $context . ' not true: ' . _assert_test_dump ($result));
+	assert ($result, $context . ' ' . _assert_test_dump ($result) . ' is true');
 }
 
 ?>

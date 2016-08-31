@@ -7,10 +7,12 @@ defined ('AMATO') or die;
 class PregScanner extends Scanner
 {
 	const CAPTURE_BEGIN		= '<';
+	const CAPTURE_DEFAULT	= '#';
 	const CAPTURE_END		= '>';
 	const CAPTURE_NAME		= ':';
 	const DECODE_CAPTURE	= 0;
 	const DECODE_PLAIN		= 1;
+	const DELIMITER			= '/';
 	const ESCAPE			= '%';
 
 	public function __construct ($escape = '\\')
@@ -33,26 +35,44 @@ class PregScanner extends Scanner
 		{
 			if ($pattern[$i] === self::CAPTURE_BEGIN)
 			{
-				$name = '';
+				$expression = '';
 
-				for (++$i; $i < $length && $pattern[$i] !== self::CAPTURE_NAME; ++$i)
-					$name .= $pattern[$i] === self::ESCAPE ? $pattern[++$i] : $pattern[$i];
+				for (++$i; $i < $length && $pattern[$i] !== self::CAPTURE_DEFAULT && $pattern[$i] !== self::CAPTURE_NAME; ++$i)
+					$expression .= $pattern[$i] === self::ESCAPE && $i + 1 < $length ? $pattern[++$i] : $pattern[$i];
 
 				if ($i >= $length)
-					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected capture name separator');
+					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . self::CAPTURE_DEFAULT . '" or "' . self::CAPTURE_NAME . '"');
 
+				$expression = str_replace (self::DELIMITER, '\\' . self::DELIMITER, $expression);
+				$mode = $pattern[$i];
 				$value = '';
 
 				for (++$i; $i < $length && $pattern[$i] !== self::CAPTURE_END; ++$i)
-					$value .= $pattern[$i] === self::ESCAPE ? $pattern[++$i] : $pattern[$i];
+					$value .= $pattern[$i] === self::ESCAPE && $i + 1 < $length ? $pattern[++$i] : $pattern[$i];
 
 				if ($i >= $length)
-					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected end of capture');
+					throw new \Exception ('parse error for pattern "' . $pattern . '" at character ' . $i . ', expected "' . self::CAPTURE_END . '"');
 
-				$names[] = $name;
-				$parts[] = array (self::DECODE_CAPTURE, $name);
+				switch ($mode)
+				{
+					case self::CAPTURE_DEFAULT:
+						if (!preg_match (self::DELIMITER . $expression . self::DELIMITER, $value))
+							throw new \Exception ('default value "' . $value . '" must match pattern "' . $expression . '"');
 
-				$regex .= '(' . str_replace ('/', '\\/', $value) . ')';
+						$parts[] = array (self::DECODE_PLAIN, $value);
+						$option = '?:';
+
+						break;
+
+					case self::CAPTURE_NAME:
+						$names[] = $value;
+						$parts[] = array (self::DECODE_CAPTURE, $value);
+						$option = '';
+
+						break;
+				}
+
+				$regex .= '(' . $option . $expression . ')';
 			}
 			else
 			{
@@ -64,11 +84,11 @@ class PregScanner extends Scanner
 				else
 					$parts[] = array (self::DECODE_PLAIN, $plain);
 
-				$regex .= preg_quote ($plain, '/');
+				$regex .= preg_quote ($plain, self::DELIMITER);
 			}
 		}
 
-		$this->rules[] = array ('/(?=(' . $regex . '))/m', $names, $parts);
+		$this->rules[] = array (self::DELIMITER . '(?=(' . $regex . '))' . self::DELIMITER . 'm', $names, $parts);
 
 		return count ($this->rules) - 1;
 	}
