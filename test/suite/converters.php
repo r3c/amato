@@ -167,6 +167,7 @@ test_converter ('[b]Text', array (), '[b]Text', '\\[b]Text');
 test_converter ('Text[/b]', array (), 'Text[/b]');
 test_converter ('[i]Text[/b]', array (), '[i]Text[/b]', '\\[i]Text[/b]');
 test_converter ('[b][b]Text[/b]', array (array ('b', array (array (0), array (7)))), '[b]Text', '[b]\\[b]Text[/b]');
+test_converter ('[i][b]Text[/b]', array (array ('b', array (array (3), array (7)))), '[i]Text', '\\[i][b]Text[/b]');
 
 // Overlapping matches
 test_converter ('[url]http://google.fr[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr'))))), '', 'http://google.fr');
@@ -201,6 +202,7 @@ test_converter ('[b]some\[b]bold\[/b]text[/b]', array (array ('b', array (array 
 test_converter ('\[b]some[b]bold[/b]text\[/b]', array (array ('b', array (array (7), array (11)))), '[b]someboldtext[/b]');
 test_converter ('\__italic__', array (array ('i', array (array (1), array (7)))), '_italic_', '\\__italic_\\_');
 test_converter ('_\_italic__', array (array ('i', array (array (0), array (7)))), '_italic_', '_\\_italic_\\_');
+test_converter ('\___bold__', array (array ('b', array (array (1), array (5)))), '_bold', '\\_[b]bold[/b]');
 
 // Convert callbacks
 test_converter ('[c=0]abc[/c=0]', array (), '[c=0]abc[/c=0]', '\\[c=0]abc[/c=0]');

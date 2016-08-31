@@ -14,12 +14,12 @@ abstract class Scanner
 	public abstract function assign ($pattern);
 
 	/*
-	** Build tag from given pattern accept key and captures array.
-	** $key:		pattern accept key
-	** $captures:	captures array
-	** return:		tag string
+	** Build tag from given pattern accept key and parameters array.
+	** $key:	pattern accept key
+	** $params:	parameters array
+	** return:	tag string
 	*/
-	public abstract function build ($key, $captures);
+	public abstract function build ($key, $params);
 
 	/*
 	** Escape plain string into safe markup string.
@@ -30,8 +30,8 @@ abstract class Scanner
 
 	/*
 	** Find matching candidates within given plain string.
-	** $string:		plain text string
-	** return:		array of (key, offset, length, captures) candidates
+	** $string:	plain text string
+	** return:	array of (key, offset, length, params) candidates
 	*/
 	public abstract function find ($string);
 }

@@ -50,20 +50,20 @@ class TagConverter extends Converter
 			list ($key, $offset, $length) = $sequences[$i];
 
 			// Fix offset to take removed escape sequences into account
-			$offset -= $shift;
+			$offset += $shift;
 
 			// Current sequence is an escape sequence
 			if ($key === null)
 			{
 				// Skip sequences following this escape sequence if any
-				for ($escape = false; $i + 1 < count ($sequences) && $sequences[$i + 1][1] - $shift <= $offset + $length; ++$i)
+				for ($escape = false; $i + 1 < count ($sequences) && $sequences[$i + 1][1] + $shift <= $offset + $length; ++$i)
 					$escape = true;
 
 				// Flag escape sequence for removal if it had an effect
 				if ($escape)
 				{
 					$markup = mb_substr ($markup, 0, $offset) . mb_substr ($markup, $offset + $length);
-					$shift += $length;
+					$shift -= $length;
 				}
 			}
 
@@ -81,11 +81,11 @@ class TagConverter extends Converter
 				// Append to compatible candidates
 				self::candidate_register ($candidates, $id, $type, $offset, $length, $params);
 
-				// Try to resolve candidates
+				// Try to resolve candidates into groups and flag them for removal
 				for ($min = 0; count ($candidates) > 0 && self::candidate_resolve ($candidates, $groups, $trims, $min); )
 				{
 					// Skip following overlapped sequences
-					while ($i + 1 < count ($sequences) && $sequences[$i + 1][1] - $shift < $min)
+					while ($i + 1 < count ($sequences) && $sequences[$i + 1][1] + $shift < $min)
 						++$i;
 				}
 			}
@@ -240,7 +240,10 @@ class TagConverter extends Converter
 		{
 			for ($i = 0; $i < count ($candidates); ++$i)
 			{
-				if ($candidates[$i][0] === $id)
+				list ($last_offset, $last_length) = $candidates[$i][1][count ($candidates[$i][1]) - 1];
+
+				// Sequence share same id than candidate and doesn't overlap its last sequence
+				if ($candidates[$i][0] === $id && $offset >= $last_offset + $last_length)
 					$inserts[$i] = $type === Tag::PULSE || $type === Tag::STEP;
 			}
 		}
@@ -253,8 +256,8 @@ class TagConverter extends Converter
 		}
 
 		// Append match to compatible candidates
-		foreach ($inserts as $index => $incomplete)
-			$candidates[$index][1][] = array ($offset, $length, $params, $incomplete);
+		foreach ($inserts as $i => $incomplete)
+			$candidates[$i][1][] = array ($offset, $length, $params, $incomplete);
 	}
 
 	/*

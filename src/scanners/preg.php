@@ -68,7 +68,7 @@ class PregScanner extends Scanner
 			}
 		}
 
-		$this->rules[] = array ('/' . $regex . '/m', $names, $parts);
+		$this->rules[] = array ('/(?=(' . $regex . '))/m', $names, $parts);
 
 		return count ($this->rules) - 1;
 	}
@@ -76,12 +76,12 @@ class PregScanner extends Scanner
 	/*
 	** Override for Scanner::build.
 	*/
-	public function build ($key, $captures)
+	public function build ($key, $params)
 	{
 		$tag = '';
 
 		foreach ($this->rules[$key][2] as $part)
-			$tag .= $part[0] === self::DECODE_CAPTURE ? $captures[$part[1]] : $part[1];
+			$tag .= $part[0] === self::DECODE_CAPTURE ? $params[$part[1]] : $part[1];
 
 		return $tag;
 	}
@@ -103,10 +103,10 @@ class PregScanner extends Scanner
 		$order = 0;
 
 		// Match all escape sequences in input string
-		if (preg_match_all ('/' . preg_quote ($this->escape, '/') . '/m', $string, $matches, PREG_OFFSET_CAPTURE) === false) // FIXME: str_find_all?
+		if (preg_match_all ('/(?=(' . preg_quote ($this->escape, '/') . '))/m', $string, $matches, PREG_OFFSET_CAPTURE) === false)
 			throw new \Exception ('invalid escape pattern "' . $this->escape . '"');
 
-		foreach ($matches[0] as $match)
+		foreach ($matches[1] as $match)
 		{
 			$length = mb_strlen ($match[0]);
 			$offset = mb_strlen (substr ($string, 0, $match[1]));
@@ -129,12 +129,12 @@ class PregScanner extends Scanner
 				// Copy named groups to captures array
 				$captures = array ();
 
-				for ($i = min (count ($match) - 1, count ($names)); $i-- > 0; )
-					$captures[$names[$i]] = $match[$i + 1][0];
+				for ($i = min (count ($match) - 2, count ($names)); $i-- > 0; )
+					$captures[$names[$i]] = $match[$i + 2][0];
 
 				// Append to sequences array, using custom key for fast sorting
-				$length = mb_strlen ($match[0][0]);
-				$offset = mb_strlen (substr ($string, 0, $match[0][1]));
+				$length = mb_strlen ($match[1][0]);
+				$offset = mb_strlen (substr ($string, 0, $match[1][1]));
 
 				$sequences[self::index ($offset, $length, $order)] = array ($key, $offset, $length, $captures);
 			}
