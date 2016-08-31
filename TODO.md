@@ -4,7 +4,6 @@ Umen TODO file
 TODO
 ----
 
-- Optimize convert into 1-pass algorithm (queue candidates)
 - Escape only when required on revert (e.g. "[b]" shouldn't escape)
 - Introduce new revertable regexp syntax to allow positional and non-capturing patterns
 
@@ -43,3 +42,4 @@ DONE
 - Converter revert
 - Convert & revert callbacks
 - Render
+- Optimize convert into 1-pass algorithm (queue candidates)

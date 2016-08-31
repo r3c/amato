@@ -40,6 +40,8 @@ class TagConverter extends Converter
 	{
 		// Group compatible sequences into array of matches by group candidate
 		$candidates = array ();
+		$groups = array ();
+		$min = 0;
 		$sequences = $this->scanner->find ($markup);
 		$trims = array ();
 
@@ -57,92 +59,37 @@ class TagConverter extends Converter
 				// Flag escape sequence for removal if it had an effect
 				if ($escape)
 					$trims[] = array ($offset, $length);
-
-				continue;
 			}
 
-			// Current sequence is a tag sequence
-			list ($id, $type, $defaults, $convert) = $this->attributes[$key];
-
-			// Build captures array and call conversion callback if any
-			$captures = $sequences[$i][3] + $defaults;
-
-			if ($convert !== null && $convert ($type, $captures, $context) === false)
-				continue;
-
-			$inserts = array ();
-
-			// Tag sequence can continue an existing group, find compatible candidates
-			if ($type === Tag::FLIP || $type === Tag::PULSE || $type === Tag::STEP || $type === Tag::STOP)
+			// Current sequence is a tag sequence, insert into candidates
+			else
 			{
-				for ($j = 0; $j < count ($candidates); ++$j)
+				list ($id, $type, $defaults, $convert) = $this->attributes[$key];
+
+				// Build params array and call conversion callback if any
+				$params = $sequences[$i][3] + $defaults;
+
+				if ($convert !== null && $convert ($type, $params, $context) === false)
+					continue;
+
+				// Append to compatible candidates
+				self::candidate_register ($candidates, $id, $type, $offset, $length, $params);
+
+				// Try to resolve candidates
+				while (count ($candidates) > 0 && self::candidate_resolve ($candidates, $groups, $trims, $min))
 				{
-					if ($candidates[$j][0] === $id)
-						$inserts[$j] = $type === Tag::PULSE || $type === Tag::STEP;
+					// Skip following overlapped sequences
+					while ($i + 1 < count ($sequences) && $sequences[$i + 1][1] < $min)
+						++$i;
 				}
 			}
-
-			// Tag sequence can start a new group, create new candidate
-			if ($type === Tag::ALONE || $type === Tag::PULSE || $type === Tag::FLIP || $type === Tag::START)
-			{
-				$candidates[] = array ($id, array ());
-				$inserts[count ($candidates) - 1] = $type !== Tag::ALONE;
-			}
-
-			// Append match to compatible candidates
-			foreach ($inserts as $index => $incomplete)
-				$candidates[$index][1][] = array ($offset, $length, $captures, $incomplete);
 		}
 
 		// Resolve compatible candidates into groups and flag them for removal
-		$groups = array ();
-
 		while (count ($candidates) > 0)
 		{
-			list ($id, $matches) = array_shift ($candidates);
-
-			// Find first match able to close current candidate group
-			for ($i = 0; $i < count ($matches) && $matches[$i][3]; )
-				++$i;
-
-			if ($i >= count ($matches))
-				continue;
-
-			// Save candidate and remove other overlapped candidates
-			$matches = array_splice ($matches, 0, $i + 1);
-			$markers = array ();
-
-			foreach ($matches as $match)
-			{
-				list ($offset1, $length1, $captures) = $match;
-
-				for ($i = count ($candidates); $i-- > 0; )
-				{
-					for ($j = count ($candidates[$i][1]); $j-- > 0; )
-					{
-						list ($offset2, $length2) = $candidates[$i][1][$j];
-
-						if ($offset1 < $offset2 + $length2 && $offset2 < $offset1 + $length1)
-						{
-							// Drop entire candidate if its first match is removed
-							if ($j === 0)
-							{
-								array_splice ($candidates, $i, 1);
-
-								break;
-							}
-
-							// Otherwise just remove overlapped match
-							array_splice ($candidates[$i][1], $j, 1);
-						}
-					}
-				}
-
-				$markers[] = array ($offset1, $captures);
-				$trims[] = array ($offset1, $length1);
-			}
-
-			$groups[] = array ($id, $markers);
+			if (!self::candidate_resolve ($candidates, $groups, $trims, $min))
+				array_shift ($candidates);
 		}
 
 		// Remove groups from markup string and fix offsets
@@ -195,7 +142,7 @@ class TagConverter extends Converter
 
 		for ($cursors = Encoder::begin ($groups); Encoder::next ($groups, $cursors, $next); )
 		{
-			list ($id, $offset, $captures, $is_first, $is_last) = $next;
+			list ($id, $offset, $params, $is_first, $is_last) = $next;
 
 			// Escape and append skipped plain string to markup
 			$markup .= $this->build_markup ($levels, mb_substr ($plain, $start, $offset - $start));
@@ -206,7 +153,7 @@ class TagConverter extends Converter
 			{
 				list ($id_attribute, $type, $defaults) = $attribute;
 
-				// Skip definition if id, type or captures don't match
+				// Skip definition if id, type or params don't match
 				if (($id !== $id_attribute) ||
 					($type === Tag::ALONE && (!$is_first || !$is_last)) ||
 					($type === Tag::FLIP && !$is_first && !$is_last) ||
@@ -214,11 +161,11 @@ class TagConverter extends Converter
 					($type === Tag::START && !$is_first) ||
 					($type === Tag::STEP && ($is_first || $is_last)) ||
 					($type === Tag::STOP && !$is_last) ||
-				    (count (array_diff_assoc ($defaults, $captures)) > 0))
+				    (count (array_diff_assoc ($defaults, $params)) > 0))
 					continue;
 
 				// Revert tag sequence and append to plain string
-				$markup .= $this->scanner->build ($key, $captures);
+				$markup .= $this->scanner->build ($key, $params);
 
 				// Update depth level for current definition id
 				if ($type === Tag::FLIP && isset ($levels[$id]))
@@ -259,7 +206,7 @@ class TagConverter extends Converter
 			{
 				list ($id, $type, $defaults) = $this->attributes[$key];
 
-				$captures = $candidate[3];
+				$params = $candidate[3];
 
 				if ((($type !== Tag::ALONE) &&
 					 ($type !== Tag::FLIP) &&
@@ -267,7 +214,7 @@ class TagConverter extends Converter
 					 ($type !== Tag::START) &&
 					 ($type !== Tag::STEP || !isset ($levels[$id])) &&
 					 ($type !== Tag::STOP || !isset ($levels[$id]))) ||
-					count (array_diff_assoc ($defaults, $captures)) > 0)
+					count (array_diff_assoc ($defaults, $params)) > 0)
 					continue;
 			}
 
@@ -276,6 +223,95 @@ class TagConverter extends Converter
 		}
 
 		return $markup;
+	}
+
+	private static function candidate_register (&$candidates, $id, $type, $offset, $length, $params)
+	{
+		$inserts = array ();
+
+		// Tag sequence can continue an existing group, find compatible candidates
+		if ($type === Tag::FLIP || $type === Tag::PULSE || $type === Tag::STEP || $type === Tag::STOP)
+		{
+			for ($i = 0; $i < count ($candidates); ++$i)
+			{
+				if ($candidates[$i][0] === $id)
+					$inserts[$i] = $type === Tag::PULSE || $type === Tag::STEP;
+			}
+		}
+
+		// Tag sequence can start a new group, create new candidate
+		if ($type === Tag::ALONE || $type === Tag::PULSE || $type === Tag::FLIP || $type === Tag::START)
+		{
+			$candidates[] = array ($id, array ());
+			$inserts[count ($candidates) - 1] = $type !== Tag::ALONE;
+		}
+
+		// Append match to compatible candidates
+		foreach ($inserts as $index => $incomplete)
+			$candidates[$index][1][] = array ($offset, $length, $params, $incomplete);
+	}
+
+	/*
+	** Resolve first candidate from given list into group if complete, flag
+	** matches for removal and remove candidates from list.
+	** &candidates:	candidates list
+	** &groups:		resolved groups list
+	** &trims:		removal list
+	** &min:		highest matched candidate offset
+	** return:		true if first candidates was resolved, false otherwise
+	*/
+	private static function candidate_resolve (&$candidates, &$groups, &$trims, &$min)
+	{
+		list ($id, $matches) = $candidates[0];
+
+		// Find first match able to complete current candidate group
+		for ($i = 0; $i < count ($matches) && $matches[$i][3]; )
+			++$i;
+
+		if ($i >= count ($matches))
+			return false;
+
+		array_shift ($candidates);
+
+		// Save candidate and remove other overlapped candidates
+		$matches = array_splice ($matches, 0, $i + 1);
+		$markers = array ();
+
+		foreach ($matches as $match)
+		{
+			list ($offset1, $length1, $params) = $match;
+
+			for ($i = count ($candidates); $i-- > 0; )
+			{
+				for ($j = count ($candidates[$i][1]); $j-- > 0; )
+				{
+					list ($offset2, $length2) = $candidates[$i][1][$j];
+
+					if ($offset1 < $offset2 + $length2 && $offset2 < $offset1 + $length1)
+					{
+						// Drop entire candidate if its first match is removed
+						if ($j === 0)
+						{
+							array_splice ($candidates, $i, 1);
+
+							break;
+						}
+
+						// Otherwise just remove overlapped match
+						array_splice ($candidates[$i][1], $j, 1);
+					}
+				}
+			}
+
+			$min = max ($offset1 + $length1, $min);
+
+			$markers[] = array ($offset1, $params);
+			$trims[] = array ($offset1, $length1);
+		}
+
+		$groups[] = array ($id, $markers);
+
+		return true;
 	}
 }
 
