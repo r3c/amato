@@ -99,7 +99,7 @@ class TagConverter extends Converter
 		}
 
 		// Remove groups from markup string and fix offsets
-		// FIXME: could be optimized by doing a single pass on $trims
+		// FIXME: could be optimized by doing a single pass on $trims [convert-on-the-fly]
 		for ($i = 0; $i < count ($trims); ++$i)
 		{
 			list ($offset, $length) = $trims[$i];
