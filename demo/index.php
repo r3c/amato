@@ -18,28 +18,28 @@ function escape ($input)
 function format_html ($input)
 {
 	$depth = 0;
-	$offset = 0;
-	$out = '';
+	$html = '';
+	$index = 0;
 
-	while (preg_match ('@[\\s]*(<(/?)[^<>]*?(/?)>|[^<>]+)@s', $input, $matches, PREG_OFFSET_CAPTURE, $offset))
+	while (preg_match ('@[\\s]*(<(/?)[^<>]*?(/?)>|[^<>]+)@s', $input, $matches, PREG_OFFSET_CAPTURE, $index))
 	{
 		if ($matches[1][0][0] == '<')
 		{
 			if ($matches[2][0])
 				$depth = max ($depth - 1, 0);
 
-			$out .= str_repeat ('&nbsp;&nbsp;&nbsp;&nbsp;', $depth) . '<span style="color: #666666;">' . escape ($matches[1][0]) . '</span><br />';
+			$html .= str_repeat ('&nbsp;&nbsp;&nbsp;&nbsp;', $depth) . '<span style="color: #800;">' . escape ($matches[1][0]) . '</span><br />';
 
 			if ($matches[2][0] == '' && $matches[3][0] == '')
 				$depth = min ($depth + 1, 16);
 		}
 		else if ($matches[1][0] != '')
-			$out .= str_repeat ('&nbsp;&nbsp;&nbsp;&nbsp;', $depth) . escape ($matches[1][0]) . '<br />';
+			$html .= str_repeat ('&nbsp;&nbsp;&nbsp;&nbsp;', $depth) . escape ($matches[1][0]) . '<br />';
 
-		$offset = $matches[0][1] + strlen ($matches[0][0]);
+		$index = $matches[0][1] + strlen ($matches[0][0]);
 	}
 
-	return $out;
+	return $html;
 }
 
 function format_w3c ($input)
@@ -51,19 +51,20 @@ function format_w3c ($input)
 		<title>Fragment</title>
 	</head>
 	<body>
-		<div>
-			' . $input . '
-		</div>
+		' . $input . '
 	</body>
 </html>');
 }
 
-function render_options ($options, $selected)
+function print_select ($name, $options)
 {
-	$html = '';
+	$current = isset ($_REQUEST[$name]) ? (string)$_REQUEST[$name] : null;
+	$html = '<select name="' . escape ($name) . '">';
 
 	foreach ($options as $value => $caption)
-		$html .= '<option' . ($selected === $value ? ' selected="selected"' : '') . ' value="' . escape ($value) . '">' . escape ($caption) . '</option>';
+		$html .= '<option' . ($current === $value ? ' selected="selected"' : '') . ' value="' . escape ($value) . '">' . escape ($caption) . '</option>';
+
+	$html .= '</select>';
 
 	return $html;
 }
@@ -81,26 +82,26 @@ function render_options ($options, $selected)
 			<h2>Markup</h2>
 			<div class="body">
 				<form action="" method="POST">
-					<textarea name="markup" rows="10" style="box-sizing: border-box; width: 100%;"><?php echo escape (isset ($_POST['markup']) ? $_POST['markup'] : file_get_contents ('data/demo.txt')); ?></textarea>
+					<textarea name="markup" rows="10" style="box-sizing: border-box; width: 100%;"><?php echo escape (isset ($_REQUEST['markup']) ? $_REQUEST['markup'] : file_get_contents ('data/demo.txt')); ?></textarea>
 					<div class="buttons" id="actions">
 						Convert
-						<select name="syntax"><?php echo render_options (array ('bbcode' => 'BBCode', 'wiki' => 'Wiki Markup'), isset ($_POST['syntax']) ? $_POST['syntax'] : null); ?></select>
+						<?php echo print_select ('syntax', array ('bbcode' => 'BBCode', 'wiki' => 'Wiki Markup')); ?>
 						into
-						<select name="format"><?php echo render_options (array ('html' => 'HTML'), isset ($_POST['format']) ? $_POST['format'] : null); ?></select>
+						<?php echo print_select ('format', array ('html' => 'HTML')); ?>
 						and
-						<select name="action"><?php echo render_options (array ('print' => 'print result', 'html' => 'show HTML', 'debug' => 'debug cycle'), isset ($_POST['action']) ? $_POST['action'] : 'print'); ?></select>
+						<?php echo print_select ('action', array ('print' => 'print result', 'html' => 'show HTML', 'debug' => 'debug cycle')); ?>
 						<input type="submit" value="Submit" />
 						<input onclick="var p = document.getElementById('options_panel'); p.style.display = p.style.display === 'none' ? 'block' : 'none';" type="button" value="Options" />
 					</div>
-					<div class="buttons" id="options_panel" style="display: <?php echo (isset ($_POST['options']) && $_POST['options'] ? 'block' : 'none'); ?>;">
+					<div class="buttons" id="options_panel" style="display: none;">
 						Tokenize using
-						<select name="scanner"><?php echo render_options (array ('preg' => 'preg'), isset ($_POST['scanner']) ? $_POST['scanner'] : null); ?></select>
+						<?php echo print_select ('scanner', array ('preg' => 'preg')); ?>
 						scanner and
-						<select name="converter"><?php echo render_options (array ('tag' => 'tag'), isset ($_POST['converter']) ? $_POST['converter'] : null); ?></select>
+						<?php echo print_select ('converter', array ('tag' => 'tag')); ?>
 						converter, serialize using
-						<select name="encoder"><?php echo render_options (array ('compact' => 'compact', 'concat' => 'concat', 'json' => 'json', 'sleep' => 'sleep'), isset ($_POST['encoder']) ? $_POST['encoder'] : null); ?></select>
+						<?php echo print_select ('encoder', array ('compact' => 'compact', 'concat' => 'concat', 'json' => 'json', 'sleep' => 'sleep')); ?>
 						encoder, render with
-						<select name="renderer"><?php echo render_options (array ('format' => 'format'), isset ($_POST['renderer']) ? $_POST['renderer'] : null); ?></select>
+						<?php echo print_select ('renderer', array ('format' => 'format')); ?>
 						renderer
 					</div>
 				</form>
@@ -108,9 +109,9 @@ function render_options ($options, $selected)
 		</div>
 <?php
 
-if (isset ($_POST['action']) && isset ($_POST['markup']))
+if (isset ($_REQUEST['action']) && isset ($_REQUEST['markup']))
 {
-	switch (isset ($_POST['encoder']) ? $_POST['encoder'] : null)
+	switch (isset ($_REQUEST['encoder']) ? $_REQUEST['encoder'] : null)
 	{
 		case 'compact':
 			$encoder = new Amato\CompactEncoder ();
@@ -136,7 +137,7 @@ if (isset ($_POST['action']) && isset ($_POST['markup']))
 			throw new Exception ('invalid encoder');
 	}
 
-	switch (isset ($_POST['scanner']) ? $_POST['scanner'] : null)
+	switch (isset ($_REQUEST['scanner']) ? $_REQUEST['scanner'] : null)
 	{
 		case 'preg':
 			$scanner = new Amato\PregScanner ();
@@ -147,10 +148,10 @@ if (isset ($_POST['action']) && isset ($_POST['markup']))
 			throw new Exception ('invalid scanner');
 	}
 
-	switch (isset ($_POST['converter']) ? $_POST['converter'] : null)
+	switch (isset ($_REQUEST['converter']) ? $_REQUEST['converter'] : null)
 	{
 		case 'tag':
-			switch (isset ($_POST['syntax']) ? $_POST['syntax'] : null)
+			switch (isset ($_REQUEST['syntax']) ? $_REQUEST['syntax'] : null)
 			{
 				case 'bbcode':
 					require ('config/syntax/bbcode.php');
@@ -174,10 +175,10 @@ if (isset ($_POST['action']) && isset ($_POST['markup']))
 			throw new Exception ('invalid converter');
 	}
 
-	switch (isset ($_POST['renderer']) ? $_POST['renderer'] : null)
+	switch (isset ($_REQUEST['renderer']) ? $_REQUEST['renderer'] : null)
 	{
 		case 'format':
-			switch (isset ($_POST['format']) ? $_POST['format'] : null)
+			switch (isset ($_REQUEST['format']) ? $_REQUEST['format'] : null)
 			{
 				case 'html':
 					include ('config/format/html.php');
@@ -196,24 +197,32 @@ if (isset ($_POST['action']) && isset ($_POST['markup']))
 			throw new Exception ('invalid renderer');
 	}
 
-	$markup = str_replace ("\r", '', $_POST['markup']);
+	$markup = str_replace ("\r", '', $_REQUEST['markup']);
 	$token = $converter->convert ($markup);
 	$render = $renderer->render ($token);
 
-	switch ($_POST['action'])
+	switch ($_REQUEST['action'])
 	{
 		case 'debug':
 			$revert = $converter->revert ($token);
 
-			$output =
-				'<h3>markup string (' . mb_strlen ($markup) . ' characters):</h3>' . 
-				'<div class="code">' . escape ($markup) . '</div><hr />' .
-				'<h3>token string (' . mb_strlen ($token) . ' characters):</h3>' .
-				'<div class="code">' . escape ($token) . '</div><hr />' .
-				'<h3>render string (' . mb_strlen ($render) . ' characters):</h3>' .
-				'<div class="code">' . escape ($render) . '</div><hr />' .
-				'<h3>revert string (' . mb_strlen ($revert) . ' characters):</h3>' .
-				'<div class="code" style="color: ' . ($markup === $revert ? 'green' : 'red') . ';">' . escape ($revert) . '</div>';
+			$output = '
+<blockquote class="panel">
+	<p class="label">Markup string (' . mb_strlen ($markup) . ' characters:</p>
+	<div class="code">' . escape ($markup) . '</div>
+</blockquote>
+<blockquote class="panel">
+	<p class="label">Token string (' . mb_strlen ($token) . ' characters):</p>
+	<div class="code">' . escape ($token) . '</div>
+</blockquote>
+<blockquote class="panel">
+	<p class="label">Render string (' . mb_strlen ($render) . ' characters):</p>
+	<div class="code">' . escape ($render) . '</div>
+</blockquote>
+<blockquote class="panel">
+	<p class="label">Revert string (' . mb_strlen ($revert) . ' characters):</p>
+	<div class="code" style="color: ' . ($markup === $revert ? 'green' : 'red') . ';">' . escape ($revert) . '</div>
+</blockquote>';
 
 			break;
 

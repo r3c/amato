@@ -4,10 +4,12 @@ Colors:
 Styles:
 [quote][b]\[b][/b]Bold[b]\[/b][/b] [b]\[i][/b]Italic[b]\[/i][/b] [b]\[u][/b]Underlined[b]\[/u][/b]
 
-[spoiler]Spoiler: [img]http://www.mirari.fr/module/core/template/avalanche/css/header.icon.png[/img][/spoiler][/quote]
+Spoiler: [spoiler]they all die[/spoiler]![/quote]
 
 Links:
-[quote][url=http://www.mirari.fr]mirari.fr[/url] - [url]http://www.mirari.fr[/url] - http://www.mirari.fr[/quote]
+[quote][url=http://www.mirari.fr]mirari.fr[/url] - [url]http://www.mirari.fr[/url] - http://www.mirari.fr
+
+[img]http://www.mirari.fr/module/core/template/avalanche/css/header.icon.png[/img][/quote]
 
 Structures:
 [quote]
@@ -18,7 +20,7 @@ Structures:
 [*] Bullet point 2
 [/list]
 
-[pre][b]Literal[/b] text[/pre] using [b][pre][/b] tag [pre]should prevent [i]any tag[/i] from being used.[/pre]
+Using [b][pre][/b] tag [pre]should [b]prevent[/b] [i]any tag[/i] from being used.[/pre]
 
 [s]Horizontal[hr]Line[/s]
 [/quote]

@@ -32,12 +32,28 @@ div.window div.body {
 	background:	#CDE;
 }
 
+div.window div.body blockquote.panel {
+	padding:		8px;
+	margin:			8px 0;
+	background:		#BCD;
+	border-color:	#BCC #68A #68A #BCC;
+	border-radius:	4px;
+	border-style:	solid;
+	border-width:	1px;
+}
+
 div.window div.body div.buttons {
 	margin-top:	4px;
 }
 
 div.window div.body div.code {
 	font:	normal normal normal 11px monospace;
+}
+
+div.window div.body p.label {
+	padding:		0 0 8px 0;
+	margin:			0;
+	font-weight:	bold;
 }
 
 div.window h2 {
@@ -52,13 +68,6 @@ div.window h2 {
 	font-variant:	small-caps;
 	font-weight:	bold;
 	color:			white;
-}
-
-div.window h3 {
-	padding:		0 0 4px 0;
-	margin:			0;
-	font-size:		120%;
-	font-weight:	bold;
 }
 
 div.window hr {
