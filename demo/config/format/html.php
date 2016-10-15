@@ -35,6 +35,9 @@ function _amato_format_html_class ($id, $name)
 {
 	return function ($captures, $markup, $closing) use ($id, $name)
 	{
+		if ($markup === '')
+			return '';
+
 		return '<' . $id . ' class="' . $name . '">' . $markup . '</' . $id . '>';
 	};
 }
@@ -43,6 +46,9 @@ function _amato_format_html_tag ($id)
 {
 	return function ($captures, $markup, $closing) use ($id)
 	{
+		if ($markup === '')
+			return '';
+
 		return '<' . $id . '>' . $markup . '</' . $id . '>';
 	};
 }

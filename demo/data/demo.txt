@@ -1,21 +1,27 @@
-[color=FF0000]\[color=FF0000]Rouge[/color] \[color=00FF00][color=00FF00]Vert[/color] \[color=0000FF][color=0000FF]Bleu[/color]
+Colors:
+[quote][color=800]\[color=800] = Rouge[/color] \[color=080][color=080] = Vert[/color] \[color=008][color=008] = Bleu[/color][/quote]
 
-[[i]i]Italique[/i[/i]] [i]\[i]Italique\[/i][/i]
+Styles:
+[quote][b]\[b][/b]Bold[b]\[/b][/b] [b]\[i][/b]Italic[b]\[/i][/b] [b]\[u][/b]Underlined[b]\[/u][/b]
 
-[color=FFFF00][pre]Literal [b]text[/color][/pre] should [b][pre][/color]prevent[/b][/pre] any tag[/b] from being used.[/color]
+[spoiler]Spoiler: [img]http://www.mirari.fr/module/core/template/avalanche/css/header.icon.png[/img][/spoiler][/quote]
 
+Links:
+[quote][url=http://www.mirari.fr]mirari.fr[/url] - [url]http://www.mirari.fr[/url] - http://www.mirari.fr[/quote]
+
+Structures:
+[quote]
 [list]
-[*] Liste:[b]
-[*][#] Gras 1
-[*][#] Gras 2[/b]
+[*] Bullet point 1[i]
+[*][#] Numbered item 1
+[*][#] Numbered item 2[/i]
+[*] Bullet point 2
 [/list]
 
-[s]Strike[hr]Strike[/s]
+[pre][b]Literal[/b] text[/pre] using [b][pre][/b] tag [pre]should prevent [i]any tag[/i] from being used.[/pre]
 
-[u]Start [u]over[/u] same tag[/u], [b]Cross-[i]over[/b] tags[/i], [color=00FFFF]Mixed [b]overlapping [s]random [i]tags[/b] jam[/color] nightmare[/s]![/i]
+[s]Horizontal[hr]Line[/s]
+[/quote]
 
-[url=http://www.mirari.fr]mirari.fr[/url] - [url]http://www.mirari.fr[/url] - http://www.mirari.fr
-
-[spoiler]Spoiler: [img]http://www.mirari.fr/module/core/template/avalanche/css/header.icon.png[/img]
-
-[box=And even a box within it!]Sadly, a box can't be spoiled.[/box][/spoiler]
+Containers:
+[quote][box=Click here]Here's the content of the box![/box][/quote]
