@@ -140,10 +140,10 @@ $syntax = array
 	)
 );
 
-function amato_syntax_bbcode_ref_convert ($action, $flag, &$captures, $context)
+function amato_syntax_bbcode_ref_convert ($action, $flag, &$params, $context)
 {
-	if (!isset ($captures['t']))
-		$captures['t'] = 1;
+	if (!isset ($params['t']))
+		$params['t'] = 1;
 }
 
 ?>

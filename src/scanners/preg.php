@@ -96,12 +96,12 @@ class PregScanner extends Scanner
 	/*
 	** Override for Scanner::build.
 	*/
-	public function build ($key, $params)
+	public function build ($key, $captures)
 	{
 		$tag = '';
 
 		foreach ($this->rules[$key][2] as $part)
-			$tag .= $part[0] === self::DECODE_CAPTURE ? $params[$part[1]] : $part[1];
+			$tag .= $part[0] === self::DECODE_CAPTURE ? $captures[$part[1]] : $part[1];
 
 		return $tag;
 	}

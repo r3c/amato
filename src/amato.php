@@ -37,12 +37,6 @@ function autoload ()
 
 				break;
 
-			case 'Amato\ConcatEncoder':
-				require_once ($path . '/encoder.php');
-				require ($path . '/encoders/concat.php');
-
-				break;
-
 			case 'Amato\JSONEncoder':
 				require_once ($path . '/encoder.php');
 				require ($path . '/encoders/json.php');

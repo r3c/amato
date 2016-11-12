@@ -30,18 +30,19 @@ class FormatRenderer extends Renderer
 		if ($pack === null)
 			return null;
 
-		list ($render, $groups) = $pack;
+		list ($render, $markers) = $pack;
 
-		// Process all groups elements
+		// Process all markers
 		$escape = $this->escape;
 		$last = 0;
 		$scopes = array ();
 		$stop = 0;
 
-		for ($cursors = Encoder::begin ($groups); Encoder::next ($groups, $cursors, $next); )
+		foreach ($markers as $marker)
 		{
-			list ($id, $offset, $captures, $is_first, $is_last) = $next;
+			list ($id, $offset, $is_first, $is_last, $params) = $marker;
 
+			// Get start and stop offsets of plain text since last position
 			$start = $stop;
 			$stop += $offset - $last;
 			$last = $offset;
@@ -56,7 +57,7 @@ class FormatRenderer extends Renderer
 				$stop += mb_strlen ($plain) - $length;
 			}
 
-			// Get formatting rule for current group if any
+			// Get formatting rule for current marker if any
 			if (!isset ($this->format[$id]) || !isset ($this->format[$id][0]))
 				continue;
 
@@ -69,12 +70,12 @@ class FormatRenderer extends Renderer
 				for ($scope_shift = count ($scopes); $scope_shift > 0 && $level > $scopes[$scope_shift - 1][3]; )
 					--$scope_shift;
 
-				array_splice ($scopes, $scope_shift, 0, array (array ($id, $stop, $callback, $level, $captures)));
+				array_splice ($scopes, $scope_shift, 0, array (array ($id, $stop, $callback, $level, $params)));
 
 				$scope_current = $scope_shift + ($is_last ? 0 : 1);
 			}
 
-			// Find existing scope matching current group id, cancel if none
+			// Find existing scope matching current marker id, cancel if none
 			else
 			{
 				for ($scope_shift = count ($scopes) - 1; $scope_shift >= 0 && $scopes[$scope_shift][0] !== $id; )
@@ -83,7 +84,7 @@ class FormatRenderer extends Renderer
 				if ($scope_shift < 0)
 					continue;
 
-				$scopes[$scope_shift][4] = $captures + $scopes[$scope_shift][4];
+				$scopes[$scope_shift][4] = $params + $scopes[$scope_shift][4];
 				$scope_current = $scope_shift;
 			}
 
@@ -107,12 +108,12 @@ class FormatRenderer extends Renderer
 			if ($is_last)
 				array_splice ($scopes, $scope_current, 1);
 
-			// Shift forward offset of both crossed scopes and current one
+			// Shift offset of both crossed scopes and current one
 			for ($i = count ($scopes) - 1; $i >= $scope_shift; --$i)
 				$scopes[$i][1] = $stop;
 		}
 
-		// Escape trailing plain text using provided callback if any
+		// Escape remaining plain text using provided callback if any
 		if ($escape !== null)
 			$render = mb_substr ($render, 0, $stop) . $escape (mb_substr ($render, $stop));
 

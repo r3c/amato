@@ -52,29 +52,29 @@ $syntax = array
 	),
 	's' => array
 	(
-		array (Amato\Tag::START, '[size=big]', array ('p' => 200)),
+		array (Amato\Tag::START, '[size=big]', array ('p' => '200')),
 		array (Amato\Tag::START, '[size=<[0-9]+:p>]'),
 		array (Amato\Tag::STOP, '[/size]')
 	)
 );
 
-function c_convert_start ($type, &$captures, $context)
+function c_convert_start ($type, &$params, $context)
 {
-	$captures['test'] = 5;
+	$params['test'] = 5;
 
-	return (int)$captures['n'] !== 0;
+	return (int)$params['n'] !== 0;
 }
 
-function c_convert_stop ($type, &$captures, $context)
+function c_convert_stop ($type, &$params, $context)
 {
-	$captures['test'] = 7;
+	$params['test'] = 7;
 
-	return (int)$captures['n'] !== 0;
+	return (int)$params['n'] !== 0;
 }
 
 Amato\autoload ();
 
-function test_converter ($markup, $groups_expected, $plain_expected, $canonical = null)
+function test_converter ($markup, $markers_expected, $plain_expected, $canonical = null)
 {
 	global $syntax;
 	static $converters;
@@ -98,9 +98,9 @@ function test_converter ($markup, $groups_expected, $plain_expected, $canonical 
 		// Convert once and assert result
 		$token1 = $converter->convert ($markup);
 
-		list ($plain1, $groups1) = $encoder->decode ($token1);
+		list ($plain1, $markers1) = $encoder->decode ($token1);
 
-		assert_token_equal ($plain1, $groups1, $plain_expected, $groups_expected, $context . '[first decode]');
+		assert_token_equal ($plain1, $markers1, $plain_expected, $markers_expected, $context . '[first decode]');
 
 		$markup_revert1 = $converter->revert ($token1);
 
@@ -109,9 +109,9 @@ function test_converter ($markup, $groups_expected, $plain_expected, $canonical 
 		// Convert twice and assert again
 		$token2 = $converter->convert ($markup_revert1);
 
-		list ($plain2, $groups2) = $encoder->decode ($token2);
+		list ($plain2, $markers2) = $encoder->decode ($token2);
 
-		assert_token_equal ($plain2, $groups2, $plain_expected, $groups_expected, $context . '[second decode]');
+		assert_token_equal ($plain2, $markers2, $plain_expected, $markers_expected, $context . '[second decode]');
 
 		$markup_revert2 = $converter->revert ($token2);
 
@@ -128,32 +128,32 @@ mb_internal_encoding ($native);
 
 // Basic tests
 test_converter ('Hello, World!', array (), 'Hello, World!');
-test_converter ('[b]Hello, World![/b]', array (array ('b', array (array (0), array (13)))), 'Hello, World!');
-test_converter ('A[b]B[/b]C[i]D[/i]E', array (array ('b', array (array (1), array (2))), array ('i', array (array (3), array (4)))), 'ABCDE', 'A[b]B[/b]C_D_E');
-test_converter ('A[b]B[i]C[/i]D[/b]E', array (array ('b', array (array (1), array (4))), array ('i', array (array (2), array (3)))), 'ABCDE', 'A[b]B_C_D[/b]E');
-test_converter ('A[b]B[i]C[/b]D[/i]E', array (array ('b', array (array (1), array (3))), array ('i', array (array (2), array (4)))), 'ABCDE', 'A[b]B_C[/b]D_E');
-test_converter ('_italic_', array (array ('i', array (array (0), array (6)))), 'italic');
-test_converter ('__bold__', array (array ('b', array (array (0), array (4)))), 'bold', '[b]bold[/b]');
-test_converter ('[b]bold__', array (array ('b', array (array (0), array (4)))), 'bold', '[b]bold[/b]');
-test_converter ('__bold[/b]', array (array ('b', array (array (0), array (4)))), 'bold', '[b]bold[/b]');
-test_converter ("##A##B##C\n\n", array (array ('list', array (array (0), array (1), array (2), array (3)))), 'ABC');
-test_converter ("####A\n\n", array (array ('list', array (array (0), array (0), array (1)))), 'A');
-test_converter ('http://www.mirari.fr/', array (array ('a', array (array (0, array ('u' => 'http://www.mirari.fr/'))))), '');
-test_converter ('www.mirari.fr', array (array ('a', array (array (0, array ('u' => 'www.mirari.fr'))))), '');
+test_converter ('[b]Hello, World![/b]', array (array ('b', 0, true, false), array ('b', 13, false, true)), 'Hello, World!');
+test_converter ('A[b]B[/b]C[i]D[/i]E', array (array ('b', 1, true, false), array ('b', 2, false, true), array ('i', 3, true, false), array ('i', 4, false, true)), 'ABCDE', 'A[b]B[/b]C_D_E');
+test_converter ('A[b]B[i]C[/i]D[/b]E', array (array ('b', 1, true, false), array ('i', 2, true, false), array ('i', 3, false, true), array ('b', 4, false, true)), 'ABCDE', 'A[b]B_C_D[/b]E');
+test_converter ('A[b]B[i]C[/b]D[/i]E', array (array ('b', 1, true, false), array ('i', 2, true, false), array ('b', 3, false, true), array ('i', 4, false, true)), 'ABCDE', 'A[b]B_C[/b]D_E');
+test_converter ('_italic_', array (array ('i', 0, true, false), array ('i', 6, false, true)), 'italic');
+test_converter ('__bold__', array (array ('b', 0, true, false), array ('b', 4, false, true)), 'bold', '[b]bold[/b]');
+test_converter ('[b]bold__', array (array ('b', 0, true, false), array ('b', 4, false, true)), 'bold', '[b]bold[/b]');
+test_converter ('__bold[/b]', array (array ('b', 0, true, false), array ('b', 4, false, true)), 'bold', '[b]bold[/b]');
+test_converter ("##A##B##C\n\n", array (array ('list', 0, true, false), array ('list', 1, false, false), array ('list', 2, false, false), array ('list', 3, false, true)), 'ABC');
+test_converter ("####A\n\n", array (array ('list', 0, true, false), array ('list', 0, false, false), array ('list', 1, false, true)), 'A');
+test_converter ('http://www.mirari.fr/', array (array ('a', 0, true, true, array ('u' => 'http://www.mirari.fr/'))), '');
+test_converter ('www.mirari.fr', array (array ('a', 0, true, true, array ('u' => 'www.mirari.fr'))), '');
 
 // Nested tags
-test_converter ('[b]_plain_[/b]', array (array ('b', array (array (0), array (5))), array ('i', array (array (0), array (5)))), 'plain');
-test_converter ('_[b]plain[/b]_', array (array ('i', array (array (0), array (5))), array ('b', array (array (0), array (5)))), 'plain');
+test_converter ('[b]_plain_[/b]', array (array ('b', 0, true, false), array ('i', 0, true, false), array ('i', 5, false, true), array ('b', 5, false, true)), 'plain');
+test_converter ('_[b]plain[/b]_', array (array ('i', 0, true, false), array ('b', 0, true, false), array ('b', 5, false, true), array ('i', 5, false, true)), 'plain');
 
 // Consecutive tags
-test_converter ('[b]A[/b]_B_', array (array ('b', array (array (0), array (1))), array ('i', array (array (1), array (2)))), 'AB');
-test_converter ('[b]A_[/b]B_', array (array ('b', array (array (0), array (1))), array ('i', array (array (1), array (2)))), 'AB', '[b]A[/b]_B_');
+test_converter ('[b]A[/b]_B_', array (array ('b', 0, true, false), array ('b', 1, false, true), array ('i', 1, true, false), array ('i', 2, false, true)), 'AB');
+test_converter ('[b]A_[/b]B_', array (array ('b', 0, true, false), array ('i', 1, true, false), array ('b', 1, false, true), array ('i', 2, false, true)), 'AB', '[b]A_[/b]B_');
 
-// Captures
-test_converter ('[url=http://domain.ext]link[/url]', array (array ('a', array (array (0, array ('u' => 'http://domain.ext')), array (4)))), 'link');
-test_converter ('[size=big]text[/size]', array (array ('s', array (array (0, array ('p' => '200')), array (4)))), 'text');
-test_converter ('[size=200]text[/size]', array (array ('s', array (array (0, array ('p' => '200')), array (4)))), 'text', '[size=big]text[/size]');
-test_converter ('[size=50]text[/size]', array (array ('s', array (array (0, array ('p' => '50')), array (4)))), 'text');
+// Parameters
+test_converter ('[url=http://domain.ext]link[/url]', array (array ('a', 0, true, false, array ('u' => 'http://domain.ext')), array ('a', 4, false, true)), 'link');
+test_converter ('[size=big]text[/size]', array (array ('s', 0, true, false, array ('p' => '200')), array ('s', 4, false, true)), 'text');
+test_converter ('[size=200]text[/size]', array (array ('s', 0, true, false, array ('p' => '200')), array ('s', 4, false, true)), 'text', '[size=big]text[/size]');
+test_converter ('[size=50]text[/size]', array (array ('s', 0, true, false, array ('p' => '50')), array ('s', 4, false, true)), 'text');
 
 // Failed matches
 test_converter ('[b]', array (), '[b]', '\\[b]');
@@ -161,26 +161,26 @@ test_converter ('[/b]', array (), '[/b]');
 test_converter ('[b]Text', array (), '[b]Text', '\\[b]Text');
 test_converter ('Text[/b]', array (), 'Text[/b]');
 test_converter ('[i]Text[/b]', array (), '[i]Text[/b]', '\\[i]Text[/b]');
-test_converter ('[b][b]Text[/b]', array (array ('b', array (array (0), array (7)))), '[b]Text', '[b]\\[b]Text[/b]');
-test_converter ('[i][b]Text[/b]', array (array ('b', array (array (3), array (7)))), '[i]Text', '\\[i][b]Text[/b]');
+test_converter ('[b][b]Text[/b]', array (array ('b', 0, true, false), array ('b', 7, false, true)), '[b]Text', '[b]\\[b]Text[/b]');
+test_converter ('[i][b]Text[/b]', array (array ('b', 3, true, false), array ('b', 7, false, true)), '[i]Text', '\\[i][b]Text[/b]');
 
 // Overlapping matches
-test_converter ('[url]http://google.fr[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr'))))), '', 'http://google.fr');
-test_converter ('[url=http://google.fr]test[/url]', array (array ('a', array (array (0, array ('u' => 'http://google.fr')), array (4)))), 'test');
+test_converter ('[url]http://google.fr[/url]', array (array ('a', 0, true, true, array ('u' => 'http://google.fr'))), '', 'http://google.fr');
+test_converter ('[url=http://google.fr]test[/url]', array (array ('a', 0, true, false, array ('u' => 'http://google.fr')), array ('a', 4, false, true)), 'test');
 
 // Crossed matches
-test_converter ('[b][pre]text[/b][/pre]', array (array ('b', array (array (0), array (9)))), '[pre]text[/pre]');
-test_converter ('[pre][b]text[/pre][/b]', array (array ('pre', array (array (0, array ('b' => '[b]text'))))), '[/b]');
+test_converter ('[b][pre]text[/b][/pre]', array (array ('b', 0, true, false), array ('b', 9, false, true)), '[pre]text[/pre]');
+test_converter ('[pre][b]text[/pre][/b]', array (array ('pre', 0, true, true, array ('b' => '[b]text'))), '[/b]');
 
 // Charset
+$markers = array (array ('hr', 6, true, true), array ('b', 11, true, false), array ('b', 17, false, true), array ('i', 22, true, false), array ('i', 29, false, true), array ('b', 50, true, false), array ('b', 59, false, true));
 $markup = 'Voilà [hr] une [b]chaîne[/b] qui _devrait_ être convertie sans [b]problèmes[/b].';
 $plain = 'Voilà  une chaîne qui devrait être convertie sans problèmes.';
-$tags = array (array ('hr', array (array (6))), array ('b', array (array (11), array (17))), array ('i', array (array (22), array (29))), array ('b', array (array (50), array (59))));
 
 foreach (array ('ascii', 'iso-8859-1', 'utf-8') as $charset)
 {
 	mb_internal_encoding ($charset);
-	test_converter (mb_convert_encoding ($markup, $charset, $native), $tags, mb_convert_encoding ($plain, $charset, $native));
+	test_converter (mb_convert_encoding ($markup, $charset, $native), $markers, mb_convert_encoding ($plain, $charset, $native));
 }
 
 mb_internal_encoding ($native);
@@ -193,17 +193,17 @@ test_converter ('\\\\\\\\', array (), '\\\\');
 test_converter ('\[b][/b]', array (), '[b][/b]');
 test_converter ('[b]\[/b]', array (), '[b][/b]', '\\[b][/b]');
 test_converter ('\[b]\[/b]', array (), '[b][/b]', '\\[b][/b]');
-test_converter ('[b]some\[b]bold\[/b]text[/b]', array (array ('b', array (array (0), array (19)))), 'some[b]bold[/b]text');
-test_converter ('\[b]some[b]bold[/b]text\[/b]', array (array ('b', array (array (7), array (11)))), '[b]someboldtext[/b]');
-test_converter ('\__italic__', array (array ('i', array (array (1), array (7)))), '_italic_', '\\__italic_\\_');
-test_converter ('_\_italic__', array (array ('i', array (array (0), array (7)))), '_italic_', '_\\_italic_\\_');
-test_converter ('\___bold__', array (array ('b', array (array (1), array (5)))), '_bold', '\\_[b]bold[/b]');
+test_converter ('[b]some\[b]bold\[/b]text[/b]', array (array ('b', 0, true, false), array ('b', 19, false, true)), 'some[b]bold[/b]text');
+test_converter ('\[b]some[b]bold[/b]text\[/b]', array (array ('b', 7, true, false), array ('b', 11, false, true)), '[b]someboldtext[/b]');
+test_converter ('\__italic__', array (array ('i', 1, true, false), array ('i', 7, false, true)), '_italic_', '\\__italic_\\_');
+test_converter ('_\_italic__', array (array ('i', 0, true, false), array ('i', 7, false, true)), '_italic_', '_\\_italic_\\_');
+test_converter ('\___bold__', array (array ('b', 1, true, false), array ('b', 5, false, true)), '_bold', '\\_[b]bold[/b]');
 
 // Convert callbacks
 test_converter ('[c=0]abc[/c=0]', array (), '[c=0]abc[/c=0]', '\\[c=0]abc[/c=0]');
 test_converter ('[c=1]abc[/c=0]', array (), '[c=1]abc[/c=0]', '\\[c=1]abc[/c=0]');
 test_converter ('[c=0]abc[/c=1]', array (), '[c=0]abc[/c=1]', '\\[c=0]abc[/c=1]');
-test_converter ('[c=1]abc[/c=1]', array (array ('c', array (array (0, array ('n' => '1', 'test' => '5')), array (3, array ('n' => '1', 'test' => '7'))))), 'abc');
+test_converter ('[c=1]abc[/c=1]', array (array ('c', 0, true, false, array ('n' => '1', 'test' => '5')), array ('c', 3, false, true, array ('n' => '1', 'test' => '7'))), 'abc');
 
 echo 'OK';
 

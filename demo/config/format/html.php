@@ -33,7 +33,7 @@ $format = array
 
 function _amato_format_html_class ($id, $name)
 {
-	return function ($captures, $markup, $closing) use ($id, $name)
+	return function ($params, $markup, $closing) use ($id, $name)
 	{
 		if ($markup === '')
 			return '';
@@ -44,7 +44,7 @@ function _amato_format_html_class ($id, $name)
 
 function _amato_format_html_tag ($id)
 {
-	return function ($captures, $markup, $closing) use ($id)
+	return function ($params, $markup, $closing) use ($id)
 	{
 		if ($markup === '')
 			return '';
@@ -58,73 +58,73 @@ function _amato_format_html_escape ($string)
 	return htmlspecialchars ($string, ENT_COMPAT, CHARSET);
 }
 
-function amato_format_html_align ($captures, $markup, $closing)
+function amato_format_html_align ($params, $markup, $closing)
 {
 	$align = array ('c' => 'center', 'r' => 'right');
 
-	return '<div style="text-align: ' . _amato_format_html_escape (isset ($align[$captures['w']]) ? $align[$captures['w']] : 'left') . ';">' . $markup . '</div>';
+	return '<div style="text-align: ' . _amato_format_html_escape (isset ($align[$params['w']]) ? $align[$params['w']] : 'left') . ';">' . $markup . '</div>';
 }
 
-function amato_format_html_anchor ($captures, $markup, $closing)
+function amato_format_html_anchor ($params, $markup, $closing)
 {
-	if (!preg_match ('#^([-+.0-9A-Za-z]+://)?(([^:@]+(:[0-9]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $captures['u'], $matches))
+	if (!preg_match ('#^([-+.0-9A-Za-z]+://)?(([^:@]+(:[0-9]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $params['u'], $matches))
 		return $markup;
 
-	$target = _amato_format_html_escape (isset ($captures['i']) ? '_self' : '_blank');
+	$target = _amato_format_html_escape (isset ($params['i']) ? '_self' : '_blank');
 	$url = _amato_format_html_escape (($matches[1] ? $matches[1] : 'http://') . $matches[2]);
 
 	return '<a href="' . $url . '" target="' . $target . '">' . ($markup ?: $url) . '</a>';
 }
 
-function amato_format_html_box ($captures, $markup, $closing)
+function amato_format_html_box ($params, $markup, $closing)
 {
-	return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') &gt;= 0 ? \'box box_0\' : \'box box_1\';">' . _amato_format_html_escape ($captures['t']) . '</h1><div>' . $markup . '</div></div>';
+	return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') &gt;= 0 ? \'box box_0\' : \'box box_1\';">' . _amato_format_html_escape ($params['t']) . '</h1><div>' . $markup . '</div></div>';
 }
 
-function amato_format_html_center ($captures, $markup, $closing)
+function amato_format_html_center ($params, $markup, $closing)
 {
 	return '<div class="center">' . $markup . '</div>';
 }
 
-function amato_format_html_code ($captures, $markup, $closing)
+function amato_format_html_code ($params, $markup, $closing)
 {
 	static $brushes;
 
 	if (!isset ($brushes))
 		$brushes = array_flip (array ('as3', 'bash', 'csharp', 'c', 'cpp', 'css', 'delphi', 'diff', 'groovy', 'js', 'java', 'jfx', 'm68k', 'perl', 'php', 'plain', 'ps', 'py', 'rails', 'scala', 'sql', 'vb', 'xml'));
 
-	if (!isset ($brushes[$captures['l']]))
+	if (!isset ($brushes[$params['l']]))
 		return $markup;
 
-	return '<pre class="brush: ' . $captures['l'] . '">' . str_replace ('<br />', "\n", $markup) . '</pre>';
+	return '<pre class="brush: ' . $params['l'] . '">' . str_replace ('<br />', "\n", $markup) . '</pre>';
 }
 
-function amato_format_html_color ($captures, $markup, $closing)
+function amato_format_html_color ($params, $markup, $closing)
 {
-	return '<span style="color: #' . _amato_format_html_escape ($captures['h']) . ';">' . $markup . '</span>';
+	return '<span style="color: #' . _amato_format_html_escape ($params['h']) . ';">' . $markup . '</span>';
 }
 
-function amato_format_html_font ($captures, $markup, $closing)
+function amato_format_html_font ($params, $markup, $closing)
 {
-	return '<span style="font-size: ' . max (min ((int)$captures['p'], 300), 50) . '%; line-height: 100%;">' . $markup . '</span>';
+	return '<span style="font-size: ' . max (min ((int)$params['p'], 300), 50) . '%; line-height: 100%;">' . $markup . '</span>';
 }
 
-function amato_format_html_horizontal ($captures, $markup, $closing)
+function amato_format_html_horizontal ($params, $markup, $closing)
 {
 	return '<hr />';
 }
 
-function amato_format_html_image ($captures, $markup, $closing)
+function amato_format_html_image ($params, $markup, $closing)
 {
-	if (isset ($captures['p']))
+	if (isset ($params['p']))
 	{
-		$size = round (max (min (intval ($captures['p']), 200), 20) * 0.01, 2);
-		$src = $captures['u'];
+		$size = round (max (min (intval ($params['p']), 200), 20) * 0.01, 2);
+		$src = $params['u'];
 	}
 	else
 	{
 		$size = null;
-		$src = $captures['u'];
+		$src = $params['u'];
 	}
 
 	if (!preg_match ('#^([0-9A-Za-z+]+://)?([-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $src, $matches))
@@ -138,79 +138,79 @@ function amato_format_html_image ($captures, $markup, $closing)
 		return '<img alt="img" src="' . $src . '" />';
 }
 
-function amato_format_html_list (&$captures, $markup, $closing)
+function amato_format_html_list (&$params, $markup, $closing)
 {
-	if (!isset ($captures['buffer']))
+	if (!isset ($params['buffer']))
 	{
-		$captures['buffer'] = '';
-		$captures['item'] = '';
-		$captures['next'] = 0;
-		$captures['stack'] = array ();
-		$captures['tag'] = 'u';
+		$params['buffer'] = '';
+		$params['item'] = '';
+		$params['next'] = 0;
+		$params['stack'] = array ();
+		$params['tag'] = 'u';
 	}
 
-	$captures['item'] .= $markup;
-	$tag = isset ($captures['t']) ? $captures['t'] : '';
+	$params['item'] .= $markup;
+	$tag = isset ($params['t']) ? $params['t'] : '';
 
 	if ($tag === 'o' || $tag === 'u' || $closing)
 	{
 		// Flush accumulated item text if any
-		if (trim ($captures['item']) !== '')
+		if (trim ($params['item']) !== '')
 		{
-			$level = max ($captures['next'], 1);
+			$level = max ($params['next'], 1);
 
-			while (count ($captures['stack']) > $level)
-				$captures['buffer'] .= '</li></' . array_pop ($captures['stack']) . 'l>';
+			while (count ($params['stack']) > $level)
+				$params['buffer'] .= '</li></' . array_pop ($params['stack']) . 'l>';
 
-			if (count ($captures['stack']) === $level)
-				$captures['buffer'] .= '</li><li>';
+			if (count ($params['stack']) === $level)
+				$params['buffer'] .= '</li><li>';
 
-			for (; count ($captures['stack']) < $level; $captures['stack'][] = $captures['tag'])
-				$captures['buffer'] .= '<' . $captures['tag'] . 'l><li>';
+			for (; count ($params['stack']) < $level; $params['stack'][] = $params['tag'])
+				$params['buffer'] .= '<' . $params['tag'] . 'l><li>';
 
-			$captures['buffer'] .= $captures['item'];
-			$captures['item'] = '';
-			$captures['next'] = 1;
+			$params['buffer'] .= $params['item'];
+			$params['item'] = '';
+			$params['next'] = 1;
 		}
 
 		// Increase level otherwise
 		else
-			$captures['next'] = min ($captures['next'] + 1, 8);
+			$params['next'] = min ($params['next'] + 1, 8);
 
 		// Save last tag type
-		$captures['tag'] = $tag;
+		$params['tag'] = $tag;
 	}
 
 	if (!$closing)
 		return '';
 
-	while (count ($captures['stack']) > 0)
-		$captures['buffer'] .= '</li></' . array_pop ($captures['stack']) . 'l>';
+	while (count ($params['stack']) > 0)
+		$params['buffer'] .= '</li></' . array_pop ($params['stack']) . 'l>';
 
-	return $captures['buffer'];
+	return $params['buffer'];
 }
 
-function amato_format_html_newline ($captures, $markup, $closing)
+function amato_format_html_newline ($params, $markup, $closing)
 {
 	return '<br />';
 }
 
-function amato_format_html_pre ($captures, $markup, $closing)
+function amato_format_html_pre ($params, $markup, $closing)
 {
-	return '<pre>' . _amato_format_html_escape ($captures['b']) . '</pre>';
+	return '<pre>' . _amato_format_html_escape ($params['b']) . '</pre>';
 }
 
-function amato_format_html_ref ($captures, $markup, $closing)
+function amato_format_html_ref ($params, $markup, $closing)
 {
-	return '<a href="#" onclick="return false;">./' . $captures['p'] . '</a>';
+	return '<a href="#" onclick="return false;">./' . $params['p'] . '</a>';
 }
 
-function amato_format_html_slap ($captures, $markup, $closing)
+function amato_format_html_slap ($params, $markup, $closing)
 {
-	return '!slap ' . $captures['u'] . ($captures['u'] ? '<br /><span style="color: #990099;">&bull; #login# slaps ' . $captures['u'] . ' around a bit with a large trout !</span><br />' : '');
+	return '!slap ' . $params['u'] . ($params['u'] ? '<br /><span style="color: #990099;">&bull; #login# slaps ' . $params['u'] . ' around a bit with a large trout !</span><br />' : '');
 }
 
-function amato_format_html_smiley ($captures, $markup, $closing)
+function amato_format_html_smiley ($params, $markup, $closing)
 {
 	global $config;
 	static $names;
@@ -278,7 +278,7 @@ function amato_format_html_smiley ($captures, $markup, $closing)
 			break;
 
 		case 'c':
-			$alt = $captures['n'];
+			$alt = $params['n'];
 			$src = 'sp/img/' . $alt . '.img';
 
 			if (!file_exists ($src))
@@ -298,7 +298,7 @@ function amato_format_html_smiley ($captures, $markup, $closing)
 				));
 			}
 
-			$alt = $captures['n'];
+			$alt = $params['n'];
 			$src = $config['static.url'] . '/sprite/smile/' . $alt . '.gif';
 
 			if (!isset ($names[$alt]))
@@ -310,56 +310,56 @@ function amato_format_html_smiley ($captures, $markup, $closing)
 	return '<img alt="' . $alt . '" src="' . $src . '" />';
 }
 
-function amato_format_html_table (&$captures, $markup, $closing)
+function amato_format_html_table (&$params, $markup, $closing)
 {
-	if (!isset ($captures['cols']))
-		$captures['cols'] = 0;
+	if (!isset ($params['cols']))
+		$params['cols'] = 0;
 
-	if (!isset ($captures['head']))
-		$captures['head'] = false;
+	if (!isset ($params['head']))
+		$params['head'] = false;
 
-	if (!isset ($captures['rows']))
-		$captures['rows'] = array (array ());
+	if (!isset ($params['rows']))
+		$params['rows'] = array (array ());
 
-	if (!isset ($captures['size']))
-		$captures['size'] = 0;
+	if (!isset ($params['size']))
+		$params['size'] = 0;
 
-	if (!isset ($captures['span']))
-		$captures['span'] = 1;
+	if (!isset ($params['span']))
+		$params['span'] = 1;
 
 	$markup = preg_replace ('#^([[:blank:]]*)(<br />)?(.*)(<br />)?([[:blank:]]*)$#', '$1$3$5', $markup);
 
-	if ($captures['span'] === 1 && trim ($markup) === '')
+	if ($params['span'] === 1 && trim ($markup) === '')
 		;
 	else if ($markup === '')
-		++$captures['span'];
+		++$params['span'];
 	else
 	{
-		$span = $captures['span'];
+		$span = $params['span'];
 
-		$captures['rows'][count ($captures['rows']) - 1][] = array ($captures['head'], $span, $markup);
-		$captures['size'] += $span;
-		$captures['span'] = 1;
+		$params['rows'][count ($params['rows']) - 1][] = array ($params['head'], $span, $markup);
+		$params['size'] += $span;
+		$params['span'] = 1;
 	}
 
 	switch ($flag)
 	{
 		case 'c':
-			$captures['head'] = false;
+			$params['head'] = false;
 
 			break;
 
 		case 'h':
-			$captures['head'] = true;
+			$params['head'] = true;
 
 			break;
 
 		case 'r':
-			$captures['cols'] = max ($captures['cols'], $captures['size']);
-			$captures['head'] = false;
-			$captures['rows'][] = array ();
-			$captures['size'] = 0;
-			$captures['span'] = 1;
+			$params['cols'] = max ($params['cols'], $params['size']);
+			$params['head'] = false;
+			$params['rows'][] = array ();
+			$params['size'] = 0;
+			$params['span'] = 1;
 
 			break;
 	}
@@ -369,7 +369,7 @@ function amato_format_html_table (&$captures, $markup, $closing)
 
 	$rows = '';
 
-	foreach ($captures['rows'] as $row)
+	foreach ($params['rows'] as $row)
 	{
 		$rows .= '<tr>';
 		$i = 0;
@@ -400,8 +400,8 @@ function amato_format_html_table (&$captures, $markup, $closing)
 			$i += $span;
 		}
 
-		if ($i < $captures['cols'])
-			$rows .= '<td ' . ($captures['cols'] > $i + 1 ? ' colspan="' . ($captures['cols'] - $i) . '"' : '') . '></td>';
+		if ($i < $params['cols'])
+			$rows .= '<td ' . ($params['cols'] > $i + 1 ? ' colspan="' . ($params['cols'] - $i) . '"' : '') . '></td>';
 
 		$rows .= '</tr>';
 	}

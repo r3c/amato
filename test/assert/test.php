@@ -2,7 +2,7 @@
 
 function _assert_test_dump ($value)
 {
-	return mb_convert_encoding (preg_replace ("/\s+/m", ' ', var_export ($value, true)), 'utf-8');
+	return mb_convert_encoding (preg_replace ('/\\s+/m', ' ', var_export ($value, true)), 'utf-8');
 }
 
 function assert_test_equal ($result, $expected, $context)
@@ -33,7 +33,7 @@ function assert_test_equal ($result, $expected, $context)
 
 function assert_test_true ($result, $context)
 {
-	assert ($result, $context . ' ' . _assert_test_dump ($result) . ' is true');
+	assert ($result, _assert_test_dump ($context) . ' ' . _assert_test_dump ($result) . ' is true');
 }
 
 ?>

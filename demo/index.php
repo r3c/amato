@@ -99,7 +99,7 @@ function print_select ($name, $options)
 						scanner and
 						<?php echo print_select ('converter', array ('tag' => 'tag')); ?>
 						converter, serialize using
-						<?php echo print_select ('encoder', array ('compact' => 'compact', 'concat' => 'concat', 'json' => 'json', 'sleep' => 'sleep')); ?>
+						<?php echo print_select ('encoder', array ('compact' => 'compact', 'json' => 'json', 'sleep' => 'sleep')); ?>
 						encoder, render with
 						<?php echo print_select ('renderer', array ('format' => 'format')); ?>
 						renderer
@@ -115,11 +115,6 @@ if (isset ($_REQUEST['action']) && isset ($_REQUEST['markup']))
 	{
 		case 'compact':
 			$encoder = new Amato\CompactEncoder ();
-
-			break;
-
-		case 'concat':
-			$encoder = new Amato\ConcatEncoder ();
 
 			break;
 

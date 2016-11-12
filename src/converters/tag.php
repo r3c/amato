@@ -10,15 +10,15 @@ class TagConverter extends Converter
 	** Constructor.
 	** $encoder:	encoder instance
 	** $scanner:	scanner instance
-	** $syntax:		syntax configuration
+	** $tags:		tags configuration
 	*/
-	public function __construct ($encoder, $scanner, $syntax)
+	public function __construct ($encoder, $scanner, $tags)
 	{
 		$this->attributes = array ();
 		$this->encoder = $encoder;
 		$this->scanner = $scanner;
 
-		foreach ($syntax as $id => $definitions)
+		foreach ($tags as $id => $definitions)
 		{
 			foreach ($definitions as $definition)
 			{
@@ -40,7 +40,7 @@ class TagConverter extends Converter
 	{
 		// Group compatible sequences into array of matches by group candidate
 		$candidates = array ();
-		$groups = array ();
+		$markers = array ();
 		$sequences = $this->scanner->find ($markup);
 		$shift = 0;
 		$trims = array ();
@@ -81,8 +81,8 @@ class TagConverter extends Converter
 				// Append to compatible candidates
 				self::candidate_register ($candidates, $id, $type, $offset, $length, $params);
 
-				// Try to resolve candidates into groups and flag them for removal
-				for ($min = 0; count ($candidates) > 0 && self::candidate_resolve ($candidates, $groups, $trims, $min); )
+				// Try to resolve candidates into markers and flag them for removal
+				for ($min = 0; count ($candidates) > 0 && self::candidate_resolve ($candidates, $markers, $trims, $min); )
 				{
 					// Skip following overlapped sequences
 					while ($i + 1 < count ($sequences) && $sequences[$i + 1][1] + $shift < $min)
@@ -91,26 +91,25 @@ class TagConverter extends Converter
 			}
 		}
 
-		// Resolve compatible candidates into groups and flag them for removal
+		// Resolve compatible candidates into markers and flag them for removal
 		for ($min = 0; count ($candidates) > 0; )
 		{
-			if (!self::candidate_resolve ($candidates, $groups, $trims, $min))
+			if (!self::candidate_resolve ($candidates, $markers, $trims, $min))
 				array_shift ($candidates);
 		}
 
-		// Remove groups from markup string and fix offsets
+		// Remove markers from markup string and fix offsets
 		// FIXME: could be optimized by doing a single pass on $trims [convert-on-the-fly]
+		$plain = $markup;
+
 		for ($i = 0; $i < count ($trims); ++$i)
 		{
 			list ($offset, $length) = $trims[$i];
 
-			foreach ($groups as &$group)
+			foreach ($markers as &$marker)
 			{
-				foreach ($group[1] as &$marker)
-				{
-					if ($marker[0] > $offset)
-						$marker[0] -= $length;
-				}
+				if ($marker[1] > $offset)
+					$marker[1] -= $length;
 			}
 
 			for ($j = 0; $j < count ($trims); ++$j)
@@ -121,11 +120,11 @@ class TagConverter extends Converter
 					$trims[$j][0] -= $length;
 			}
 
-			$markup = mb_substr ($markup, 0, $offset) . mb_substr ($markup, $offset + $length);
+			$plain = mb_substr ($plain, 0, $offset) . mb_substr ($plain, $offset + $length);
 		}
 
 		// Encode into tokenized string and return
-		return $this->encoder->encode ($markup, $groups);
+		return $this->encoder->encode ($plain, $markers);
 	}
 
 	/*
@@ -133,22 +132,22 @@ class TagConverter extends Converter
 	*/
 	public function revert ($token, $context = null)
 	{
-		// Decode tokenized string into groups and pairs
+		// Decode tokenized string into markers and pairs
 		$pair = $this->encoder->decode ($token);
 
 		if ($pair === null)
 			return null;
 
-		list ($plain, $groups) = $pair;
+		list ($plain, $markers) = $pair;
 
 		// Browse groups and markers, revert them into text and insert into plain string
 		$levels = array ();
 		$markup = '';
 		$start = 0;
 
-		for ($cursors = Encoder::begin ($groups); Encoder::next ($groups, $cursors, $next); )
+		foreach ($markers as $marker)
 		{
-			list ($id, $offset, $params, $is_first, $is_last) = $next;
+			list ($id, $offset, $is_first, $is_last, $params) = $marker;
 
 			// Escape and append skipped plain string to markup
 			$markup .= $this->build_markup ($levels, mb_substr ($plain, $start, $offset - $start));
@@ -263,33 +262,31 @@ class TagConverter extends Converter
 	/*
 	** Resolve first candidate from given list into group if complete, flag
 	** matches for removal and remove candidates from list.
-	** &candidates:	candidates list
-	** &groups:		resolved groups list
-	** &trims:		removal list
+	** &candidates:	candidates (id, matches) list
+	** &markers:	resolved markers (id, offset, is_first, is_last, params) list
+	** &trims:		removal (offset, length) list
 	** &min:		highest matched candidate offset
 	** return:		true if first candidates was resolved, false otherwise
 	*/
-	private static function candidate_resolve (&$candidates, &$groups, &$trims, &$min)
+	private static function candidate_resolve (&$candidates, &$markers, &$trims, &$min)
 	{
 		list ($id, $matches) = $candidates[0];
 
 		// Find first match able to complete current candidate group
-		for ($i = 0; $i < count ($matches) && $matches[$i][3]; )
-			++$i;
+		for ($close = 0; $close < count ($matches) && $matches[$close][3]; )
+			++$close;
 
-		if ($i >= count ($matches))
+		if ($close >= count ($matches))
 			return false;
 
 		array_shift ($candidates);
 
-		// Save candidate and remove other overlapped candidates
-		$matches = array_splice ($matches, 0, $i + 1);
-		$markers = array ();
-
-		foreach ($matches as $match)
+		// Process all candidates from first to closing one
+		for ($current = 0; $current <= $close; ++$current)
 		{
-			list ($offset1, $length1, $params) = $match;
+			list ($offset1, $length1, $params) = $matches[$current];
 
+			// Remove overlapped matches from all remaining candidates
 			for ($i = count ($candidates); $i-- > 0; )
 			{
 				for ($j = count ($candidates[$i][1]); $j-- > 0; )
@@ -312,13 +309,18 @@ class TagConverter extends Converter
 				}
 			}
 
-			$min = max ($offset1 + $length1, $min);
+			// Insert match into markers (ordered by offset) and trimming list
+			$i = count ($markers);
 
-			$markers[] = array ($offset1, $params);
+			while ($i > 0 && $markers[$i - 1][1] > $offset1)
+				--$i;
+
+			array_splice ($markers, $i, 0, array (array ($id, $offset1, $current === 0, $current === $close, $params)));
+
 			$trims[] = array ($offset1, $length1);
-		}
 
-		$groups[] = array ($id, $markers);
+			$min = max ($offset1 + $length1, $min);
+		}
 
 		return true;
 	}
