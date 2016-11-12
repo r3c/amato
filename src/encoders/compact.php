@@ -6,25 +6,25 @@ defined ('AMATO') or die;
 
 class CompactEncoder extends Encoder
 {
-	const CAPTURE = ',';
 	const ESCAPE = '\\';
 	const MARKER = ';';
+	const PARAM = ',';
 	const PLAIN = '#';
 	const VALUE = '=';
 
 	private static $escapes_decode = array
 	(
-		self::CAPTURE	=> true,
 		self::MARKER	=> true,
 		self::PLAIN		=> true,
+		self::PARAM		=> true,
 		self::VALUE		=> true
 	);
 
 	private static $escapes_encode = array
 	(
-		self::CAPTURE	=> true,
 		self::ESCAPE	=> true,
 		self::MARKER	=> true,
+		self::PARAM		=> true,
 		self::PLAIN		=> true,
 		self::VALUE		=> true
 	);
@@ -59,6 +59,12 @@ class CompactEncoder extends Encoder
 				++$i;
 			}
 
+			// Read offset delta
+			for ($j = $i; $i < $length && $token[$i] >= '0' && $token[$i] <= '9'; )
+				++$i;
+
+			$offset += (int)substr ($token, $j, $i - $j);
+
 			// Read type
 			if ($i >= $length || !isset (self::$markers[$token[$i]]))
 				return null;
@@ -68,7 +74,7 @@ class CompactEncoder extends Encoder
 			// Read id
 			$id = '';
 
-			for (; $i < $length && $token[$i] !== self::CAPTURE; ++$i)
+			for (; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
 			{
 				if ($token[$i] === self::ESCAPE && $i + 1 < $length)
 					++$i;
@@ -76,19 +82,10 @@ class CompactEncoder extends Encoder
 				$id .= $token[$i];
 			}
 
-			if ($i >= $length)
-				return null;
-
-			// Read offset delta
-			for ($j = ++$i; $i < $length && $token[$i] >= '0' && $token[$i] <= '9'; )
-				++$i;
-
-			$offset += (int)substr ($token, $j, $i - $j);
-
-			// Read params
+			// Read parameters
 			$params = array ();
 
-			while ($i < $length && $token[$i] === self::CAPTURE)
+			while ($i < $length && $token[$i] === self::PARAM)
 			{
 				// Read param key
 				$key = '';
@@ -147,15 +144,14 @@ class CompactEncoder extends Encoder
 				$token .= self::MARKER;
 
 			// Write type, id and offset
+			$token .= $offset - $shift;
 			$token .= $types[($is_first ? 1 : 0) + ($is_last ? 2 : 0)];
 			$token .= self::escape ((string)$id);
-			$token .= self::CAPTURE;
-			$token .= $offset - $shift;
 
 			// Write params
 			foreach ($params as $key => $value)
 			{
-				$token .= self::CAPTURE . self::escape ($key);
+				$token .= self::PARAM . self::escape ($key);
 				$value = (string)$value;
 
 				if ($value !== '')
