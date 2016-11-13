@@ -4,9 +4,8 @@ Umen TODO file
 TODO
 ----
 
-- Escape only when required on revert (e.g. "[b]" shouldn't escape)
+- Escape only when required on revert (e.g. "[b]" shouldn't escape) [revert-escape]
 - Remove resolved tags on the fly instead of maintaining trim list [convert-on-the-fly]
-- Add support for "revert" callback
 
 DONE
 ----
@@ -45,3 +44,4 @@ DONE
 - Render
 - Optimize convert into 1-pass algorithm (queue candidates)
 - Introduce new revertable regexp syntax to allow non-capturing patterns
+- Add support for "revert" callback

@@ -24,11 +24,12 @@ class TagConverter extends Converter
 			{
 				$convert = isset ($definition[3]) ? $definition[3] : null;
 				$defaults = isset ($definition[2]) ? (array)$definition[2] : array ();
+				$revert = isset ($definition[4]) ? $definition[4] : null;
 				$type = (int)$definition[0];
 
 				$key = $scanner->assign ((string)$definition[1]);
 
-				$this->attributes[$key] = array ($id, $type, $defaults, $convert);
+				$this->attributes[$key] = array ($id, $type, $defaults, $convert, $revert);
 			}
 		}
 	}
@@ -72,9 +73,10 @@ class TagConverter extends Converter
 			{
 				list ($id, $type, $defaults, $convert) = $this->attributes[$key];
 
-				// Build params array and call conversion callback if any
+				// Augment captured parameters with defaults
 				$params = $sequences[$i][3] + $defaults;
 
+				// Call convert callback if any, ignore sequence if requested
 				if ($convert !== null && $convert ($type, $params, $context) === false)
 					continue;
 
@@ -156,7 +158,7 @@ class TagConverter extends Converter
 			// Find definition matching current marker
 			foreach ($this->attributes as $key => $attribute)
 			{
-				list ($id_attribute, $type, $defaults) = $attribute;
+				list ($id_attribute, $type, $defaults, $convert, $revert) = $attribute;
 
 				// Skip definition if id, type or params don't match
 				if (($id !== $id_attribute) ||
@@ -167,6 +169,10 @@ class TagConverter extends Converter
 					($type === Tag::STEP && ($is_first || $is_last)) ||
 					($type === Tag::STOP && !$is_last) ||
 				    (count (array_diff_assoc ($defaults, $params)) > 0))
+					continue;
+
+				// Call revert callback if any, ignore sequence if requested
+				if ($revert !== null && $revert ($type, $params, $context) === false)
 					continue;
 
 				// Revert tag sequence and append to plain string
@@ -207,6 +213,7 @@ class TagConverter extends Converter
 			list ($key, $offset, $length) = $candidate;
 
 			// Candidate is a tag, ensure there is need to escape it
+			// FIXME: detection could be made more accurate by ensuring candidate could be registered [revert-escape]
 			if ($key !== null)
 			{
 				list ($id, $type, $defaults) = $this->attributes[$key];

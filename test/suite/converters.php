@@ -28,8 +28,24 @@ $syntax = array
 	),
 	'c'	=> array
 	(
-		array (Amato\Tag::START, '[c=<[01]:n>]', null, 'c_convert_start'),
-		array (Amato\Tag::STOP, '[/c=<[01]:n>]', null, 'c_convert_stop')
+		array (Amato\Tag::START, '[c=<[012]:n>]', null, function ($type, &$params, $context)
+		{
+			$params['extra'] = 5;
+
+			if ((int)$params['n'] === 2)
+				$params['n'] = 1;
+
+			return (int)$params['n'] !== 0;
+		}),
+		array (Amato\Tag::STOP, '[/c=<[012]:n>]', null, function ($type, &$params, $context)
+		{
+			$params['extra'] = 7;
+
+			if ((int)$params['n'] === 2)
+				$params['n'] = 1;
+
+			return (int)$params['n'] !== 0;
+		})
 	),
 	'hr' => array
 	(
@@ -50,6 +66,23 @@ $syntax = array
 	(
 		array (Amato\Tag::ALONE, '[pre]<.*:b>[/pre]')
 	),
+	'r' => array
+	(
+		array (Amato\Tag::START, '[r=<[012]:n>]', null, null, function ($type, &$params, $context)
+		{
+			if ((int)$params['n'] === 2)
+				$params['n'] = 1;
+
+			return (int)$params['n'] !== 0;
+		}),
+		array (Amato\Tag::STOP, '[/r=<[012]:n>]', null, null, function ($type, &$params, $context)
+		{
+			if ((int)$params['n'] === 2)
+				$params['n'] = 1;
+
+			return (int)$params['n'] !== 0;
+		})
+	),
 	's' => array
 	(
 		array (Amato\Tag::START, '[size=big]', array ('p' => '200')),
@@ -58,23 +91,9 @@ $syntax = array
 	)
 );
 
-function c_convert_start ($type, &$params, $context)
-{
-	$params['test'] = 5;
-
-	return (int)$params['n'] !== 0;
-}
-
-function c_convert_stop ($type, &$params, $context)
-{
-	$params['test'] = 7;
-
-	return (int)$params['n'] !== 0;
-}
-
 Amato\autoload ();
 
-function test_converter ($markup, $markers_expected, $plain_expected, $canonical = null)
+function test_converter ($markup, $markers_expected, $plain_expected, $canonical = null, $unstable = false)
 {
 	global $syntax;
 	static $converters;
@@ -105,6 +124,10 @@ function test_converter ($markup, $markers_expected, $plain_expected, $canonical
 		$markup_revert1 = $converter->revert ($token1);
 
 		assert_test_equal ($markup_revert1, $canonical !== null ? $canonical : $markup, $context . '[canonical revert]');
+
+		// Stop test here if markup is flagged as unstable
+		if ($unstable)
+			continue;
 
 		// Convert twice and assert again
 		$token2 = $converter->convert ($markup_revert1);
@@ -203,7 +226,15 @@ test_converter ('\___bold__', array (array ('b', 1, true, false), array ('b', 5,
 test_converter ('[c=0]abc[/c=0]', array (), '[c=0]abc[/c=0]', '\\[c=0]abc[/c=0]');
 test_converter ('[c=1]abc[/c=0]', array (), '[c=1]abc[/c=0]', '\\[c=1]abc[/c=0]');
 test_converter ('[c=0]abc[/c=1]', array (), '[c=0]abc[/c=1]', '\\[c=0]abc[/c=1]');
-test_converter ('[c=1]abc[/c=1]', array (array ('c', 0, true, false, array ('n' => '1', 'test' => '5')), array ('c', 3, false, true, array ('n' => '1', 'test' => '7'))), 'abc');
+test_converter ('[c=1]abc[/c=1]', array (array ('c', 0, true, false, array ('n' => '1', 'extra' => '5')), array ('c', 3, false, true, array ('n' => '1', 'extra' => '7'))), 'abc');
+test_converter ('[c=2]abc[/c=2]', array (array ('c', 0, true, false, array ('n' => '1', 'extra' => '5')), array ('c', 3, false, true, array ('n' => '1', 'extra' => '7'))), 'abc', '[c=1]abc[/c=1]');
+
+// Revert callbacks
+test_converter ('[r=0]abc[/r=0]', array (array ('r', 0, true, false, array ('n' => '0')), array ('r', 3, false, true, array ('n' => '0'))), 'abc', 'abc', true);
+test_converter ('[r=0]abc[/r=1]', array (array ('r', 0, true, false, array ('n' => '0')), array ('r', 3, false, true, array ('n' => '1'))), 'abc', 'abc[/r=1]', true);
+test_converter ('[r=1]abc[/r=0]', array (array ('r', 0, true, false, array ('n' => '1')), array ('r', 3, false, true, array ('n' => '0'))), 'abc', '[r=1]abc', true);
+test_converter ('[r=1]abc[/r=1]', array (array ('r', 0, true, false, array ('n' => '1')), array ('r', 3, false, true, array ('n' => '1'))), 'abc');
+test_converter ('[r=2]abc[/r=2]', array (array ('r', 0, true, false, array ('n' => '2')), array ('r', 3, false, true, array ('n' => '2'))), 'abc', '[r=1]abc[/r=1]', true);
 
 echo 'OK';
 
