@@ -85,7 +85,7 @@ function print_select ($name, $options)
 					<textarea name="markup" rows="10" style="box-sizing: border-box; width: 100%;"><?php echo escape (isset ($_REQUEST['markup']) ? $_REQUEST['markup'] : file_get_contents ('data/demo.txt')); ?></textarea>
 					<div class="buttons" id="actions">
 						Convert
-						<?php echo print_select ('syntax', array ('bbcode' => 'BBCode', 'wiki' => 'Wiki Markup')); ?>
+						<?php echo print_select ('tag', array ('bbcode' => 'BBCode', 'wiki' => 'Wiki Markup')); ?>
 						into
 						<?php echo print_select ('format', array ('html' => 'HTML')); ?>
 						and
@@ -146,23 +146,23 @@ if (isset ($_REQUEST['action']) && isset ($_REQUEST['markup']))
 	switch (isset ($_REQUEST['converter']) ? $_REQUEST['converter'] : null)
 	{
 		case 'tag':
-			switch (isset ($_REQUEST['syntax']) ? $_REQUEST['syntax'] : null)
+			switch (isset ($_REQUEST['tag']) ? $_REQUEST['tag'] : null)
 			{
 				case 'bbcode':
-					require ('config/syntax/bbcode.php');
+					require ('config/tag/bbcode.php');
 
 					break;
 
 				case 'wiki':
-					require ('config/syntax/wiki.php');
+					require ('config/tag/wiki.php');
 
 					break;
 
 				default:
-					throw new Exception ('invalid syntax');
+					throw new Exception ('invalid tag');
 			}
 
-			$converter = new Amato\TagConverter ($encoder, $scanner, $syntax);
+			$converter = new Amato\TagConverter ($encoder, $scanner, $tags);
 
 			break;
 

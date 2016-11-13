@@ -2,33 +2,27 @@
 
 $format = array
 (
-	'.'		=> array ('amato_format_html_newline'),
-	'a'		=> array ('amato_format_html_anchor'),
-	'align'	=> array ('amato_format_html_align', 2),
-	'b'		=> array (_amato_format_html_tag ('b')),
-	'box'	=> array ('amato_format_html_box', 2),
-	'c'		=> array ('amato_format_html_center', 2),
-	'src'	=> array ('amato_format_html_code', 2),
-	'cmd'	=> array (_amato_format_html_class ('div', 'cmd'), 2),
-	'color'	=> array ('amato_format_html_color'),
-	'em'	=> array (_amato_format_html_tag ('em')),
-	'font'	=> array ('amato_format_html_font'),
-	'hr'	=> array ('amato_format_html_horizontal', 2),
-	'i'		=> array (_amato_format_html_tag ('i')),
-	'img'	=> array ('amato_format_html_image'),
-	'list'	=> array ('amato_format_html_list', 2),
-	'modo'	=> array (_amato_format_html_class ('div', 'modo'), 2),
-	'pre'	=> array ('amato_format_html_pre', 2),
-	'quote'	=> array (_amato_format_html_tag ('blockquote'), 2),
-	'ref'	=> array ('amato_format_html_ref'),
-	's'		=> array (_amato_format_html_class ('span', 's')),
-	'slap'	=> array ('amato_format_html_slap'),
-	'smile'	=> array ('amato_format_html_smiley'),
-	'spoil'	=> array (_amato_format_html_class ('span', 'spoil')),
-	'sub'	=> array (_amato_format_html_tag ('sub')),
-	'sup'	=> array (_amato_format_html_tag ('sup')),
-	'table'	=> array ('amato_format_html_table', 2),
-	'u'		=> array (_amato_format_html_class ('span', 'u'))
+	'.'			=> array ('amato_format_html_newline'),
+	'a'			=> array ('amato_format_html_anchor'),
+	'align'		=> array ('amato_format_html_align', 2),
+	'b'			=> array (_amato_format_html_tag ('b')),
+	'c'			=> array ('amato_format_html_color'),
+	'center'	=> array ('amato_format_html_center', 2),
+	'code'		=> array ('amato_format_html_code', 2),
+	'emoji'		=> array ('amato_format_html_emoji'),
+	'font'		=> array ('amato_format_html_font'),
+	'hr'		=> array ('amato_format_html_horizontal', 2),
+	'i'			=> array (_amato_format_html_tag ('i')),
+	'img'		=> array ('amato_format_html_image'),
+	'list'		=> array ('amato_format_html_list', 2),
+	'pre'		=> array ('amato_format_html_pre', 2),
+	'quote'		=> array (_amato_format_html_tag ('blockquote'), 2),
+	's'			=> array (_amato_format_html_class ('span', 's')),
+	'spoil'		=> array (_amato_format_html_class ('span', 'spoil')),
+	'sub'		=> array (_amato_format_html_tag ('sub')),
+	'sup'		=> array (_amato_format_html_tag ('sup')),
+	'table'		=> array ('amato_format_html_table', 2),
+	'u'			=> array (_amato_format_html_class ('span', 'u'))
 );
 
 function _amato_format_html_class ($id, $name)
@@ -67,18 +61,12 @@ function amato_format_html_align ($params, $markup, $closing)
 
 function amato_format_html_anchor ($params, $markup, $closing)
 {
-	if (!preg_match ('#^([-+.0-9A-Za-z]+://)?(([^:@]+(:[0-9]+)?@)?[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)+.*)#', $params['u'], $matches))
-		return $markup;
+	if (preg_match ('#^[+.0-9A-Za-z]{1,16}://#', $params['u']))
+		$url = _amato_format_html_escape ($params['u']);
+	else
+		$url = _amato_format_html_escape ('http://' . $params['u']);
 
-	$target = _amato_format_html_escape (isset ($params['i']) ? '_self' : '_blank');
-	$url = _amato_format_html_escape (($matches[1] ? $matches[1] : 'http://') . $matches[2]);
-
-	return '<a href="' . $url . '" target="' . $target . '">' . ($markup ?: $url) . '</a>';
-}
-
-function amato_format_html_box ($params, $markup, $closing)
-{
-	return '<div class="box box_0"><h1 onclick="this.parentNode.className = this.parentNode.className.indexOf(\'box_1\') &gt;= 0 ? \'box box_0\' : \'box box_1\';">' . _amato_format_html_escape ($params['t']) . '</h1><div>' . $markup . '</div></div>';
+	return '<a href="' . $url . '">' . ($markup ?: $url) . '</a>';
 }
 
 function amato_format_html_center ($params, $markup, $closing)
@@ -102,6 +90,11 @@ function amato_format_html_code ($params, $markup, $closing)
 function amato_format_html_color ($params, $markup, $closing)
 {
 	return '<span style="color: #' . _amato_format_html_escape ($params['h']) . ';">' . $markup . '</span>';
+}
+
+function amato_format_html_emoji ($params, $markup, $closing)
+{
+	return '<img alt="#' . $params['n'] . '#" src="res/emojis/' . $params['n'] . '.gif" />';
 }
 
 function amato_format_html_font ($params, $markup, $closing)
@@ -200,116 +193,6 @@ function amato_format_html_pre ($params, $markup, $closing)
 	return '<pre>' . _amato_format_html_escape ($params['b']) . '</pre>';
 }
 
-function amato_format_html_ref ($params, $markup, $closing)
-{
-	return '<a href="#" onclick="return false;">./' . $params['p'] . '</a>';
-}
-
-function amato_format_html_slap ($params, $markup, $closing)
-{
-	return '!slap ' . $params['u'] . ($params['u'] ? '<br /><span style="color: #990099;">&bull; #login# slaps ' . $params['u'] . ' around a bit with a large trout !</span><br />' : '');
-}
-
-function amato_format_html_smiley ($params, $markup, $closing)
-{
-	global $config;
-	static $names;
-
-	switch ($flag)
-	{
-		case '0':
-			$alt = ':D';
-			$src = $config['static.url'] . '/sprite/smile/biggrin.gif';
-
-			break;
-
-		case '1':
-			$alt = ':(';
-			$src = $config['static.url'] . '/sprite/smile/frown.gif';
-
-			break;
-
-		case '2':
-			$alt = ':o';
-			$src = $config['static.url'] . '/sprite/smile/redface.gif';
-
-			break;
-
-		case '3':
-			$alt = ':)';
-			$src = $config['static.url'] . '/sprite/smile/smile.gif';
-
-			break;
-
-		case '4':
-			$alt = ':p';
-			$src = $config['static.url'] . '/sprite/smile/tongue.gif';
-
-			break;
-
-		case '5':
-			$alt = ';)';
-			$src = $config['static.url'] . '/sprite/smile/wink.gif';
-
-			break;
-
-		case '6':
-			$alt = '=)';
-			$src = $config['static.url'] . '/sprite/smile/smile2.gif';
-
-			break;
-
-		case '7':
-			$alt = '%)';
-			$src = $config['static.url'] . '/sprite/smile/mod.gif';
-
-			break;
-
-		case '8':
-			$alt = ':|';
-			$src = $config['static.url'] . '/sprite/smile/droit.gif';
-
-			break;
-
-		case '9':
-			$alt = ':S';
-			$src = $config['static.url'] . '/sprite/smile/cst.gif';
-
-			break;
-
-		case 'c':
-			$alt = $params['n'];
-			$src = 'sp/img/' . $alt . '.img';
-
-			if (!file_exists ($src))
-				return '##' . $alt . '##';
-
-			break;
-
-		case 'n':
-			if (!isset ($names))
-			{
-				$names = array_flip (array
-				(
-					'bang', 'eek', 'confus', 'cool', 'roll', 'rage', 'alien', 'attention', 'vador', 'crayon', 'devil', 'doom', 'picol', 'vtff', 'mad', 'rotfl', 'zzz', 'miam', 'tsss', 'sick', 'pleure', 'oui', 'fou', 'love', 'tusors', 'triso', 'top', 'hum', 'black', 'coeur', 'hein', 'interdit', 'gni', 'couic', 'fuck', 'gol', 'grrr', 'magic', 'non', 'bisoo', 'coin', 'tp', 'fleurs', 'wc', 'lapin', 'poulpe', 'info', 'tv', 'doc', 'skull', 'mur', 'pam', 'dehors', 'tusors', 'chew', 'lol', 'boing', 'yel', 'biz', 'cyborg', 'chinois', 'calin', 'censure', 'scotch',
-					'anniv', 'arme', 'aveugle', 'banane', 'bandana', 'beret', 'blabla', 'bobo', 'bonbon', 'bourre', 'bulle', 'bzz', 'camouflage', 'car', 'casque', 'champignon', 'chante', 'chapo', 'chat', 'chausson', 'citrouille', 'classe', 'cle', 'cookie', 'coupe', 'cowboy', 'croque', 'cubiste', 'cuisse', 'diable', 'dingue', 'donut', 'drapeau', 'ecoute', 'eeek', 'enflamme', 'epee', 'fantome', 'fatigue', 'fesses', 'feu', 'fille', 'flic', 'flocon', 'fondu', 'fou2', 'fouet', 'froid', 'furieux', 'groupe', 'guitare', 'helico', 'hippy', 'hypno', 'interdit2', 'karate', 'king', 'krokro', 'langue', 'livre', 'lolpaf', 'loupe', 'love2', 'lune', 'marteau', 'masque', 'micro', 'mimi', 'note', 'peur', 'piano', 'pluie', 'pomme', 'reine', 'santa', 'sapin', 'saucisse', 'shhh', 'skate', 'slug', 'snail', 'snowman', 'soda', 'soleil', 'splat', 'starwars', 'stylo', 'stylobille', 'superguerrier', 'surf', 'swirl', 'tasse', 'tilt', 'toilettes', 'tomate', 'tombe', 'tompette', 'tortue', 'trefle', 'warp', 'yoyo', 'zen',
-					'ciao', 'crash', 'drapeaublanc', 'fou3', 'fucktricol', 'ouin', 'slurp', 'sygus', 'hum2', 'fireball', 'tricol', 'trifaq', 'trigic', 'trigni', 'trilol', 'trilove', 'trinon', 'tripo', 'trisors', 'trisotfl', 'tritop', 'trivil', 'trifouet', 'trifus', 'trilangue', 'triroll', 'couic2', 'faq', 'furax', 'ooh', 'bigeyes', 'civ3', 'ptw', 'fear', 'hehe', 'fleche', 'tripaf', 'gnimod', 'trioui', 'sheep', 'tromb',
-					'biere', 'citrouille2', 'foot', 'gato', 'hotdog', 'kado', 'cornet', 'meuh', 'mobile', 'pizza', 'poisson', 'yin'
-				));
-			}
-
-			$alt = $params['n'];
-			$src = $config['static.url'] . '/sprite/smile/' . $alt . '.gif';
-
-			if (!isset ($names[$alt]))
-				return '#' . $alt . '#';
-
-			break;
-	}
-
-	return '<img alt="' . $alt . '" src="' . $src . '" />';
-}
-
 function amato_format_html_table (&$params, $markup, $closing)
 {
 	if (!isset ($params['cols']))
@@ -406,7 +289,7 @@ function amato_format_html_table (&$params, $markup, $closing)
 		$rows .= '</tr>';
 	}
 
-	return '<table class="table">' . $rows . '</table>';
+	return '<table class="markup">' . $rows . '</table>';
 }
 
 ?>

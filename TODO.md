@@ -6,6 +6,7 @@ TODO
 
 - Escape only when required on revert (e.g. "[b]" shouldn't escape)
 - Remove resolved tags on the fly instead of maintaining trim list [convert-on-the-fly]
+- Add support for "revert" callback
 
 DONE
 ----
