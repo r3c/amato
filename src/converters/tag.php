@@ -10,7 +10,7 @@ class TagConverter extends Converter
 	** Constructor.
 	** $encoder:	encoder instance
 	** $scanner:	scanner instance
-	** $tags:		tags configuration
+	** $tags:		converter tags definitions
 	*/
 	public function __construct ($encoder, $scanner, $tags)
 	{

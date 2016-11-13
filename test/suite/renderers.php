@@ -11,36 +11,36 @@ require_once ('assert/token.php');
 $format = array
 (
 	'a'		=> array ('amato_render_anchor'),
-	'b'		=> array (amato_render_direct ('b')),
-	'div'	=> array (amato_render_direct ('div'), 2),
-	'hr'	=> array (amato_render_alone ('hr'), 2),
-	'i'		=> array (amato_render_direct ('i')),
+	'b'		=> array (_amato_render_tag ('b')),
+	'div'	=> array (_amato_render_tag ('div'), 2),
+	'hr'	=> array (_amato_render_alone ('hr'), 2),
+	'i'		=> array (_amato_render_tag ('i')),
 	'list'	=> array ('amato_render_list', 2),
-	'u'		=> array (amato_render_direct ('u'))
+	'u'		=> array (_amato_render_tag ('u'))
 );
 
-function amato_render_alone ($id)
+function _amato_render_alone ($id)
 {
-	return function ($params, $markup, $closing) use ($id)
+	return function () use ($id)
 	{
 		return '<' . $id . ' />';
 	};
 }
 
-function amato_render_anchor ($params, $markup, $closing, $state)
+function _amato_render_tag ($id)
 {
-	return '<a href="' . $params['u'] . '">' . ($markup ?: $params['u']) . '</a>';
-}
-
-function amato_render_direct ($id)
-{
-	return function ($params, $markup, $closing) use ($id)
+	return function ($markup, $params) use ($id)
 	{
 		return '<' . $id . '>' . $markup . '</' . $id . '>';
 	};
 }
 
-function amato_render_list (&$params, $markup, $closing, $state)
+function amato_render_anchor ($markup, $params)
+{
+	return '<a href="' . $params['u'] . '">' . ($markup ?: $params['u']) . '</a>';
+}
+
+function amato_render_list ($markup, &$params, $closing)
 {
 	if (!isset ($params['out']))
 		$params['out'] = '';
@@ -55,7 +55,7 @@ function amato_render_list (&$params, $markup, $closing, $state)
 
 Amato\autoload ();
 
-function test_renderer ($plain, $markers, $expected, $state = null)
+function test_renderer ($plain, $markers, $expected, $context = null)
 {
 	global $format;
 	static $encoder;
@@ -84,7 +84,7 @@ function test_renderer ($plain, $markers, $expected, $state = null)
 	{
 		$context = '[plain \'' . str_replace ("\n", ' ', $plain) . '\'][renderer \'' . $name . '\']';
 
-		assert_test_equal ($renderer->render ($token, $state), $expected, $context);
+		assert_test_equal ($renderer->render ($token, $context), $expected, $context);
 	}
 }
 

@@ -9,14 +9,14 @@ class FormatRenderer extends Renderer
 	/*
 	** Initialize a new renderer.
 	** $encoder:	encoder instance
-	** $format:		render format definition
+	** $formats:	render formats definitions
 	** $escape:		optional plain text escape callback (string) -> string
 	*/
-	public function __construct ($encoder, $format, $escape = null)
+	public function __construct ($encoder, $formats, $escape = null)
 	{
 		$this->encoder = $encoder;
 		$this->escape = $escape;
-		$this->format = $format;
+		$this->formats = $formats;
 	}
 
 	/*
@@ -58,14 +58,14 @@ class FormatRenderer extends Renderer
 			}
 
 			// Get formatting rule for current marker if any
-			if (!isset ($this->format[$id]) || !isset ($this->format[$id][0]))
+			if (!isset ($this->formats[$id]) || !isset ($this->formats[$id][0]))
 				continue;
 
 			// Create and insert new scope according to its precedence level
 			if ($is_first)
 			{
-				$callback = isset ($this->format[$id][0]) ? $this->format[$id][0] : null;
-				$level = isset ($this->format[$id][1]) ? $this->format[$id][1] : 1;
+				$callback = $this->formats[$id][0];
+				$level = isset ($this->formats[$id][1]) ? $this->formats[$id][1] : 1;
 
 				for ($scope_shift = count ($scopes); $scope_shift > 0 && $level > $scopes[$scope_shift - 1][3]; )
 					--$scope_shift;
@@ -98,7 +98,7 @@ class FormatRenderer extends Renderer
 					$start = $stop;
 
 				$length = $stop - $start;
-				$markup = $callback ($scopes[$i][4], mb_substr ($render, $start, $length), $i !== $scope_current || $is_last, $context);
+				$markup = $callback (mb_substr ($render, $start, $length), $scopes[$i][4], $i !== $scope_current || $is_last, $context);
 
 				$render = mb_substr ($render, 0, $start) . $markup . mb_substr ($render, $stop);
 				$stop += mb_strlen ($markup) - $length;

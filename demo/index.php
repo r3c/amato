@@ -184,7 +184,7 @@ if (isset ($_REQUEST['action']) && isset ($_REQUEST['markup']))
 					throw new Exception ('invalid format');
 			}
 		
-			$renderer = new Amato\FormatRenderer ($encoder, $format, 'escape');
+			$renderer = new Amato\FormatRenderer ($encoder, $formats, 'escape');
 
 			break;
 

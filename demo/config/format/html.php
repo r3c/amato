@@ -1,6 +1,6 @@
 <?php
 
-$format = array
+$formats = array
 (
 	'.'			=> array ('amato_format_html_newline'),
 	'a'			=> array ('amato_format_html_anchor'),
@@ -27,7 +27,7 @@ $format = array
 
 function _amato_format_html_class ($id, $name)
 {
-	return function ($params, $markup, $closing) use ($id, $name)
+	return function ($markup, $params) use ($id, $name)
 	{
 		if ($markup === '')
 			return '';
@@ -38,7 +38,7 @@ function _amato_format_html_class ($id, $name)
 
 function _amato_format_html_tag ($id)
 {
-	return function ($params, $markup, $closing) use ($id)
+	return function ($markup, $params) use ($id)
 	{
 		if ($markup === '')
 			return '';
@@ -52,14 +52,14 @@ function _amato_format_html_escape ($string)
 	return htmlspecialchars ($string, ENT_COMPAT, CHARSET);
 }
 
-function amato_format_html_align ($params, $markup, $closing)
+function amato_format_html_align ($markup, $params)
 {
 	$align = array ('c' => 'center', 'r' => 'right');
 
 	return '<div style="text-align: ' . _amato_format_html_escape (isset ($align[$params['w']]) ? $align[$params['w']] : 'left') . ';">' . $markup . '</div>';
 }
 
-function amato_format_html_anchor ($params, $markup, $closing)
+function amato_format_html_anchor ($markup, $params)
 {
 	if (preg_match ('#^[+.0-9A-Za-z]{1,16}://#', $params['u']))
 		$url = _amato_format_html_escape ($params['u']);
@@ -69,12 +69,12 @@ function amato_format_html_anchor ($params, $markup, $closing)
 	return '<a href="' . $url . '">' . ($markup ?: $url) . '</a>';
 }
 
-function amato_format_html_center ($params, $markup, $closing)
+function amato_format_html_center ($markup)
 {
 	return '<div class="center">' . $markup . '</div>';
 }
 
-function amato_format_html_code ($params, $markup, $closing)
+function amato_format_html_code ($markup, $params)
 {
 	static $brushes;
 
@@ -87,27 +87,27 @@ function amato_format_html_code ($params, $markup, $closing)
 	return '<pre class="brush: ' . $params['l'] . '">' . str_replace ('<br />', "\n", $markup) . '</pre>';
 }
 
-function amato_format_html_color ($params, $markup, $closing)
+function amato_format_html_color ($markup, $params)
 {
 	return '<span style="color: #' . _amato_format_html_escape ($params['h']) . ';">' . $markup . '</span>';
 }
 
-function amato_format_html_emoji ($params, $markup, $closing)
+function amato_format_html_emoji ($markup, $params)
 {
 	return '<img alt="#' . $params['n'] . '#" src="res/emojis/' . $params['n'] . '.gif" />';
 }
 
-function amato_format_html_font ($params, $markup, $closing)
+function amato_format_html_font ($markup, $params)
 {
 	return '<span style="font-size: ' . max (min ((int)$params['p'], 300), 50) . '%; line-height: 100%;">' . $markup . '</span>';
 }
 
-function amato_format_html_horizontal ($params, $markup, $closing)
+function amato_format_html_horizontal ()
 {
 	return '<hr />';
 }
 
-function amato_format_html_image ($params, $markup, $closing)
+function amato_format_html_image ($markup, $params)
 {
 	if (isset ($params['p']))
 	{
@@ -131,7 +131,7 @@ function amato_format_html_image ($params, $markup, $closing)
 		return '<img alt="img" src="' . $src . '" />';
 }
 
-function amato_format_html_list (&$params, $markup, $closing)
+function amato_format_html_list ($markup, &$params, $closing)
 {
 	if (!isset ($params['buffer']))
 	{
@@ -183,17 +183,17 @@ function amato_format_html_list (&$params, $markup, $closing)
 	return $params['buffer'];
 }
 
-function amato_format_html_newline ($params, $markup, $closing)
+function amato_format_html_newline ()
 {
 	return '<br />';
 }
 
-function amato_format_html_pre ($params, $markup, $closing)
+function amato_format_html_pre ($markup, $params)
 {
 	return '<pre>' . _amato_format_html_escape ($params['b']) . '</pre>';
 }
 
-function amato_format_html_table (&$params, $markup, $closing)
+function amato_format_html_table ($markup, &$params, $closing)
 {
 	if (!isset ($params['cols']))
 		$params['cols'] = 0;
