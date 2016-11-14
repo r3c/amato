@@ -213,6 +213,7 @@ test_converter ('\\', array (), '\\', '\\\\');
 test_converter ('\\\\', array (), '\\');
 test_converter ('\\ \\', array (), '\\ \\', '\\\\ \\\\');
 test_converter ('\\\\\\\\', array (), '\\\\');
+test_converter ('\[pre]X[/pre]', array (), '[pre]X[/pre]');
 test_converter ('\[b][/b]', array (), '[b][/b]');
 test_converter ('[b]\[/b]', array (), '[b][/b]', '\\[b][/b]');
 test_converter ('\[b]\[/b]', array (), '[b][/b]', '\\[b][/b]');

@@ -216,17 +216,14 @@ class TagConverter extends Converter
 			// FIXME: detection could be made more accurate by ensuring candidate could be registered [revert-escape]
 			if ($key !== null)
 			{
-				list ($id, $type, $defaults) = $this->attributes[$key];
+				list ($id, $type) = $this->attributes[$key];
 
-				$params = $candidate[3];
-
-				if ((($type !== Tag::ALONE) &&
-					 ($type !== Tag::FLIP) &&
-					 ($type !== Tag::PULSE) &&
-					 ($type !== Tag::START) &&
-					 ($type !== Tag::STEP || !isset ($levels[$id])) &&
-					 ($type !== Tag::STOP || !isset ($levels[$id]))) ||
-					count (array_diff_assoc ($defaults, $params)) > 0)
+				if (($type !== Tag::ALONE) &&
+					($type !== Tag::FLIP) &&
+					($type !== Tag::PULSE) &&
+					($type !== Tag::START) &&
+					($type !== Tag::STEP || !isset ($levels[$id])) &&
+					($type !== Tag::STOP || !isset ($levels[$id])))
 					continue;
 			}
 
