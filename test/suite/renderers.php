@@ -29,23 +29,23 @@ function _amato_render_alone ($id)
 
 function _amato_render_tag ($id)
 {
-	return function ($markup, $params) use ($id)
+	return function ($body, $params) use ($id)
 	{
-		return '<' . $id . '>' . $markup . '</' . $id . '>';
+		return '<' . $id . '>' . $body . '</' . $id . '>';
 	};
 }
 
-function amato_render_anchor ($markup, $params)
+function amato_render_anchor ($body, $params)
 {
-	return '<a href="' . $params['u'] . '">' . ($markup ?: $params['u']) . '</a>';
+	return '<a href="' . $params['u'] . '">' . ($body ?: $params['u']) . '</a>';
 }
 
-function amato_render_list ($markup, &$params, $closing)
+function amato_render_list ($body, &$params, $closing)
 {
 	if (!isset ($params['out']))
 		$params['out'] = '';
 
-	$params['out'] .= '<li>' . $markup . '</li>';
+	$params['out'] .= '<li>' . $body . '</li>';
 
 	if ($closing)
 		return '<ul>' . $params['out'] . '</ul>';

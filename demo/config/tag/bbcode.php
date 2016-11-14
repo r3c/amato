@@ -78,11 +78,10 @@ $tags = array
 	),
 	'list' => array
 	(
-		array (Amato\Tag::START, "<\n?#\n>[list]"),
-		array (Amato\Tag::STEP, '[#]', array ('t' => 'o')),
-		array (Amato\Tag::STEP, '[*]', array ('t' => 'u')),
-		array (Amato\Tag::STEP, "\n", array ('t' => 'n')),
-		array (Amato\Tag::STOP, "[/list]<\n?#\n>")
+		array (Amato\Tag::START, "[list]<\n?#\n>"),
+		array (Amato\Tag::STEP, "<\n?#\n>[#]", array ('t' => 'o')),
+		array (Amato\Tag::STEP, "<\n?#\n>[*]", array ('t' => 'u')),
+		array (Amato\Tag::STOP, "<\n?#\n>[/list]<\n?#\n>")
 	),
 	'pre' => array
 	(

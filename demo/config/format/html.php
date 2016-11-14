@@ -27,23 +27,23 @@ $formats = array
 
 function _amato_format_html_class ($id, $name)
 {
-	return function ($markup, $params) use ($id, $name)
+	return function ($body, $params) use ($id, $name)
 	{
-		if ($markup === '')
+		if ($body === '')
 			return '';
 
-		return '<' . $id . ' class="' . $name . '">' . $markup . '</' . $id . '>';
+		return '<' . $id . ' class="' . $name . '">' . $body . '</' . $id . '>';
 	};
 }
 
 function _amato_format_html_tag ($id)
 {
-	return function ($markup, $params) use ($id)
+	return function ($body, $params) use ($id)
 	{
-		if ($markup === '')
+		if ($body === '')
 			return '';
 
-		return '<' . $id . '>' . $markup . '</' . $id . '>';
+		return '<' . $id . '>' . $body . '</' . $id . '>';
 	};
 }
 
@@ -52,29 +52,29 @@ function _amato_format_html_escape ($string)
 	return htmlspecialchars ($string, ENT_COMPAT, CHARSET);
 }
 
-function amato_format_html_align ($markup, $params)
+function amato_format_html_align ($body, $params)
 {
 	$align = array ('c' => 'center', 'r' => 'right');
 
-	return '<div style="text-align: ' . _amato_format_html_escape (isset ($align[$params['w']]) ? $align[$params['w']] : 'left') . ';">' . $markup . '</div>';
+	return '<div style="text-align: ' . _amato_format_html_escape (isset ($align[$params['w']]) ? $align[$params['w']] : 'left') . ';">' . $body . '</div>';
 }
 
-function amato_format_html_anchor ($markup, $params)
+function amato_format_html_anchor ($body, $params)
 {
 	if (preg_match ('#^[+.0-9A-Za-z]{1,16}://#', $params['u']))
 		$url = _amato_format_html_escape ($params['u']);
 	else
 		$url = _amato_format_html_escape ('http://' . $params['u']);
 
-	return '<a href="' . $url . '">' . ($markup ?: $url) . '</a>';
+	return '<a href="' . $url . '">' . ($body ?: $url) . '</a>';
 }
 
-function amato_format_html_center ($markup)
+function amato_format_html_center ($body)
 {
-	return '<div class="center">' . $markup . '</div>';
+	return '<div class="center">' . $body . '</div>';
 }
 
-function amato_format_html_code ($markup, $params)
+function amato_format_html_code ($body, $params)
 {
 	static $brushes;
 
@@ -82,24 +82,24 @@ function amato_format_html_code ($markup, $params)
 		$brushes = array_flip (array ('as3', 'bash', 'csharp', 'c', 'cpp', 'css', 'delphi', 'diff', 'groovy', 'js', 'java', 'jfx', 'm68k', 'perl', 'php', 'plain', 'ps', 'py', 'rails', 'scala', 'sql', 'vb', 'xml'));
 
 	if (!isset ($brushes[$params['l']]))
-		return $markup;
+		return $body;
 
-	return '<pre class="brush: ' . $params['l'] . '">' . str_replace ('<br />', "\n", $markup) . '</pre>';
+	return '<pre class="brush: ' . $params['l'] . '">' . str_replace ('<br />', "\n", $body) . '</pre>';
 }
 
-function amato_format_html_color ($markup, $params)
+function amato_format_html_color ($body, $params)
 {
-	return '<span style="color: #' . _amato_format_html_escape ($params['h']) . ';">' . $markup . '</span>';
+	return '<span style="color: #' . _amato_format_html_escape ($params['h']) . ';">' . $body . '</span>';
 }
 
-function amato_format_html_emoji ($markup, $params)
+function amato_format_html_emoji ($body, $params)
 {
 	return '<img alt="#' . $params['n'] . '#" src="res/emojis/' . $params['n'] . '.gif" />';
 }
 
-function amato_format_html_font ($markup, $params)
+function amato_format_html_font ($body, $params)
 {
-	return '<span style="font-size: ' . max (min ((int)$params['p'], 300), 50) . '%; line-height: 100%;">' . $markup . '</span>';
+	return '<span style="font-size: ' . max (min ((int)$params['p'], 300), 50) . '%; line-height: 100%;">' . $body . '</span>';
 }
 
 function amato_format_html_horizontal ()
@@ -107,7 +107,7 @@ function amato_format_html_horizontal ()
 	return '<hr />';
 }
 
-function amato_format_html_image ($markup, $params)
+function amato_format_html_image ($body, $params)
 {
 	if (isset ($params['p']))
 	{
@@ -131,7 +131,7 @@ function amato_format_html_image ($markup, $params)
 		return '<img alt="img" src="' . $src . '" />';
 }
 
-function amato_format_html_list ($markup, &$params, $closing)
+function amato_format_html_list ($body, &$params, $closing)
 {
 	if (!isset ($params['buffer']))
 	{
@@ -142,7 +142,7 @@ function amato_format_html_list ($markup, &$params, $closing)
 		$params['tag'] = 'u';
 	}
 
-	$params['item'] .= $markup;
+	$params['item'] .= $body;
 	$tag = isset ($params['t']) ? $params['t'] : '';
 
 	if ($tag === 'o' || $tag === 'u' || $closing)
@@ -188,108 +188,113 @@ function amato_format_html_newline ()
 	return '<br />';
 }
 
-function amato_format_html_pre ($markup, $params)
+function amato_format_html_pre ($body, $params)
 {
 	return '<pre>' . _amato_format_html_escape ($params['b']) . '</pre>';
 }
 
-function amato_format_html_table ($markup, &$params, $closing)
+function amato_format_html_table ($body, &$params, $closing)
 {
-	if (!isset ($params['cols']))
-		$params['cols'] = 0;
+	if (!isset ($params['break']))
+	{
+		$params['break'] = true;
+		$params['rows'] = array ();
+		$params['span'] = 0;
+		$params['tag'] = 'td';
+	}
 
-	if (!isset ($params['head']))
-		$params['head'] = false;
-
-	if (!isset ($params['rows']))
-		$params['rows'] = array (array ());
-
-	if (!isset ($params['size']))
-		$params['size'] = 0;
-
-	if (!isset ($params['span']))
-		$params['span'] = 1;
-
-	$markup = preg_replace ('#^([[:blank:]]*)(<br />)?(.*)(<br />)?([[:blank:]]*)$#', '$1$3$5', $markup);
-
-	if ($params['span'] === 1 && trim ($markup) === '')
-		;
-	else if ($markup === '')
+	// No body specified since last tag, make next one span on one more column
+	if ($body === '')
 		++$params['span'];
+
+	// Body was specified, append cell to current row
 	else
 	{
-		$span = $params['span'];
+		// Line break was requested, append a new blank row
+		if ($params['break'])
+		{
+			$params['break'] = false;
+			$params['rows'][] = array ('', 0);
+		}
 
-		$params['rows'][count ($params['rows']) - 1][] = array ($params['head'], $span, $markup);
-		$params['size'] += $span;
+		// Read index of current row, tag and span for current cell
+		$current = count ($params['rows']) - 1;
+		$span = max ($params['span'], 1);
+		$tag = $params['tag'];
+
+		// Build colspan HTML attribute if needed
+		if ($span > 1)
+			$colspan = ' colspan="' . $span . '"';
+		else
+			$colspan = '';
+
+		// Build style HTML attribute if needed
+		$align_left = mb_substr ($body, -2) === '  ';
+		$align_right = mb_substr ($body, 0, 2) === '  ';
+
+		if ($align_left && $align_right)
+			$style = ' style="text-align: center;"';
+		else if ($align_left)
+			$style = ' style="text-align: left;"';
+		else if ($align_right)
+			$style = ' style="text-align: right;"';
+		else
+			$style = '';
+
+		// Append cell content to current row and reset span
+		$params['rows'][$current][0] .= '<' . $tag . $colspan . $style . '>' . $body . '</' . $tag . '>';
+		$params['rows'][$current][1] += $span;
 		$params['span'] = 1;
 	}
 
-	switch ($flag)
+	// End of table not reached, remember tag for next call and exit
+	if (!$closing)
 	{
-		case 'c':
-			$params['head'] = false;
+		switch ($params['t'])
+		{
+			case 'c':
+				$params['tag'] = 'td';
 
-			break;
+				break;
 
-		case 'h':
-			$params['head'] = true;
+			case 'h':
+				$params['tag'] = 'th';
 
-			break;
+				break;
 
-		case 'r':
-			$params['cols'] = max ($params['cols'], $params['size']);
-			$params['head'] = false;
-			$params['rows'][] = array ();
-			$params['size'] = 0;
-			$params['span'] = 1;
+			default:
+				$params['break'] = true;
+				$params['span'] = 0;
+				$params['tag'] = 'td';
 
-			break;
+				break;
+		}
+
+		return '';
 	}
 
-	if (!$closing)
+	// Render table by merging computed rows, extending their span when needed
+	if (count ($params['rows']) === 0)
 		return '';
 
-	$rows = '';
+	$html = '';
+	$max = 0;
+
+	foreach ($params['rows'] as $row)
+		$max = max ($row[1], $max);
 
 	foreach ($params['rows'] as $row)
 	{
-		$rows .= '<tr>';
-		$i = 0;
+		list ($append, $span) = $row;
 
-		foreach ($row as $cell)
-		{
-			$span = $cell[1];
-			$tag = $cell[0] ? 'th' : 'td';
-			$text = $cell[2];
-
-			$al = substr ($text, -2) === '  ';
-			$ar = substr ($text, 0, 2) === '  ';
-
-			if ($al && $ar)
-				$align = 'center';
-			else if ($al)
-				$align = 'left';
-			else if ($ar)
-				$align = 'right';
-			else
-				$align = '';
-
-			$rows .=
-				'<' . $tag . ($span > 1 ? ' colspan="' . $span . '"' : '') . ($align !== '' ? (' style="text-align: ' . $align . ';">') : '>') .
-				$text .
-				'</' . $tag . '>';
-
-			$i += $span;
-		}
-
-		if ($i < $params['cols'])
-			$rows .= '<td ' . ($params['cols'] > $i + 1 ? ' colspan="' . ($params['cols'] - $i) . '"' : '') . '></td>';
-
-		$rows .= '</tr>';
+		$html .=
+			'<tr>' .
+				($append) .
+				($span < $max ? '<td ' . ($max > $span + 1 ? ' colspan="' . ($max - $span) . '"' : '') . '></td>' : '') .
+			'</tr>';
 	}
 
-	return '<table class="markup">' . $rows . '</table>';
+	return '<table class="table">' . $html . '</table>';
 }
 
 ?>
