@@ -1,6 +1,7 @@
 <?php
 
-$tags_pattern_url = '[+.0-9A-Za-z]{1,16}%://([][!%#$%%&\'()*+,./0-9%:;=?@_~-]|\\pL){1,}';
+$tags_pattern_scheme = '[+.0-9A-Za-z]{1,16}%://';
+$tags_pattern_url = '([!%#$%%&\'()*+,./0-9%:;=?@_~-]|\\pL){1,}';
 $tags = array
 (
 	'.' => array
@@ -9,19 +10,19 @@ $tags = array
 	),
 	'a' => array
 	(
-		array (Amato\Tag::ALONE, "[url]<$tags_pattern_url:u>[/url]"),
-		array (Amato\Tag::ALONE, "<$tags_pattern_url:u>"),
-		array (Amato\Tag::ALONE, '<www\\.([][!%#$%%&\'()*+,./0-9%:;=?@_~-]|\\pL){1,}:u>'),
-		array (Amato\Tag::START, "[url=<$tags_pattern_url:u>]"),
+		array (Amato\Tag::ALONE, "[url]<$tags_pattern_scheme$tags_pattern_url:u>[/url]"),
+		array (Amato\Tag::ALONE, "<https?%://$tags_pattern_url:u>"),
+		array (Amato\Tag::ALONE, "<www\\.$tags_pattern_url:u>"),
+		array (Amato\Tag::START, "[url=<$tags_pattern_scheme$tags_pattern_url:u>]"),
 		array (Amato\Tag::STOP, '[/url]')
 	),
 	'align' => array
 	(
-		array (Amato\Tag::START, '<\n?#\n>[align=center]', array ('w' => 'c')),
-		array (Amato\Tag::START, '<\n?#\n>[align=left]', array ('w' => 'l')),
-		array (Amato\Tag::START, '<\n?#\n>[align=justify]', array ('w' => 'j')),
-		array (Amato\Tag::START, '<\n?#\n>[align=right]', array ('w' => 'r')),
-		array (Amato\Tag::STOP, "[/align]<\n?#\n>")
+		array (Amato\Tag::START, "<\n?#\n>[align=center]", array ('w' => 'c')),
+		array (Amato\Tag::START, "<\n?#\n>[align=left]", array ('w' => 'l')),
+		array (Amato\Tag::START, "<\n?#\n>[align=justify]", array ('w' => 'j')),
+		array (Amato\Tag::START, "<\n?#\n>[align=right]", array ('w' => 'r')),
+		array (Amato\Tag::STOP, "<\n?#\n>[/align]")
 	),
 	'b' => array
 	(
@@ -37,11 +38,11 @@ $tags = array
 	'center' => array
 	(
 		array (Amato\Tag::START, "<\n?#\n>[center]"),
-		array (Amato\Tag::STOP, "[/center]<\n?#\n>")
+		array (Amato\Tag::STOP, "<\n?#\n>[/center]")
 	),
 	'code' => array
 	(
-		array (Amato\Tag::ALONE, "<\n?#\n>[code=<[0-9a-zA-Z]+:l>]<.*?:b>[/code]<\n?#\n>")
+		array (Amato\Tag::ALONE, "<\n?#\n>[code=<[0-9a-zA-Z]+:l>]<.*?:b>[/code]")
 	),
 	'emoji' => array
 	(
@@ -73,24 +74,24 @@ $tags = array
 	),
 	'img' => array
 	(
-		array (Amato\Tag::ALONE, '[img=<[0-9]+:p>]<$tags_pattern_url:u>[/img]'),
-		array (Amato\Tag::ALONE, '[img]<$tags_pattern_url:u>[/img]')
+		array (Amato\Tag::ALONE, "[img=<[0-9]+:p>]<https?%://$tags_pattern_url:u>[/img]"),
+		array (Amato\Tag::ALONE, "[img]<https?%://$tags_pattern_url:u>[/img]")
 	),
 	'list' => array
 	(
-		array (Amato\Tag::START, "[list]<\n?#\n>"),
+		array (Amato\Tag::START, "<\n?#\n>[list]"),
 		array (Amato\Tag::STEP, "<\n?#\n>[#]", array ('t' => 'o')),
 		array (Amato\Tag::STEP, "<\n?#\n>[*]", array ('t' => 'u')),
-		array (Amato\Tag::STOP, "<\n?#\n>[/list]<\n?#\n>")
+		array (Amato\Tag::STOP, "<\n?#\n>[/list]")
 	),
 	'pre' => array
 	(
-		array (Amato\Tag::ALONE, "<\n?#\n>[pre]<.*?:b>[/pre]<\n?#\n>")
+		array (Amato\Tag::ALONE, "<\n?#\n>[pre]<.*?:b>[/pre]")
 	),
 	'quote' => array
 	(
 		array (Amato\Tag::START, "<\n?#\n>[quote]"),
-		array (Amato\Tag::STOP, "[/quote]<\n?#\n>")
+		array (Amato\Tag::STOP, "<\n?#\n>[/quote]")
 	),
 	's' => array
 	(
@@ -103,23 +104,13 @@ $tags = array
 		array (Amato\Tag::STOP, '[/spoiler]')
 
 	),
-	'sub' => array
-	(
-		array (Amato\Tag::START, '[sub]'),
-		array (Amato\Tag::STOP, '[/sub]')
-	),
-	'sup' => array
-	(
-		array (Amato\Tag::START, '[sup]'),
-		array (Amato\Tag::STOP, '[/sup]')
-	),
 	'table' => array
 	(
 		array (Amato\Tag::START, "<\n?#\n>[table]"),
-		array (Amato\Tag::STEP, '[^]', array ('t' => 'h')),
-		array (Amato\Tag::STEP, '[|]', array ('t' => 'c')),
-		array (Amato\Tag::STEP, '[-]', array ('t' => 'r')),
-		array (Amato\Tag::STOP, "[/table]<\n?#\n>")
+		array (Amato\Tag::STEP, "<\n?#\n>[|]", array ('t' => 'c')),
+		array (Amato\Tag::STEP, "<\n?#\n>[^]", array ('t' => 'h')),
+		array (Amato\Tag::STEP, "<\n?#\n>[-]", array ('t' => 'r')),
+		array (Amato\Tag::STOP, "<\n?#\n>[/table]")
 	),
 	'u' => array
 	(

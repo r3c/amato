@@ -19,8 +19,6 @@ $formats = array
 	'quote'		=> array (_amato_format_html_tag ('blockquote'), 2),
 	's'			=> array (_amato_format_html_class ('span', 's')),
 	'spoil'		=> array (_amato_format_html_class ('span', 'spoil')),
-	'sub'		=> array (_amato_format_html_tag ('sub')),
-	'sup'		=> array (_amato_format_html_tag ('sup')),
 	'table'		=> array ('amato_format_html_table', 2),
 	'u'			=> array (_amato_format_html_class ('span', 'u'))
 );

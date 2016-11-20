@@ -1,18 +1,30 @@
-Colors:
-[quote][color=800]\[color=800] = Rouge[/color] \[color=080][color=080] = Vert[/color] \[color=008][color=008] = Bleu[/color][/quote]
+Text colors:
+[quote]
+\[color=A00] = [color=A00]Rouge[/color] \[color=0A0] = [color=0A0]Vert[/color] \[color=00A] = [color=00A]Bleu[/color]
+[/quote]
 
-Styles:
-[quote][b]\[b][/b]Bold[b]\[/b][/b] [b]\[i][/b]Italic[b]\[/i][/b] [b]\[u][/b]Underlined[b]\[/u][/b]
+Text styles:
+[quote]
+Let's use [b]bold[/b], [i]italic[/i], [u]underline[/u] and [s]strike-out[/s] styles.
 
-Spoiler: [spoiler]they all die[/spoiler]![/quote]
+Or add spoilers: [spoiler]Dumbledore dies in book 6[/spoiler]!
+[/quote]
 
-Links:
-[quote][url=http://www.mirari.fr]mirari.fr[/url] - [url]http://www.mirari.fr[/url] - http://www.mirari.fr
+Hyperlinks:
+[quote]
+[url=http://www.mirari.fr]mirari.fr[/url] - [url]http://www.mirari.fr[/url] - http://www.mirari.fr
 
-[img]http://www.mirari.fr/module/core/template/avalanche/css/header.icon.png[/img][/quote]
+[img]http://www.mirari.fr/module/core/template/avalanche/css/header.icon.png[/img]
+[/quote]
 
 Structures:
 [quote]
+[table]
+[^] Column header 1 [^] Column header 2 [^] Column header 3 [-]
+[|] Align left  [|]  Align right [|]  Center  [-]
+[|][|] This text spans on two columns [|] This one doesn't
+[/table]
+
 [list]
 [*] Bullet point 1[i]
 [*][#] Numbered item 1
@@ -21,9 +33,4 @@ Structures:
 [/list]
 
 Using [b][pre][/b] tag [pre]should [b]prevent[/b] [i]any tag[/i] from being used.[/pre]
-
-[s]Horizontal[hr]Line[/s]
 [/quote]
-
-Containers:
-[quote][box=Click here]Here's the content of the box![/box][/quote]

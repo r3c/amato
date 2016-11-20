@@ -90,26 +90,24 @@
 	text-decoration:	underline;
 }
 
-.amato table.markup
-{
-	background:			#EFEFEF;
-	border-collapse:	collapse;
+.amato table.table {
+  border-collapse:	collapse;
 }
 
-.amato table.markup td
-{
-	padding:		4px 6px;
-	background:		#E0E0E0;
-	border-bottom:	1px solid #C0C0C0;
-	border-top:		1px solid transparent;
+.amato table.table td {
+  padding:			6px 8px;
+  background-color:	#FAFAFD;
+  border-color:		#CFC8E6;
+  border-style:		solid;
+  border-width:		1px 0 1px 0;
 }
 
-.amato table.markup th
-{
-	padding:		4px;
-	background:		#C0C0C0;
-	border-bottom:	1px solid #A0A0A0;
-	border-top:		4px solid #A0A0A0;
+.amato table.table th {
+  padding:			6px 8px;
+  background-color:	#E9E6F4;
+  border-color:		#CFC8E6;
+  border-style:		solid;
+  border-width:		4px 0 1px 0;
 }
 
 .amato ul {

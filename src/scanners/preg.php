@@ -88,6 +88,8 @@ class PregScanner extends Scanner
 			}
 		}
 
+		// Use look-ahead assertion to capture all overlapped matches
+		// See: http://stackoverflow.com/questions/22454032/preg-match-all-how-to-get-all-combinations-even-overlapping-ones
 		$this->rules[] = array (self::DELIMITER . '(?=(' . $regex . '))' . self::DELIMITER . 'm', $names, $parts);
 
 		return count ($this->rules) - 1;
