@@ -208,9 +208,9 @@ class TagConverter extends Converter
 		$candidates = $this->scanner->find ($plain);
 		$markup = $plain;
 
-		foreach (array_reverse ($candidates) as $candidate)
+		for ($i = count ($candidates); $i-- > 0; )
 		{
-			list ($key, $offset, $length) = $candidate;
+			list ($key, $offset, $length) = $candidates[$i];
 
 			// Candidate is a tag, ensure there is need to escape it
 			// FIXME: detection could be made more accurate by ensuring candidate could be registered [revert-escape]
@@ -229,6 +229,10 @@ class TagConverter extends Converter
 
 			// Escape candidate
 			$markup = mb_substr ($markup, 0, $offset) . $this->scanner->escape (mb_substr ($markup, $offset, $length)) . mb_substr ($markup, $offset + $length);
+
+			// Skip candidates overlapping the one we just escaped, as they're now escaped too
+			while ($i > 0 && $candidates[$i - 1][1] + $candidates[$i - 1][2] > $offset)
+				--$i;
 		}
 
 		return $markup;

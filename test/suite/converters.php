@@ -190,6 +190,8 @@ test_converter ('[i][b]Text[/b]', array (array ('b', 3, true, false), array ('b'
 // Overlapping matches
 test_converter ('[url]http://google.fr[/url]', array (array ('a', 0, true, true, array ('u' => 'http://google.fr'))), '', 'http://google.fr');
 test_converter ('[url=http://google.fr]test[/url]', array (array ('a', 0, true, false, array ('u' => 'http://google.fr')), array ('a', 4, false, true)), 'test');
+test_converter ('[url]\http://google.fr[/url]', array (), '[url]http://google.fr[/url]');
+test_converter ('[url=\http://google.fr]test[/url]', array (), '[url=http://google.fr]test[/url]');
 
 // Crossed matches
 test_converter ('[b][pre]text[/b][/pre]', array (array ('b', 0, true, false), array ('b', 9, false, true)), '[pre]text[/pre]');
