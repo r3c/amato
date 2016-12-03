@@ -79,9 +79,16 @@ $tags = array
 	),
 	'list' => array
 	(
-		array (Amato\Tag::START, "<\n?#\n>[list]"),
-		array (Amato\Tag::STEP, "<\n?#\n>[#]", array ('t' => 'o')),
-		array (Amato\Tag::STEP, "<\n?#\n>[*]", array ('t' => 'u')),
+		array (Amato\Tag::START, "<\n?#\n>[list]<\n?#\n>[#]", array ('o' => '1')),
+		array (Amato\Tag::START, "<\n?#\n>[list]<\n?#\n>[*]", array ('u' => '1')),
+		array (Amato\Tag::STEP, "<\n?#\n>[#]", array ('o' => '1')),
+		array (Amato\Tag::STEP, "<\n?#\n>[##]", array ('o' => '2')),
+		array (Amato\Tag::STEP, "<\n?#\n>[###]", array ('o' => '3')),
+		array (Amato\Tag::STEP, "<\n?#\n>[#=<[0-9]+:o>]"),
+		array (Amato\Tag::STEP, "<\n?#\n>[*]", array ('u' => '1')),
+		array (Amato\Tag::STEP, "<\n?#\n>[**]", array ('u' => '2')),
+		array (Amato\Tag::STEP, "<\n?#\n>[***]", array ('u' => '3')),
+		array (Amato\Tag::STEP, "<\n?#\n>[*=<[0-9]+:u>]"),
 		array (Amato\Tag::STOP, "<\n?#\n>[/list]")
 	),
 	'pre' => array

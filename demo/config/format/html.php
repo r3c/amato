@@ -131,54 +131,49 @@ function amato_format_html_image ($body, $params)
 
 function amato_format_html_list ($body, &$params, $closing)
 {
-	if (!isset ($params['buffer']))
+	// Read parameters from last tag
+	if (isset ($params['o']))
 	{
-		$params['buffer'] = '';
-		$params['item'] = '';
-		$params['next'] = 0;
+		$next_level = max (min ((int)$params['o'], 8), 1);
+		$next_tag = 'o';
+	}
+	else if (isset ($params['u']))
+	{
+		$next_level = max (min ((int)$params['u'], 8), 1);
+		$next_tag = 'u';
+	}
+
+	$level = isset ($params['level']) ? $params['level'] : 1;
+	$tag = isset ($params['tag']) ? $params['tag'] : $next_tag;
+
+	// Update HTML buffer
+	if (!isset ($params['html']))
+		$params['html'] = '';
+
+	if (!isset ($params['stack']))
 		$params['stack'] = array ();
-		$params['tag'] = 'u';
-	}
 
-	$params['item'] .= $body;
-	$tag = isset ($params['t']) ? $params['t'] : '';
+	while (count ($params['stack']) > $level)
+		$params['html'] .= '</li></' . array_pop ($params['stack']) . 'l>';
 
-	if ($tag === 'o' || $tag === 'u' || $closing)
-	{
-		// Flush accumulated item text if any
-		if (trim ($params['item']) !== '')
-		{
-			$level = max ($params['next'], 1);
+	if (count ($params['stack']) === $level)
+		$params['html'] .= '</li><li>';
 
-			while (count ($params['stack']) > $level)
-				$params['buffer'] .= '</li></' . array_pop ($params['stack']) . 'l>';
+	for (; count ($params['stack']) < $level; $params['stack'][] = $tag)
+		$params['html'] .= '<' . $tag . 'l><li>';
 
-			if (count ($params['stack']) === $level)
-				$params['buffer'] .= '</li><li>';
+	$params['html'] .= $body;
+	$params['level'] = $next_level;
+	$params['tag'] = $next_tag;
 
-			for (; count ($params['stack']) < $level; $params['stack'][] = $params['tag'])
-				$params['buffer'] .= '<' . $params['tag'] . 'l><li>';
-
-			$params['buffer'] .= $params['item'];
-			$params['item'] = '';
-			$params['next'] = 1;
-		}
-
-		// Increase level otherwise
-		else
-			$params['next'] = min ($params['next'] + 1, 8);
-
-		// Save last tag type
-		$params['tag'] = $tag;
-	}
-
+	// Finalize rendering
 	if (!$closing)
 		return '';
 
 	while (count ($params['stack']) > 0)
-		$params['buffer'] .= '</li></' . array_pop ($params['stack']) . 'l>';
+		$params['html'] .= '</li></' . array_pop ($params['stack']) . 'l>';
 
-	return $params['buffer'];
+	return $params['html'];
 }
 
 function amato_format_html_newline ()

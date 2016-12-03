@@ -14,10 +14,22 @@ $tags = array
 	),
 	'list' => array
 	(
-		array (Amato\Tag::PULSE, "\n#", array ('t' => 'o')),
-		array (Amato\Tag::PULSE, "\n*", array ('t' => 'u')),
-		array (Amato\Tag::STEP, "#", array ('t' => 'o')),
-		array (Amato\Tag::STEP, "*", array ('t' => 'u')),
+		array (Amato\Tag::PULSE, "\n#", array ('o' => '1')),
+		array (Amato\Tag::PULSE, "\n##", array ('o' => '2')),
+		array (Amato\Tag::PULSE, "\n###", array ('o' => '3')),
+		array (Amato\Tag::PULSE, "\n####", array ('o' => '4')),
+		array (Amato\Tag::PULSE, "\n*", array ('u' => '1')),
+		array (Amato\Tag::PULSE, "\n**", array ('u' => '2')),
+		array (Amato\Tag::PULSE, "\n***", array ('u' => '3')),
+		array (Amato\Tag::PULSE, "\n****", array ('u' => '4')),
+		array (Amato\Tag::STEP, '#', array ('o' => '1')),
+		array (Amato\Tag::STEP, '##', array ('o' => '2')),
+		array (Amato\Tag::STEP, '###', array ('o' => '3')),
+		array (Amato\Tag::STEP, '####', array ('o' => '4')),
+		array (Amato\Tag::STEP, '*', array ('u' => '1')),
+		array (Amato\Tag::STEP, '**', array ('u' => '2')),
+		array (Amato\Tag::STEP, '***', array ('u' => '3')),
+		array (Amato\Tag::STEP, '****', array ('u' => '4')),
 		array (Amato\Tag::STOP, "\n")
 	),
 	'pre' => array
@@ -26,7 +38,7 @@ $tags = array
 	),
 	's' => array
 	(
-		array (Amato\Tag::FLIP, '--')
+		array (Amato\Tag::FLIP, '~~')
 	),
 	'u' => array
 	(
