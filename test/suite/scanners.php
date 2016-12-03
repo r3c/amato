@@ -26,7 +26,11 @@ function test_scanner ($plain, $patterns, $expected_sequences)
 		$scanner = $constructor ();
 
 		foreach ($patterns as $id => $pattern)
-			$keys[$id] = $scanner->assign ($pattern);
+		{
+			list ($key, $names) = $scanner->assign ($pattern);
+
+			$keys[$id] = $key;
+		}
 
 		$sequences = $scanner->find ($plain);
 

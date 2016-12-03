@@ -62,6 +62,14 @@ $syntax = array
 		array (Amato\Tag::PULSE, '##'),
 		array (Amato\Tag::STOP, "\n\n")
 	),
+	'p' => array
+	(
+		array (Amato\Tag::ALONE, '[paramA]', array ('b' => '1')),
+		array (Amato\Tag::ALONE, '[paramB]', array ('b' => '2')),
+		array (Amato\Tag::ALONE, '[paramC<.:c>]', array ('b' => '3')),
+		array (Amato\Tag::ALONE, '[paramD<.:c>]'),
+		array (Amato\Tag::ALONE, '[paramE]')
+	),
 	'pre' => array
 	(
 		array (Amato\Tag::ALONE, '[pre]<.*:b>[/pre]')
@@ -177,6 +185,11 @@ test_converter ('[url=http://domain.ext]link[/url]', array (array ('a', 0, true,
 test_converter ('[size=big]text[/size]', array (array ('s', 0, true, false, array ('p' => '200')), array ('s', 4, false, true)), 'text');
 test_converter ('[size=200]text[/size]', array (array ('s', 0, true, false, array ('p' => '200')), array ('s', 4, false, true)), 'text', '[size=big]text[/size]');
 test_converter ('[size=50]text[/size]', array (array ('s', 0, true, false, array ('p' => '50')), array ('s', 4, false, true)), 'text');
+test_converter ('[paramA]', array (array ('p', 0, true, true, array ('b' => '1'))), '');
+test_converter ('[paramB]', array (array ('p', 0, true, true, array ('b' => '2'))), '');
+test_converter ('[paramCx]', array (array ('p', 0, true, true, array ('b' => '3', 'c' => 'x'))), '');
+test_converter ('[paramDy]', array (array ('p', 0, true, true, array ('c' => 'y'))), '');
+test_converter ('[paramE]', array (array ('p', 0, true, true)), '');
 
 // Failed matches
 test_converter ('[b]', array (), '[b]', '\\[b]');

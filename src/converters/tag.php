@@ -22,14 +22,14 @@ class TagConverter extends Converter
 		{
 			foreach ($definitions as $definition)
 			{
+				list ($key, $names) = $scanner->assign ((string)$definition[1]);
+
 				$convert = isset ($definition[3]) ? $definition[3] : null;
-				$defaults = isset ($definition[2]) ? (array)$definition[2] : array ();
+				$defaults = isset ($definition[2]) ? array_map ('strval', $definition[2]) : array ();
 				$revert = isset ($definition[4]) ? $definition[4] : null;
 				$type = (int)$definition[0];
 
-				$key = $scanner->assign ((string)$definition[1]);
-
-				$this->attributes[$key] = array ($id, $type, $defaults, $convert, $revert);
+				$this->attributes[$key] = array ($id, $type, $defaults, $names, $convert, $revert);
 			}
 		}
 	}
@@ -71,7 +71,7 @@ class TagConverter extends Converter
 			// Current sequence is a tag sequence, insert into candidates
 			else
 			{
-				list ($id, $type, $defaults, $convert) = $this->attributes[$key];
+				list ($id, $type, $defaults, $names, $convert) = $this->attributes[$key];
 
 				// Augment captured parameters with defaults
 				$params = $sequences[$i][3] + $defaults;
@@ -142,6 +142,9 @@ class TagConverter extends Converter
 
 		list ($plain, $markers) = $pair;
 
+		// Define callback used for parameters filtering
+		$not_null = function ($value) { return $value !== null; };
+
 		// Browse groups and markers, revert them into text and insert into plain string
 		$levels = array ();
 		$markup = '';
@@ -158,35 +161,43 @@ class TagConverter extends Converter
 			// Find definition matching current marker
 			foreach ($this->attributes as $key => $attribute)
 			{
-				list ($id_attribute, $type, $defaults, $convert, $revert) = $attribute;
+				list ($id_attribute, $type, $defaults, $names, $convert, $revert) = $attribute;
 
-				// Skip definition if id, type or params don't match
-				if (($id !== $id_attribute) ||
-					($type === Tag::ALONE && (!$is_first || !$is_last)) ||
-					($type === Tag::FLIP && !$is_first && !$is_last) ||
-					($type === Tag::PULSE && $is_last) ||
-					($type === Tag::START && !$is_first) ||
-					($type === Tag::STEP && ($is_first || $is_last)) ||
-					($type === Tag::STOP && !$is_last) ||
-				    (count (array_diff_assoc ($defaults, $params)) > 0))
-					continue;
+				// Accept current definition if...
+				if
+				(
+					// ...it matches tag attribute
+					($id === $id_attribute) &&
 
-				// Call revert callback if any, ignore sequence if requested
-				if ($revert !== null && $revert ($type, $params, $context) === false)
-					continue;
+					// ...it has a compatible type
+					($type !== Tag::ALONE || ($is_first && $is_last)) &&
+					($type !== Tag::FLIP || ($is_first || $is_last)) &&
+					($type !== Tag::PULSE || !$is_last) &&
+					($type !== Tag::START || $is_first) &&
+					($type !== Tag::STEP || (!$is_first && !$is_last)) &&
+					($type !== Tag::STOP || $is_last) &&
 
-				// Revert tag sequence and append to plain string
-				$markup .= $this->scanner->build ($key, $params);
+					// ...it has same defaults and equivalent captures
+					(count (array_diff_assoc ($defaults, $params)) === 0) &&
+					(count (array_diff ($names, array_keys ($params))) === 0) &&
 
-				// Update depth level for current definition id
-				if ($type === Tag::FLIP && isset ($levels[$id]))
-					$levels[$id] = ($levels[$id] - 1) ?: null;
-				else if (($type === Tag::FLIP || $type === Tag::PULSE) && !isset ($levels[$id]))
-					$levels[$id] = 1;
-				else if ($type === Tag::START)
-					$levels[$id] = (isset ($levels[$id]) ? $levels[$id] : 0) + 1;
+					// ...and pass revert callback or doesn't have any
+					($revert === null || $revert ($type, $params, $context) !== false)
+				)
+				{
+					// Revert tag sequence and append to plain string
+					$markup .= $this->scanner->build ($key, $params);
 
-				break;
+					// Update depth level for current definition id
+					if ($type === Tag::FLIP && isset ($levels[$id]))
+						$levels[$id] = ($levels[$id] - 1) ?: null;
+					else if (($type === Tag::FLIP || $type === Tag::PULSE) && !isset ($levels[$id]))
+						$levels[$id] = 1;
+					else if ($type === Tag::START)
+						$levels[$id] = (isset ($levels[$id]) ? $levels[$id] : 0) + 1;
+
+					break;
+				}
 			}
 		}
 

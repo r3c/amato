@@ -56,7 +56,7 @@ $tags = array
 		array (Amato\Tag::ALONE, '%)', array ('n' => 'cheeky'), 'amato_tag_bbcode_emoji_convert'),
 		array (Amato\Tag::ALONE, ':|', array ('n' => 'neutral'), 'amato_tag_bbcode_emoji_convert'),
 		array (Amato\Tag::ALONE, ':S', array ('n' => 'sorry'), 'amato_tag_bbcode_emoji_convert'),
-		array (Amato\Tag::ALONE, '#<[0-9A-Za-z]+:n>#', 'amato_tag_bbcode_emoji_convert')
+		array (Amato\Tag::ALONE, '#<[0-9A-Za-z]+:n>#', null, 'amato_tag_bbcode_emoji_convert')
 	),
 	'font' => array
 	(
