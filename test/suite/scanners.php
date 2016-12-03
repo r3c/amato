@@ -77,6 +77,7 @@ test_scanner ('x[1987]y', array ('[<[0-9]+#127>]'), array (array (0, 1, 6, array
 
 // Pattern with named capture
 test_scanner ('abc[id=test]def', array ('[id=<[a-z]+:i>]'), array (array (0, 3, 9, array ('i' => 'test'))));
+test_scanner ("[[Hello,\nWorld!]]", array ('[[<.*:b>]]'), array (array (0, 0, 17, array ('b' => "Hello,\nWorld!"))));
 
 echo 'OK';
 
