@@ -132,8 +132,8 @@ function amato_format_html_image ($body, $params)
 function amato_format_html_list ($body, &$params, $closing)
 {
 	// Read parameters from last tag
-	$o = $params->previous ('o');
-	$u = $params->previous ('u');
+	$o = $params->last ('o');
+	$u = $params->last ('u');
 
 	if ($o)
 	{
@@ -167,6 +167,9 @@ function amato_format_html_list ($body, &$params, $closing)
 	$buffer .= $body;
 
 	// Save current buffer and tags stack
+	$params->forget ('o');
+	$params->forget ('u');
+
 	$params['buffer'] = $buffer;
 	$params['stack'] = $stack;
 
@@ -233,7 +236,7 @@ function amato_format_html_table ($body, &$params, $closing)
 
 		// Append cell content to current row and reset span
 		$current = count ($rows) - 1;
-		$tag = $params->previous ('t') === 'h' ? 'th' : 'td';
+		$tag = $params->last ('t') === 'h' ? 'th' : 'td';
 
 		$rows[$current][0] .= '<' . $tag . $colspan . $style . '>' . $body . '</' . $tag . '>';
 		$rows[$current][1] += $span;

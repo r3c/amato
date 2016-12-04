@@ -81,14 +81,14 @@ $tags = array
 	(
 		array (Amato\Tag::START, "<\n?#\n>[list]<\n?#\n>[#]", array ('o' => '1')),
 		array (Amato\Tag::START, "<\n?#\n>[list]<\n?#\n>[*]", array ('u' => '1')),
-		array (Amato\Tag::STEP, "<\n?#\n>[#]", array ('o' => '1', 'u' => '')),
-		array (Amato\Tag::STEP, "<\n?#\n>[##]", array ('o' => '2', 'u' => '')),
-		array (Amato\Tag::STEP, "<\n?#\n>[###]", array ('o' => '3', 'u' => '')),
-		array (Amato\Tag::STEP, "<\n?#\n>[#=<[0-9]+:o>]", array ('u' => '')),
-		array (Amato\Tag::STEP, "<\n?#\n>[*]", array ('o' => '', 'u' => '1')),
-		array (Amato\Tag::STEP, "<\n?#\n>[**]", array ('o' => '', 'u' => '2')),
-		array (Amato\Tag::STEP, "<\n?#\n>[***]", array ('o' => '', 'u' => '3')),
-		array (Amato\Tag::STEP, "<\n?#\n>[*=<[0-9]+:u>]", array ('o' => '')),
+		array (Amato\Tag::STEP, "<\n?#\n>[#]", array ('o' => '1')),
+		array (Amato\Tag::STEP, "<\n?#\n>[##]", array ('o' => '2')),
+		array (Amato\Tag::STEP, "<\n?#\n>[###]", array ('o' => '3')),
+		array (Amato\Tag::STEP, "<\n?#\n>[#=<[0-9]+:o>]"),
+		array (Amato\Tag::STEP, "<\n?#\n>[*]", array ('u' => '1')),
+		array (Amato\Tag::STEP, "<\n?#\n>[**]", array ('u' => '2')),
+		array (Amato\Tag::STEP, "<\n?#\n>[***]", array ('u' => '3')),
+		array (Amato\Tag::STEP, "<\n?#\n>[*=<[0-9]+:u>]"),
 		array (Amato\Tag::STOP, "<\n?#\n>[/list]")
 	),
 	'pre' => array

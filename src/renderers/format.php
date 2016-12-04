@@ -21,12 +21,25 @@ class FormatRendererState implements \ArrayAccess
 		$this->params = $params;
 	}
 
+	public function forget ($offset)
+	{
+		unset ($this->values[$offset]);
+	}
+
 	public function get ($offset, $default = null)
 	{
 		if (isset ($this->params[$offset]))
 			return $this->params[$offset];
 
-		return $this->previous ($offset, $default);
+		return $this->last ($offset, $default);
+	}
+
+	public function last ($offset, $default = null)
+	{
+		if (isset ($this->values[$offset]))
+			return $this->values[$offset];
+
+		return $default;
 	}
 
 	public function offsetExists ($offset)
@@ -51,14 +64,6 @@ class FormatRendererState implements \ArrayAccess
 	{
 		unset ($this->values[$offset]);
 		unset ($this->params[$offset]);
-	}
-
-	public function previous ($offset, $default = null)
-	{
-		if (isset ($this->values[$offset]))
-			return $this->values[$offset];
-
-		return $default;
 	}
 }
 
