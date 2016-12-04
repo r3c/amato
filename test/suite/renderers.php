@@ -40,15 +40,14 @@ function amato_render_anchor ($body, $params)
 	return '<a href="' . $params['u'] . '">' . ($body ?: $params['u']) . '</a>';
 }
 
-function amato_render_list ($body, &$params, $closing)
+function amato_render_list ($body, $params, $closing)
 {
-	if (!isset ($params['out']))
-		$params['out'] = '';
-
-	$params['out'] .= '<li>' . $body . '</li>';
+	$out = $params->get ('out', '') . '<li>' . $body . '</li>';
 
 	if ($closing)
-		return '<ul>' . $params['out'] . '</ul>';
+		return '<ul>' . $out . '</ul>';
+
+	$params['out'] = $out;
 
 	return '';
 }

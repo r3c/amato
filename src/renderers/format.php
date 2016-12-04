@@ -4,6 +4,64 @@ namespace Amato;
 
 defined ('AMATO') or die;
 
+class FormatRendererState implements \ArrayAccess
+{
+	private $params;
+	private $values;
+
+	public function __construct ($params)
+	{
+		$this->params = $params;
+		$this->values = array ();
+	}
+
+	public function append ($params)
+	{
+		$this->values = $this->params + $this->values;
+		$this->params = $params;
+	}
+
+	public function get ($offset, $default = null)
+	{
+		if (isset ($this->params[$offset]))
+			return $this->params[$offset];
+
+		return $this->previous ($offset, $default);
+	}
+
+	public function offsetExists ($offset)
+	{
+		return isset ($this->params[$offset]) || isset ($this->values[$offset]);
+	}
+
+	public function offsetGet ($offset)
+	{
+		return $this->get ($offset);
+	}
+
+	public function offsetSet ($offset, $value)
+	{
+		if ($offset !== null)
+			$this->params[$offset] = $value;
+		else
+			$this->params[] = $value;
+	}
+
+	public function offsetUnset ($offset)
+	{
+		unset ($this->values[$offset]);
+		unset ($this->params[$offset]);
+	}
+
+	public function previous ($offset, $default = null)
+	{
+		if (isset ($this->values[$offset]))
+			return $this->values[$offset];
+
+		return $default;
+	}
+}
+
 class FormatRenderer extends Renderer
 {
 	/*
@@ -70,7 +128,7 @@ class FormatRenderer extends Renderer
 				for ($scope_shift = count ($scopes); $scope_shift > 0 && $level > $scopes[$scope_shift - 1][3]; )
 					--$scope_shift;
 
-				array_splice ($scopes, $scope_shift, 0, array (array ($id, $stop, $callback, $level, $params)));
+				array_splice ($scopes, $scope_shift, 0, array (array ($id, $stop, $callback, $level, new FormatRendererState ($params))));
 
 				$scope_current = $scope_shift + ($is_last ? 0 : 1);
 			}
@@ -84,21 +142,22 @@ class FormatRenderer extends Renderer
 				if ($scope_shift < 0)
 					continue;
 
-				$scopes[$scope_shift][4] = $params + $scopes[$scope_shift][4];
+				$scopes[$scope_shift][4]->append ($params);
 				$scope_current = $scope_shift;
 			}
 
 			// Invoke callback of both crossed scopes and current one
 			for ($i = count ($scopes) - 1; $i >= $scope_current; --$i)
 			{
-				list ($id, $start, $callback) = $scopes[$i];
+				list ($id, $start, $callback, $level, $state) = $scopes[$i];
 
 				// Fast-forward offset of current one if just added and about to be closed
 				if ($i === $scope_current && $is_first && $is_last)
 					$start = $stop;
 
+				// Invoke callback to generate markup code and insert to string
 				$length = $stop - $start;
-				$markup = $callback (mb_substr ($render, $start, $length), $scopes[$i][4], $i !== $scope_current || $is_last, $context);
+				$markup = $callback (mb_substr ($render, $start, $length), $state, $i !== $scope_current || $is_last, $context);
 
 				$render = mb_substr ($render, 0, $start) . $markup . mb_substr ($render, $stop);
 				$stop += mb_strlen ($markup) - $length;

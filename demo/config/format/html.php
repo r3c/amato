@@ -132,48 +132,52 @@ function amato_format_html_image ($body, $params)
 function amato_format_html_list ($body, &$params, $closing)
 {
 	// Read parameters from last tag
-	if (isset ($params['o']))
-	{
-		$next_level = max (min ((int)$params['o'], 8), 1);
-		$next_tag = 'o';
-	}
-	else if (isset ($params['u']))
-	{
-		$next_level = max (min ((int)$params['u'], 8), 1);
-		$next_tag = 'u';
-	}
+	$o = $params->previous ('o');
+	$u = $params->previous ('u');
 
-	$level = isset ($params['level']) ? $params['level'] : 1;
-	$tag = isset ($params['tag']) ? $params['tag'] : $next_tag;
+	if ($o)
+	{
+		$level = max (min ((int)$o, 8), 1);
+		$tag = 'o';
+	}
+	else if ($u)
+	{
+		$level = max (min ((int)$u, 8), 1);
+		$tag = 'u';
+	}
+	else
+	{
+		$level = 1;
+		$tag = 'u';
+	}
 
 	// Update HTML buffer
-	if (!isset ($params['html']))
-		$params['html'] = '';
+	$buffer = $params->get ('buffer', '');
+	$stack = $params->get ('stack', '');
 
-	if (!isset ($params['stack']))
-		$params['stack'] = array ();
+	for (; strlen ($stack) > $level; $stack = substr ($stack, 1))
+		$buffer .= '</li></' . $stack[0] . 'l>';
 
-	while (count ($params['stack']) > $level)
-		$params['html'] .= '</li></' . array_pop ($params['stack']) . 'l>';
+	if (strlen ($stack) === $level)
+		$buffer .= '</li><li>';
 
-	if (count ($params['stack']) === $level)
-		$params['html'] .= '</li><li>';
+	for (; strlen ($stack) < $level; $stack = $tag . $stack)
+		$buffer .= '<' . $tag . 'l><li>';
 
-	for (; count ($params['stack']) < $level; $params['stack'][] = $tag)
-		$params['html'] .= '<' . $tag . 'l><li>';
+	$buffer .= $body;
 
-	$params['html'] .= $body;
-	$params['level'] = $next_level;
-	$params['tag'] = $next_tag;
+	// Save current buffer and tags stack
+	$params['buffer'] = $buffer;
+	$params['stack'] = $stack;
 
 	// Finalize rendering
 	if (!$closing)
 		return '';
 
-	while (count ($params['stack']) > 0)
-		$params['html'] .= '</li></' . array_pop ($params['stack']) . 'l>';
+	for (; strlen ($stack) > 0; $stack = substr ($stack, 1))
+		$buffer .= '</li></' . $stack[0] . 'l>';
 
-	return $params['html'];
+	return $buffer;
 }
 
 function amato_format_html_newline ()

@@ -47,7 +47,8 @@ div.window div.body div.buttons {
 }
 
 div.window div.body div.code {
-	font:	normal normal normal 11px monospace;
+	font:			normal normal normal 11px monospace;
+	white-space:	pre-wrap;
 }
 
 div.window div.body p.label {
