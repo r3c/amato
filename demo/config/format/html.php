@@ -192,34 +192,27 @@ function amato_format_html_pre ($body, $params)
 
 function amato_format_html_table ($body, &$params, $closing)
 {
-	if (!isset ($params['break']))
-	{
-		$params['break'] = true;
-		$params['rows'] = array ();
-		$params['span'] = 0;
-		$params['tag'] = 'td';
-	}
+	$break = $params->get ('break', true);
+	$rows = $params->get ('rows', array ());
+	$span = $params->get ('span', 0);
 
 	// No body specified since last tag, make next one span on one more column
 	if ($body === '')
-		++$params['span'];
+		++$span;
 
 	// Body was specified, append cell to current row
 	else
 	{
 		// Line break was requested, append a new blank row
-		if ($params['break'])
+		if ($break)
 		{
-			$params['break'] = false;
-			$params['rows'][] = array ('', 0);
+			$break = false;
+			$rows[] = array ('', 0);
 		}
 
-		// Read index of current row, tag and span for current cell
-		$current = count ($params['rows']) - 1;
-		$span = max ($params['span'], 1);
-		$tag = $params['tag'];
-
 		// Build colspan HTML attribute if needed
+		$span = max ($span, 1);
+
 		if ($span > 1)
 			$colspan = ' colspan="' . $span . '"';
 		else
@@ -239,48 +232,42 @@ function amato_format_html_table ($body, &$params, $closing)
 			$style = '';
 
 		// Append cell content to current row and reset span
-		$params['rows'][$current][0] .= '<' . $tag . $colspan . $style . '>' . $body . '</' . $tag . '>';
-		$params['rows'][$current][1] += $span;
-		$params['span'] = 1;
+		$current = count ($rows) - 1;
+		$tag = $params->previous ('t') === 'h' ? 'th' : 'td';
+
+		$rows[$current][0] .= '<' . $tag . $colspan . $style . '>' . $body . '</' . $tag . '>';
+		$rows[$current][1] += $span;
+
+		$span = 1;
 	}
 
 	// End of table not reached, remember tag for next call and exit
 	if (!$closing)
 	{
-		switch ($params['t'])
+		if ($params['t'] === 'r')
 		{
-			case 'c':
-				$params['tag'] = 'td';
-
-				break;
-
-			case 'h':
-				$params['tag'] = 'th';
-
-				break;
-
-			default:
-				$params['break'] = true;
-				$params['span'] = 0;
-				$params['tag'] = 'td';
-
-				break;
+			$break = true;
+			$span = 0;
 		}
+
+		$params['break'] = $break;
+		$params['rows'] = $rows;
+		$params['span'] = $span;
 
 		return '';
 	}
 
 	// Render table by merging computed rows, extending their span when needed
-	if (count ($params['rows']) === 0)
+	if (count ($rows) === 0)
 		return '';
 
 	$html = '';
 	$max = 0;
 
-	foreach ($params['rows'] as $row)
+	foreach ($rows as $row)
 		$max = max ($row[1], $max);
 
-	foreach ($params['rows'] as $row)
+	foreach ($rows as $row)
 	{
 		list ($append, $span) = $row;
 
