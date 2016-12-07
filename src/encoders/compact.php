@@ -7,6 +7,7 @@ defined ('AMATO') or die;
 class CompactEncoder extends Encoder
 {
 	const ESCAPE = '\\';
+	const MAGIC = '!';
 	const MARKER = ';';
 	const PARAM = ',';
 	const PLAIN = '#';
@@ -42,13 +43,16 @@ class CompactEncoder extends Encoder
 	*/
 	public function decode ($token)
 	{
-		$length = strlen ($token);
+		// Check magic number
+		if (substr ($token, 0, strlen (self::MAGIC)) !== self::MAGIC)
+			return null;
 
 		// Parse markers
+		$length = strlen ($token);
 		$markers = array ();
 		$offset = 0;
 
-		for ($i = 0; $i < $length && $token[$i] !== self::PLAIN; )
+		for ($i = strlen (self::MAGIC); $i < $length && $token[$i] !== self::PLAIN; )
 		{
 			// Skip to next marker
 			if ($i > 0)
@@ -132,7 +136,7 @@ class CompactEncoder extends Encoder
 	public function encode ($plain, $markers)
 	{
 		$shift = 0;
-		$token = '';
+		$token = self::MAGIC;
 		$types = array_flip (self::$markers);
 
 		foreach ($markers as $marker)
