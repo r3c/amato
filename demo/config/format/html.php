@@ -133,21 +133,15 @@ function amato_format_html_list ($body, &$params, $closing)
 {
 	// Read parameters from last tag
 	$o = $params->last ('o');
-	$u = $params->last ('u');
 
 	if ($o)
 	{
 		$level = max (min ((int)$o, 8), 1);
 		$tag = 'o';
 	}
-	else if ($u)
-	{
-		$level = max (min ((int)$u, 8), 1);
-		$tag = 'u';
-	}
 	else
 	{
-		$level = 1;
+		$level = max (min ((int)$params->last ('u', 1), 8), 1);
 		$tag = 'u';
 	}
 
@@ -166,14 +160,14 @@ function amato_format_html_list ($body, &$params, $closing)
 
 	$buffer .= $body;
 
-	// Save current buffer and tags stack
+	// Reset flags, save current buffer and tags stack
 	$params->forget ('o');
 	$params->forget ('u');
 
 	$params['buffer'] = $buffer;
 	$params['stack'] = $stack;
 
-	// Finalize rendering
+	// Render list by closing pending tags if any
 	if (!$closing)
 		return '';
 
@@ -195,93 +189,74 @@ function amato_format_html_pre ($body, $params)
 
 function amato_format_html_table ($body, &$params, $closing)
 {
-	$break = $params->get ('break', true);
-	$rows = $params->get ('rows', array ());
-	$span = $params->get ('span', 0);
+	// Read parameters from last tag
+	$h = $params->last ('h');
 
-	// No body specified since last tag, make next one span on one more column
-	if ($body === '')
-		++$span;
-
-	// Body was specified, append cell to current row
+	if ($h)
+	{
+		$span = max (min ((int)$h, 8), 1);
+		$tag = 'h';
+	}
 	else
 	{
-		// Line break was requested, append a new blank row
-		if ($break)
-		{
-			$break = false;
-			$rows[] = array ('', 0);
-		}
-
-		// Build colspan HTML attribute if needed
-		$span = max ($span, 1);
-
-		if ($span > 1)
-			$colspan = ' colspan="' . $span . '"';
-		else
-			$colspan = '';
-
-		// Build style HTML attribute if needed
-		$align_left = mb_substr ($body, -2) === '  ';
-		$align_right = mb_substr ($body, 0, 2) === '  ';
-
-		if ($align_left && $align_right)
-			$style = ' style="text-align: center;"';
-		else if ($align_left)
-			$style = ' style="text-align: left;"';
-		else if ($align_right)
-			$style = ' style="text-align: right;"';
-		else
-			$style = '';
-
-		// Append cell content to current row and reset span
-		$current = count ($rows) - 1;
-		$tag = $params->last ('t') === 'h' ? 'th' : 'td';
-
-		$rows[$current][0] .= '<' . $tag . $colspan . $style . '>' . $body . '</' . $tag . '>';
-		$rows[$current][1] += $span;
-
-		$span = 1;
+		$span = max (min ((int)$params->last ('d', 1), 8), 1);
+		$tag = 'd';
 	}
 
-	// End of table not reached, remember tag for next call and exit
-	if (!$closing)
-	{
-		if ($params['t'] === 'r')
-		{
-			$break = true;
-			$span = 0;
-		}
+	// Update HTML buffer
+	$rows = $params->get ('rows', array ());
 
-		$params['break'] = $break;
-		$params['rows'] = $rows;
-		$params['span'] = $span;
+	if (count ($rows) === 0 || $params->last ('r'))
+		$rows[] = array ('', 0);
 
-		return '';
-	}
+	// Update HTML buffer
+	$align_left = mb_substr ($body, -2) === '  ';
+	$align_right = mb_substr ($body, 0, 2) === '  ';
+
+	if ($align_left && $align_right)
+		$style = ' style="text-align: center;"';
+	else if ($align_left)
+		$style = ' style="text-align: left;"';
+	else if ($align_right)
+		$style = ' style="text-align: right;"';
+	else
+		$style = '';
+
+	$colspan = $span > 1 ? ' colspan="' . $span . '"' : '';
+	$current = count ($rows) - 1;
+
+	$rows[$current][0] .= '<t' . $tag . $colspan . $style . '>' . $body . '</t' . $tag . '>';
+	$rows[$current][1] += $span;
+
+	// Reset flags, save current rows
+	$params->forget ('d');
+	$params->forget ('h');
+	$params->forget ('r');
+
+	$params['rows'] = $rows;
 
 	// Render table by merging computed rows, extending their span when needed
-	if (count ($rows) === 0)
+	if (!$closing || count ($rows) === 0)
 		return '';
 
-	$html = '';
-	$max = 0;
+	$buffer = '';
+	$width = 0;
 
 	foreach ($rows as $row)
-		$max = max ($row[1], $max);
+		$width = max ($row[1], $width);
 
 	foreach ($rows as $row)
 	{
 		list ($append, $span) = $row;
 
-		$html .=
+		$buffer .=
 			'<tr>' .
 				($append) .
-				($span < $max ? '<td ' . ($max > $span + 1 ? ' colspan="' . ($max - $span) . '"' : '') . '></td>' : '') .
+				($span < $width ? '<td ' . ($width > $span + 1 ? ' colspan="' . ($width - $span) . '"' : '') . '></td>' : '') .
 			'</tr>';
 	}
 
-	return '<table class="table">' . $html . '</table>';
+	return '<table class="table">' . $buffer . '</table>';
 }
 
 ?>

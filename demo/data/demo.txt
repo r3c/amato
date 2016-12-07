@@ -20,15 +20,15 @@ Hyperlinks:
 Structures:
 [quote]
 [table]
-[^] Column header 1 [^] Column header 2 [^] Column header 3 [-]
-[|] Align left  [|]  Align right [|]  Center  [-]
-[|][|] This text spans on two columns [|] This one doesn't
+[^] Column #1 [^] Column #2 [^] Column #3 [-]
+[|] Left  [|]  Right [|]  Center  [-]
+[||] This text spans on two columns [|] This one doesn't
 [/table]
 
 [list]
 [*] Bullet point 1[i]
-[*][#] Numbered item 1
-[*][#] Numbered item 2[/i]
+[##] Numbered item 1
+[##] Numbered item 2[/i]
 [*] Bullet point 2
 [/list]
 
