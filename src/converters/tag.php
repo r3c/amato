@@ -10,15 +10,15 @@ class TagConverter extends Converter
 	** Constructor.
 	** $encoder:	encoder instance
 	** $scanner:	scanner instance
-	** $tags:		converter tags definitions
+	** $syntax:		syntax (id, definitions) declaration
 	*/
-	public function __construct ($encoder, $scanner, $tags)
+	public function __construct ($encoder, $scanner, $syntax)
 	{
 		$this->attributes = array ();
 		$this->encoder = $encoder;
 		$this->scanner = $scanner;
 
-		foreach ($tags as $id => $definitions)
+		foreach ($syntax as $id => $definitions)
 		{
 			foreach ($definitions as $definition)
 			{
@@ -39,28 +39,28 @@ class TagConverter extends Converter
 	*/
 	public function convert ($markup, $context = null)
 	{
-		// Group compatible sequences into array of matches by group candidate
+		// Group compatible tags into array of matches by group candidate
 		$candidates = array ();
 		$markers = array ();
-		$sequences = $this->scanner->find ($markup);
 		$shift = 0;
+		$tags = $this->scanner->find ($markup);
 		$trims = array ();
 
-		for ($i = 0; $i < count ($sequences); ++$i)
+		for ($i = 0; $i < count ($tags); ++$i)
 		{
-			list ($key, $offset, $length) = $sequences[$i];
+			list ($key, $offset, $length) = $tags[$i];
 
-			// Fix offset to take removed escape sequences into account
+			// Fix offset to take removed escape tags into account
 			$offset += $shift;
 
-			// Current sequence is an escape sequence
+			// Current tag is an escape tag
 			if ($key === null)
 			{
-				// Skip sequences following this escape sequence if any
-				for ($escape = false; $i + 1 < count ($sequences) && $sequences[$i + 1][1] + $shift <= $offset + $length; ++$i)
+				// Skip tags following this escape tag if any
+				for ($escape = false; $i + 1 < count ($tags) && $tags[$i + 1][1] + $shift <= $offset + $length; ++$i)
 					$escape = true;
 
-				// Flag escape sequence for removal if it had an effect
+				// Flag escape tag for removal if it had an effect
 				if ($escape)
 				{
 					$markup = mb_substr ($markup, 0, $offset) . mb_substr ($markup, $offset + $length);
@@ -68,15 +68,15 @@ class TagConverter extends Converter
 				}
 			}
 
-			// Current sequence is a tag sequence, insert into candidates
+			// Current tag is a sequence tag, insert into candidates
 			else
 			{
 				list ($id, $type, $defaults, $names, $convert) = $this->attributes[$key];
 
 				// Augment captured parameters with defaults
-				$params = $sequences[$i][3] + $defaults;
+				$params = $tags[$i][3] + $defaults;
 
-				// Call convert callback if any, ignore sequence if requested
+				// Call convert callback if any, ignore tag if requested
 				if ($convert !== null && $convert ($type, $params, $context) === false)
 					continue;
 
@@ -86,8 +86,8 @@ class TagConverter extends Converter
 				// Try to resolve candidates into markers and flag them for removal
 				for ($min = 0; count ($candidates) > 0 && self::candidate_resolve ($candidates, $markers, $trims, $min); )
 				{
-					// Skip following overlapped sequences
-					while ($i + 1 < count ($sequences) && $sequences[$i + 1][1] + $shift < $min)
+					// Skip following overlapped tags
+					while ($i + 1 < count ($tags) && $tags[$i + 1][1] + $shift < $min)
 						++$i;
 				}
 			}
@@ -185,7 +185,7 @@ class TagConverter extends Converter
 					($revert === null || $revert ($type, $params, $context) !== false)
 				)
 				{
-					// Revert tag sequence and append to plain string
+					// Revert sequence tag and append to plain string
 					$markup .= $this->scanner->build ($key, $params);
 
 					// Update depth level for current definition id
@@ -208,8 +208,8 @@ class TagConverter extends Converter
 	}
 
 	/*
-	** Build plain string from given raw string, by escaping tag sequences that
-	** would be matched when converting it.
+	** Build plain string from given raw string, by escaping tags that would be
+	** matched when converting it.
 	** $levels:	array of id => depth values per id
 	** $raw:	unescaped raw string
 	** return:	escaped plain string
@@ -249,24 +249,33 @@ class TagConverter extends Converter
 		return $markup;
 	}
 
+	/*
+	** Append tag to all compatible candidates.
+	** &candidates:	candidates (id, matches) list
+	** $id:			tag id
+	** $type:		tag type
+	** $offset:		tag offset
+	** $length:		tag length
+	** $params:		tag parameters
+	*/
 	private static function candidate_register (&$candidates, $id, $type, $offset, $length, $params)
 	{
 		$inserts = array ();
 
-		// Tag sequence can continue an existing group, find compatible candidates
+		// Tag can continue an existing group, find compatible candidates
 		if ($type === Tag::FLIP || $type === Tag::PULSE || $type === Tag::STEP || $type === Tag::STOP)
 		{
 			for ($i = 0; $i < count ($candidates); ++$i)
 			{
 				list ($last_offset, $last_length) = $candidates[$i][1][count ($candidates[$i][1]) - 1];
 
-				// Sequence share same id than candidate and doesn't overlap its last sequence
+				// Tag share same id than candidate and doesn't overlap its last tag
 				if ($candidates[$i][0] === $id && $offset >= $last_offset + $last_length)
 					$inserts[$i] = $type === Tag::PULSE || $type === Tag::STEP;
 			}
 		}
 
-		// Tag sequence can start a new group, create new candidate
+		// Tag can start a new group, create new candidate
 		if ($type === Tag::ALONE || $type === Tag::PULSE || $type === Tag::FLIP || $type === Tag::START)
 		{
 			$candidates[] = array ($id, array ());

@@ -1,6 +1,6 @@
 <?php
 
-$formats = array
+$format = array
 (
 	'.'			=> array ('amato_format_html_newline'),
 	'a'			=> array ('amato_format_html_anchor'),

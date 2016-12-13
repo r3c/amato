@@ -2,7 +2,7 @@
 
 require (dirname (__FILE__) . '/bbcode.php');
 
-$tags = array
+$syntax = array
 (
 	'b' => array
 	(
@@ -44,6 +44,6 @@ $tags = array
 	(
 		array (Amato\Tag::FLIP, '__')
 	)
-) + $tags;
+) + $syntax;
 
 ?>

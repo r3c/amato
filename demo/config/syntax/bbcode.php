@@ -1,8 +1,8 @@
 <?php
 
-$tags_pattern_scheme = '[+.0-9A-Za-z]{1,16}%://';
-$tags_pattern_url = '([!%#$%%&\'()*+,./0-9%:;=?@_~-]|\\pL){1,}';
-$tags = array
+$syntax_pattern_scheme = '[+.0-9A-Za-z]{1,16}%://';
+$syntax_pattern_url = '([!%#$%%&\'()*+,./0-9%:;=?@_~-]|\\pL){1,}';
+$syntax = array
 (
 	'.' => array
 	(
@@ -10,10 +10,10 @@ $tags = array
 	),
 	'a' => array
 	(
-		array (Amato\Tag::ALONE, "[url]<$tags_pattern_scheme$tags_pattern_url:u>[/url]"),
-		array (Amato\Tag::ALONE, "<https?%://$tags_pattern_url:u>"),
-		array (Amato\Tag::ALONE, "<www\\.$tags_pattern_url:u>"),
-		array (Amato\Tag::START, "[url=<$tags_pattern_scheme$tags_pattern_url:u>]"),
+		array (Amato\Tag::ALONE, "[url]<$syntax_pattern_scheme$syntax_pattern_url:u>[/url]"),
+		array (Amato\Tag::ALONE, "<https?%://$syntax_pattern_url:u>"),
+		array (Amato\Tag::ALONE, "<www\\.$syntax_pattern_url:u>"),
+		array (Amato\Tag::START, "[url=<$syntax_pattern_scheme$syntax_pattern_url:u>]"),
 		array (Amato\Tag::STOP, '[/url]')
 	),
 	'align' => array
@@ -74,8 +74,8 @@ $tags = array
 	),
 	'img' => array
 	(
-		array (Amato\Tag::ALONE, "[img=<[0-9]+:p>]<https?%://$tags_pattern_url:u>[/img]"),
-		array (Amato\Tag::ALONE, "[img]<https?%://$tags_pattern_url:u>[/img]")
+		array (Amato\Tag::ALONE, "[img=<[0-9]+:p>]<https?%://$syntax_pattern_url:u>[/img]"),
+		array (Amato\Tag::ALONE, "[img]<https?%://$syntax_pattern_url:u>[/img]")
 	),
 	'list' => array
 	(

@@ -72,14 +72,14 @@ class FormatRenderer extends Renderer
 	/*
 	** Initialize a new renderer.
 	** $encoder:	encoder instance
-	** $formats:	render formats definitions
+	** $format:		render (id, render) declaration
 	** $escape:		optional plain text escape callback (string) -> string
 	*/
-	public function __construct ($encoder, $formats, $escape = null)
+	public function __construct ($encoder, $format, $escape = null)
 	{
 		$this->encoder = $encoder;
 		$this->escape = $escape;
-		$this->formats = $formats;
+		$this->format = $format;
 	}
 
 	/*
@@ -121,14 +121,14 @@ class FormatRenderer extends Renderer
 			}
 
 			// Get formatting rule for current marker if any
-			if (!isset ($this->formats[$id]) || !isset ($this->formats[$id][0]))
+			if (!isset ($this->format[$id]) || !isset ($this->format[$id][0]))
 				continue;
 
 			// Create and insert new scope according to its precedence level
 			if ($is_first)
 			{
-				$callback = $this->formats[$id][0];
-				$level = isset ($this->formats[$id][1]) ? $this->formats[$id][1] : 1;
+				$callback = $this->format[$id][0];
+				$level = isset ($this->format[$id][1]) ? $this->format[$id][1] : 1;
 
 				for ($scope_shift = count ($scopes); $scope_shift > 0 && $level > $scopes[$scope_shift - 1][3]; )
 					--$scope_shift;

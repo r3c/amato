@@ -121,10 +121,10 @@ class PregScanner extends Scanner
 	*/
 	public function find ($string)
 	{
-		$sequences = array ();
 		$order = 0;
+		$tags = array ();
 
-		// Match all escape sequences in input string
+		// Match all escape tags in input string
 		if (preg_match_all ('/(?=(' . preg_quote ($this->escape, '/') . '))/m', $string, $matches, PREG_OFFSET_CAPTURE) === false)
 			throw new \Exception ('invalid escape pattern "' . $this->escape . '"');
 
@@ -133,10 +133,10 @@ class PregScanner extends Scanner
 			$length = mb_strlen ($match[0]);
 			$offset = mb_strlen (substr ($string, 0, $match[1]));
 
-			$sequences[self::index ($offset, $length, $order)] = array (null, $offset, $length);
+			$tags[self::index ($offset, $length, $order)] = array (null, $offset, $length);
 		}
 
-		// Match all tag sequences in input string
+		// Match all sequence tags in input string
 		foreach ($this->rules as $key => $rule)
 		{
 			list ($pattern, $names) = $rule;
@@ -154,22 +154,22 @@ class PregScanner extends Scanner
 				for ($i = min (count ($match) - 2, count ($names)); $i-- > 0; )
 					$captures[$names[$i]] = $match[$i + 2][0];
 
-				// Append to sequences array, using custom key for fast sorting
+				// Append to tags array, using custom key for fast sorting
 				$length = mb_strlen ($match[1][0]);
 				$offset = mb_strlen (substr ($string, 0, $match[1][1]));
 
-				$sequences[self::index ($offset, $length, $order)] = array ($key, $offset, $length, $captures);
+				$tags[self::index ($offset, $length, $order)] = array ($key, $offset, $length, $captures);
 			}
 		}
 
-		// Order sequences by offset ascending, length descending, rule ascending
-		ksort ($sequences);
+		// Order tags by offset ascending, length descending, rule ascending
+		ksort ($tags);
 
-		return array_values ($sequences);
+		return array_values ($tags);
 	}
 
 	/*
-	** Build array index to allow sorting of sequences using "ksort" instead
+	** Build array index to allow sorting of tags using "ksort" instead
 	** of "usort" (ugly but way faster).
 	*/
 	private static function index ($offset, $length, $order)
