@@ -6,36 +6,30 @@ defined ('AMATO') or die;
 
 class CompactEncoder extends Encoder
 {
+	const CAPTURE = ',';
+	const CAPTURE_VALUE = '=';
 	const ESCAPE = '\\';
-	const MAGIC = '!';
-	const MARKER = ';';
-	const PARAM = ',';
-	const PLAIN = '#';
-	const VALUE = '=';
+	const GROUP = ';';
+	const GROUP_MARKER = '@';
+	const PLAIN = '|';
 
 	private static $escapes_decode = array
 	(
-		self::MARKER	=> true,
-		self::PLAIN		=> true,
-		self::PARAM		=> true,
-		self::VALUE		=> true
+		self::CAPTURE		=> true,
+		self::CAPTURE_VALUE	=> true,
+		self::GROUP			=> true,
+		self::GROUP_MARKER	=> true,
+		self::PLAIN			=> true
 	);
 
 	private static $escapes_encode = array
 	(
-		self::ESCAPE	=> true,
-		self::MARKER	=> true,
-		self::PARAM		=> true,
-		self::PLAIN		=> true,
-		self::VALUE		=> true
-	);
-
-	private static $markers = array
-	(
-		'-'	=> 0,
-		'<'	=> 1,
-		'>'	=> 2,
-		'|'	=> 3
+		self::CAPTURE		=> true,
+		self::CAPTURE_VALUE	=> true,
+		self::ESCAPE		=> true,
+		self::GROUP			=> true,
+		self::GROUP_MARKER	=> true,
+		self::PLAIN			=> true
 	);
 
 	/*
@@ -43,39 +37,24 @@ class CompactEncoder extends Encoder
 	*/
 	public function decode ($token)
 	{
-		// Check magic number
-		if (substr ($token, 0, strlen (self::MAGIC)) !== self::MAGIC)
-			return null;
-
-		// Parse markers
 		$length = strlen ($token);
-		$markers = array ();
-		$offset = 0;
 
-		for ($i = strlen (self::MAGIC); $i < $length && $token[$i] !== self::PLAIN; )
+		// Parse groups
+		$delta = 0;
+		$groups = array ();
+
+		for ($i = 0; $i < $length && $token[$i] !== self::PLAIN; )
 		{
-			// Skip to next marker
+			// Skip to next group
 			if ($i > 0)
 			{
-				if ($token[$i] !== self::MARKER)
+				if ($token[$i] !== self::GROUP)
 					return null;
 
 				++$i;
 			}
 
-			// Read offset delta
-			for ($j = $i; $i < $length && $token[$i] >= '0' && $token[$i] <= '9'; )
-				++$i;
-
-			$offset += (int)substr ($token, $j, $i - $j);
-
-			// Read type
-			if ($i >= $length || !isset (self::$markers[$token[$i]]))
-				return null;
-
-			$type = self::$markers[$token[$i++]];
-
-			// Read id
+			// Read group id
 			$id = '';
 
 			for (; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
@@ -86,83 +65,109 @@ class CompactEncoder extends Encoder
 				$id .= $token[$i];
 			}
 
-			// Read parameters
-			$params = array ();
+			// Read markers
+			$markers = array ();
+			$delta_group = $delta;
 
-			while ($i < $length && $token[$i] === self::PARAM)
+			while ($i < $length && $token[$i] === self::GROUP_MARKER)
 			{
-				// Read param key
-				$key = '';
+				// Read offset delta
+				for ($j = ++$i; $i < $length && $token[$i] >= '0' && $token[$i] <= '9'; )
+					++$i;
 
-				for (++$i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
+				$delta_group += (int)substr ($token, $j, $i - $j);
+
+				// Read captures
+				$captures = array ();
+
+				while ($i < $length && $token[$i] === self::CAPTURE)
 				{
-					if ($token[$i] === self::ESCAPE && $i + 1 < $length)
-						++$i;
+					// Read capture key
+					$key = '';
 
-					$key .= $token[$i];
-				}
-
-				// Read param value if any
-				$value = '';
-
-				if ($i < $length && $token[$i] === self::VALUE)
-				{
 					for (++$i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
 					{
 						if ($token[$i] === self::ESCAPE && $i + 1 < $length)
 							++$i;
 
-						$value .= $token[$i];
+						$key .= $token[$i];
 					}
+
+					// Read capture value if any
+					$value = '';
+
+					if ($i < $length && $token[$i] === self::CAPTURE_VALUE)
+					{
+						for (++$i; $i < $length && !isset (self::$escapes_decode[$token[$i]]); ++$i)
+						{
+							if ($token[$i] === self::ESCAPE && $i + 1 < $length)
+								++$i;
+
+							$value .= $token[$i];
+						}
+					}
+
+					// Store in captures array
+					$captures[$key] = $value;
 				}
 
-				// Store in params array
-				$params[$key] = $value;
+				// Append to group markers
+				$markers[] = array ($delta_group, $captures);
 			}
 
-			// Append to markers
-			$markers[] = array ($id, $offset, !!($type & 1), !!($type & 2), $params);
+			// Append to groups
+			$delta = $markers[0][0];
+
+			$groups[] = array ($id, $markers);
 		}
 
-		if ($i >= $length || $token[$i] !== self::PLAIN)
+		if ($i >= $length || $token[$i++] !== self::PLAIN)
 			return null;
 
-		return array ((string)substr ($token, ++$i), $markers);
+		return array ((string)substr ($token, $i), $groups);
 	}
 
 	/*
 	** Override for Encoder::encode.
 	*/
-	public function encode ($plain, $markers)
+	public function encode ($plain, $groups)
 	{
-		$shift = 0;
-		$token = self::MAGIC;
-		$types = array_flip (self::$markers);
+		// Serialize to string
+		$delta = 0;
+		$token = '';
 
-		foreach ($markers as $marker)
+		foreach ($groups as $group)
 		{
-			list ($id, $offset, $is_first, $is_last, $params) = $marker;
+			list ($id, $markers) = $group;
 
-			// Write marker separator if not first
+			// Write group id
 			if ($token !== '')
-				$token .= self::MARKER;
+				$token .= self::GROUP;
 
-			// Write type, id and offset
-			$token .= $offset - $shift;
-			$token .= $types[($is_first ? 1 : 0) + ($is_last ? 2 : 0)];
 			$token .= self::escape ((string)$id);
 
-			// Write params
-			foreach ($params as $key => $value)
-			{
-				$token .= self::PARAM . self::escape ($key);
-				$value = (string)$value;
+			// Write markers
+			$delta_group = $delta;
 
-				if ($value !== '')
-					$token .= self::VALUE . self::escape ((string)$value);
+			foreach ($markers as $marker)
+			{
+				// Write offset delta
+				$token .= self::GROUP_MARKER . ($marker[0] - $delta_group);
+
+				// Write captures
+				foreach ($marker[1] as $key => $value)
+				{
+					$token .= self::CAPTURE . self::escape ($key);
+					$value = (string)$value;
+
+					if ($value !== '')
+						$token .= self::CAPTURE_VALUE . self::escape ((string)$value);
+				}
+
+				$delta_group = $marker[0];
 			}
 
-			$shift = $offset;
+			$delta = $markers[0][0];
 		}
 
 		return $token . self::PLAIN . $plain;

@@ -1,25 +1,36 @@
 <?php
 
-function assert_token_equal ($plain, $markers, $plain_expected, $markers_expected, $context)
+function assert_token_equal ($plain, $groups, $plain_expected, $groups_expected, $context)
 {
 	assert_test_equal ($plain, $plain_expected, $context . '[plain]');
-	assert_test_equal (count ($markers), count ($markers_expected), $context . '[number of markers]');
+	assert_test_equal (count ($groups), count ($groups_expected), $context . '[number of groups]');
 
-	for ($i = 0; $i < count ($markers); ++$i)
+	for ($i = 0; $i < count ($groups); ++$i)
 	{
-		if (!isset ($markers_expected[$i][4]))
-			$markers_expected[$i][4] = array ();
+		list ($id, $markers) = $groups[$i];
+		list ($id_expected, $markers_expected) = $groups_expected[$i];
 
-		list ($id, $offset, $is_first, $is_last, $params) = $markers[$i];
-		list ($id_expected, $offset_expected, $is_first_expected, $is_last_expected, $params_expected) = $markers_expected[$i];
+		$context_group = $context . '[group #' . $i . ']';
 
-		$context_marker = $context . '[marker #' . $i . ']';
+		assert_test_equal ($id, $id_expected, $context_group . '[id]');
+		assert_test_equal (count ($markers), count ($markers_expected), $context_group . '[number of markers]');
 
-		assert_test_equal ($id, $id_expected, $context_marker . '[id]');
-		assert_test_equal ($offset, $offset_expected, $context_marker . '[offset]');
-		assert_test_equal ($is_first, $is_first_expected, $context_marker . '[is_first]');
-		assert_test_equal ($is_last, $is_last_expected, $context_marker . '[is_last]');
-		assert_test_equal ($params, $params_expected, $context_marker . '[params]');
+		for ($j = 0; $j < count ($markers); ++$j)
+		{
+			if (is_integer ($markers_expected[$j]))
+				$markers_expected[$j] = array ($markers_expected[$j]);
+
+			if (!isset ($markers_expected[$j][1]))
+				$markers_expected[$j][1] = array ();
+
+			list ($offset, $captures) = $markers[$j];
+			list ($offset_expected, $captures_expected) = $markers_expected[$j];
+
+			$context_marker = $context_group . '[marker #' . $j . ']';
+
+			assert_test_equal ($offset, $offset_expected, $context_marker . '[offset]');
+			assert_test_equal ($captures, $captures_expected, $context_marker . '[captures]');
+		}
 	}
 }
 

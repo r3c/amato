@@ -93,17 +93,17 @@ class FormatRenderer extends Renderer
 		if ($pack === null)
 			return null;
 
-		list ($render, $markers) = $pack;
+		list ($render, $groups) = $pack;
 
-		// Process all markers
+		// Process all marker groups
 		$escape = $this->escape;
 		$last = 0;
 		$scopes = array ();
 		$stop = 0;
 
-		foreach ($markers as $marker)
+		for ($cursors = Encoder::begin ($groups); Encoder::next ($groups, $cursors, $next); )
 		{
-			list ($id, $offset, $is_first, $is_last, $params) = $marker;
+			list ($id, $offset, $is_first, $is_last, $params) = $next;
 
 			// Get start and stop offsets of plain text since last position
 			$start = $stop;

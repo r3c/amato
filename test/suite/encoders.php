@@ -6,7 +6,7 @@ require_once ('assert/token.php');
 
 Amato\autoload ();
 
-function test_encoder ($plain_expected, $markers_expected)
+function test_encoder ($plain_expected, $chains_expected)
 {
 	static $encoders;
 
@@ -20,22 +20,25 @@ function test_encoder ($plain_expected, $markers_expected)
 		);
 	}
 
-	foreach ($markers_expected as &$marker)
+	foreach ($chains_expected as &$chain)
 	{
-		if (!isset ($marker[4]))
-			$marker[4] = array ();
+		foreach ($chain[1] as &$marker)
+		{
+			if (!isset ($marker[1]))
+				$marker[1] = array ();
+		}
 	}
 
 	foreach ($encoders as $name => $encoder)
 	{
-		$context = '[plain \'' . str_replace ("\n", ' ', $plain_expected) . '\'][encoder \'' . $name . '\']';
-		$token = $encoder->encode ($plain_expected, $markers_expected);
+		$context = '[encoder \'' . $name . '\']';
+		$token = $encoder->encode ($plain_expected, $chains_expected);
 
 		assert_test_true ($token !== null, $context . '[token is null]');
 
-		list ($plain, $markers) = $encoder->decode ($token);
+		list ($plain, $chains) = $encoder->decode ($token);
 
-		assert_token_equal ($plain, $markers, $plain_expected, $markers_expected, $context);
+		assert_token_equal ($plain, $chains, $plain_expected, $chains_expected, $context);
 	}
 }
 
@@ -44,11 +47,11 @@ assert_options (ASSERT_BAIL, true);
 mb_internal_encoding ('utf-8');
 
 test_encoder ('Hello, World!', array ());
-test_encoder ('Hello, World!', array (array ('b', 0, true, false), array ('b', 13, false, true)));
-test_encoder ('ABCDE', array (array ('b', 1, true, false), array ('b', 2, true, false), array ('i', 3, true, false), array ('i', 4, false, true)));
-test_encoder ('ABCDE', array (array ('b', 1, true, false), array ('i', 2, true, false), array ('i', 3, false, true), array ('b', 4, false, true)));
-test_encoder ('ABCDE', array (array ('b', 1, true, false), array ('i', 2, true, false), array ('b', 3, false, true), array ('i', 4, false, true)));
-test_encoder ('X', array (array ('b', 0, true, false, array ('a' => 'a', 'b' => '')), array ('b', 1, false, true)));
+test_encoder ('Hello, World!', array (array ('b', array (array (0), array (13)))));
+test_encoder ('ABCDE', array (array ('b', array (array (1), array (2))), array ('i', array (array (3), array (4)))));
+test_encoder ('ABCDE', array (array ('b', array (array (1), array (4))), array ('i', array (array (2), array (3)))));
+test_encoder ('ABCDE', array (array ('b', array (array (1), array (3))), array ('i', array (array (2), array (4)))));
+test_encoder ('X', array (array ('b', array (array (0, array ('a' => 'a', 'b' => '')), array (1)))));
 
 echo 'OK';
 

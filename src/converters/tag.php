@@ -40,11 +40,10 @@ class TagConverter extends Converter
 	public function convert ($markup, $context = null)
 	{
 		// Group compatible tags into array of matches by group candidate
+		$blocks = array ();
 		$candidates = array ();
-		$markers = array ();
 		$shift = 0;
 		$tags = $this->scanner->find ($markup);
-		$trims = array ();
 
 		for ($i = 0; $i < count ($tags); ++$i)
 		{
@@ -81,52 +80,80 @@ class TagConverter extends Converter
 					continue;
 
 				// Append to compatible candidates
-				self::candidate_register ($candidates, $id, $type, $offset, $length, $params);
+				self::candidate_append ($candidates, $id, $type, $offset, $length, $params);
 
-				// Try to resolve candidates into markers and flag them for removal
-				for ($min = 0; count ($candidates) > 0 && self::candidate_resolve ($candidates, $markers, $trims, $min); )
-				{
-					// Skip following overlapped tags
-					while ($i + 1 < count ($tags) && $tags[$i + 1][1] + $shift < $min)
-						++$i;
-				}
+				// Try to resolve candidates into marker groups and flag them for removal
+				$min = self::candidate_accept ($candidates, $blocks, false);
+
+				// Skip following overlapped tags
+				while ($i + 1 < count ($tags) && $tags[$i + 1][1] + $shift < $min)
+					++$i;
 			}
 		}
 
-		// Resolve compatible candidates into markers and flag them for removal
-		for ($min = 0; count ($candidates) > 0; )
+		// Resolve compatible candidates into marker groups
+		self::candidate_accept ($candidates, $blocks, true);
+
+		// List markers from all groups and sort them by offset
+		$cursors = array ();
+		$groups = array ();
+
+		foreach ($blocks as $i => $block)
 		{
-			if (!self::candidate_resolve ($candidates, $markers, $trims, $min))
-				array_shift ($candidates);
+			$markers = array ();
+
+			foreach ($block[1] as $j => $marker)
+			{
+				$cursors[] = array ($marker[0], $marker[1], $i, $j);
+				$markers[] = array ($marker[0], $marker[2]);
+			}
+
+			$groups[] = array ($block[0], $markers);
 		}
 
-		// Remove markers from markup string and fix offsets
-		// FIXME: could be optimized by doing a single pass on $trims [convert-on-the-fly]
+		usort ($cursors, function ($c1, $c2)
+		{
+			return $c1[0] < $c2[0] ? -1 : 1;
+		});
+
+		// Remove groups from markup string and fix offsets
 		$plain = $markup;
 
-		for ($i = 0; $i < count ($trims); ++$i)
+		for ($i = 0; $i < count ($cursors); ++$i)
 		{
-			list ($offset, $length) = $trims[$i];
+			list ($offset, $length) = $cursors[$i];
 
-			foreach ($markers as &$marker)
+			// Shift all references located after current one
+			for ($j = $i; $j < count ($cursors); ++$j)
+				$cursors[$j][0] -= $length;
+
+			// Shift all markers located after current reference
+			foreach ($groups as &$group)
 			{
-				if ($marker[1] > $offset)
-					$marker[1] -= $length;
+				foreach ($group[1] as &$marker)
+				{
+					if ($marker[0] > $offset)
+						$marker[0] -= $length;
+				}
 			}
 
-			for ($j = 0; $j < count ($trims); ++$j)
-			{
-				list ($offset2, $length2) = $trims[$j];
-
-				if ($offset2 > $offset)
-					$trims[$j][0] -= $length;
-			}
-
+			// Remove match from string
 			$plain = mb_substr ($plain, 0, $offset) . mb_substr ($plain, $offset + $length);
 		}
 
+		// Increment all marker offets by the number of marker preceeding them
+		// so each marker has a different offset and can be strictly ordered
+		for ($i = 0; $i < count ($cursors); ++$i)
+			$groups[$cursors[$i][2]][1][$cursors[$i][3]][0] += $i;
+
+		// Sort groups by offset of their first marker
+		uasort ($groups, function ($g1, $g2)
+		{
+			return $g1[1][0] < $g2[1][0] ? -1 : 1;
+		});
+
 		// Encode into tokenized string and return
-		return $this->encoder->encode ($plain, $markers);
+		return $this->encoder->encode ($plain, $groups);
 	}
 
 	/*
@@ -134,13 +161,13 @@ class TagConverter extends Converter
 	*/
 	public function revert ($token, $context = null)
 	{
-		// Decode tokenized string into markers and pairs
+		// Decode tokenized string into marker groups and pairs
 		$pair = $this->encoder->decode ($token);
 
 		if ($pair === null)
 			return null;
 
-		list ($plain, $markers) = $pair;
+		list ($plain, $groups) = $pair;
 
 		// Define callback used for parameters filtering
 		$not_null = function ($value) { return $value !== null; };
@@ -150,9 +177,9 @@ class TagConverter extends Converter
 		$markup = '';
 		$start = 0;
 
-		foreach ($markers as $marker)
+		for ($cursors = Encoder::begin ($groups); Encoder::next ($groups, $cursors, $next); )
 		{
-			list ($id, $offset, $is_first, $is_last, $params) = $marker;
+			list ($id, $offset, $is_first, $is_last, $params) = $next;
 
 			// Escape and append skipped plain string to markup
 			$markup .= $this->build_markup ($levels, mb_substr ($plain, $start, $offset - $start));
@@ -250,6 +277,100 @@ class TagConverter extends Converter
 	}
 
 	/*
+	** Accept completed candidates, convert into blocks and flag for removal,
+	** remove overlapped candidates from list.
+	** &candidates:	candidates (id, matches) list
+	** &blocks:		resolved delimiter blocks (id, [(offset, length, params)]) list
+	** $finish:		true when all candidates are registered, false otherwise
+	** return:		highest matched candidate offset
+	*/
+	private static function candidate_accept (&$candidates, &$blocks, $finish)
+	{
+		$min = 0;
+
+		for ($accept_candidate = count ($candidates); $accept_candidate-- > 0; )
+		{
+			list ($id1, $matches1) = $candidates[$accept_candidate];
+
+			// Find first match able to complete current candidate group
+			for ($last = 0; $last < count ($matches1) && $matches1[$last][3]; )
+				++$last;
+
+			if ($last >= count ($matches1))
+				continue;
+
+			// Search for candidates overlapping any match of current one
+			$drops = array ();
+
+			for ($accept_match = 0; $accept_match <= $last; ++$accept_match)
+			{
+				list ($offset1, $length1) = $matches1[$accept_match];
+
+				// Remove overlapped matches from all remaining candidates
+				for ($other_candidate = count ($candidates); $other_candidate-- > 0; )
+				{
+					list ($id2, $matches2) = $candidates[$other_candidate];
+
+					for ($other_match = count ($matches2); $other_match-- > 0; )
+					{
+						list ($offset2, $length2) = $matches2[$other_match];
+
+						// Current match overlaps match of another candidate...
+						if (self::candidate_overlap ($offset1, $length1, $offset2, $length2))
+						{
+							// ...which is unresolved and before current, abort
+							if ($accept_candidate > $other_candidate && !$finish)
+								continue 4;
+
+							// ...which must be flagged for removal
+							$drops[$other_candidate][] = $other_match;
+						}
+					}
+				}
+			}
+
+			// Remove all flagged overlapps from candidates
+			krsort ($drops);
+
+			foreach ($drops as $other_candidate => $indices)
+			{
+				// Drop entire candidate if its first match is removed
+				if (in_array (0, $indices, true))
+				{
+					if  ($other_candidate < $accept_candidate)
+						--$accept_candidate;
+
+					array_splice ($candidates, $other_candidate, 1);
+				}
+
+				// Otherwise just remove overlapped match
+				else
+				{
+					rsort ($indices);
+
+					foreach ($indices as $other_match)
+						array_splice ($candidates[$other_candidate][1], $other_match, 1);
+				}
+			}
+
+			// Insert matches into markers (ordered by offset) and trimming list
+			$delimiters = array ();
+
+			for ($accept_match = 0; $accept_match <= $last; ++$accept_match)
+			{
+				list ($offset1, $length1, $params) = $matches1[$accept_match];
+
+				$delimiters[] = array ($offset1, $length1, $params);
+				$min = max ($offset1 + $length1, $min);
+			}
+
+			$blocks[] = array ($id1, $delimiters);
+		}
+
+		return $min;
+	}
+
+	/*
 	** Append tag to all compatible candidates.
 	** &candidates:	candidates (id, matches) list
 	** $id:			tag id
@@ -258,7 +379,7 @@ class TagConverter extends Converter
 	** $length:		tag length
 	** $params:		tag parameters
 	*/
-	private static function candidate_register (&$candidates, $id, $type, $offset, $length, $params)
+	private static function candidate_append (&$candidates, $id, $type, $offset, $length, $params)
 	{
 		$inserts = array ();
 
@@ -288,69 +409,16 @@ class TagConverter extends Converter
 	}
 
 	/*
-	** Resolve first candidate from given list into group if complete, flag
-	** matches for removal and remove candidates from list.
-	** &candidates:	candidates (id, matches) list
-	** &markers:	resolved markers (id, offset, is_first, is_last, params) list
-	** &trims:		removal (offset, length) list
-	** &min:		highest matched candidate offset
-	** return:		true if first candidates was resolved, false otherwise
+	** Check if two locations overlap.
+	** $offset1:	offset of first location
+	** $length1:	length of first location
+	** $offset2:	offset of second location
+	** $length2:	length of second location
+	** return:		true if locations overlap, false otherwise
 	*/
-	private static function candidate_resolve (&$candidates, &$markers, &$trims, &$min)
+	private static function candidate_overlap ($offset1, $length1, $offset2, $length2)
 	{
-		list ($id, $matches) = $candidates[0];
-
-		// Find first match able to complete current candidate group
-		for ($close = 0; $close < count ($matches) && $matches[$close][3]; )
-			++$close;
-
-		if ($close >= count ($matches))
-			return false;
-
-		array_shift ($candidates);
-
-		// Process all candidates from first to closing one
-		for ($current = 0; $current <= $close; ++$current)
-		{
-			list ($offset1, $length1, $params) = $matches[$current];
-
-			// Remove overlapped matches from all remaining candidates
-			for ($i = count ($candidates); $i-- > 0; )
-			{
-				for ($j = count ($candidates[$i][1]); $j-- > 0; )
-				{
-					list ($offset2, $length2) = $candidates[$i][1][$j];
-
-					if ($offset1 < $offset2 + $length2 && $offset2 < $offset1 + $length1)
-					{
-						// Drop entire candidate if its first match is removed
-						if ($j === 0)
-						{
-							array_splice ($candidates, $i, 1);
-
-							break;
-						}
-
-						// Otherwise just remove overlapped match
-						array_splice ($candidates[$i][1], $j, 1);
-					}
-				}
-			}
-
-			// Insert match into markers (ordered by offset) and trimming list
-			$i = count ($markers);
-
-			while ($i > 0 && $markers[$i - 1][1] > $offset1)
-				--$i;
-
-			array_splice ($markers, $i, 0, array (array ($id, $offset1, $current === 0, $current === $close, $params)));
-
-			$trims[] = array ($offset1, $length1);
-
-			$min = max ($offset1 + $length1, $min);
-		}
-
-		return true;
+		return $offset1 < $offset2 + $length2 && $offset2 < $offset1 + $length1;
 	}
 }
 
