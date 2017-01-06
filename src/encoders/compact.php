@@ -11,6 +11,7 @@ class CompactEncoder extends Encoder
 	const ESCAPE = '\\';
 	const GROUP = ';';
 	const GROUP_MARKER = '@';
+	const MAGIC = '!';
 	const PLAIN = '|';
 
 	private static $escapes_decode = array
@@ -37,16 +38,21 @@ class CompactEncoder extends Encoder
 	*/
 	public function decode ($token)
 	{
-		$length = strlen ($token);
+		$skip = strlen (self::MAGIC);
+
+		// Check magic number
+		if (substr ($token, 0, $skip) !== self::MAGIC)
+			return null;
 
 		// Parse groups
 		$delta = 0;
 		$groups = array ();
+		$length = strlen ($token);
 
-		for ($i = 0; $i < $length && $token[$i] !== self::PLAIN; )
+		for ($i = $skip; $i < $length && $token[$i] !== self::PLAIN; )
 		{
 			// Skip to next group
-			if ($i > 0)
+			if ($i !== $skip)
 			{
 				if ($token[$i] !== self::GROUP)
 					return null;
@@ -134,15 +140,18 @@ class CompactEncoder extends Encoder
 	{
 		// Serialize to string
 		$delta = 0;
-		$token = '';
+		$next = false;
+		$token = self::MAGIC;
 
 		foreach ($groups as $group)
 		{
 			list ($id, $markers) = $group;
 
 			// Write group id
-			if ($token !== '')
+			if ($next)
 				$token .= self::GROUP;
+			else
+				$next = true;
 
 			$token .= self::escape ((string)$id);
 
