@@ -18,11 +18,11 @@ $syntax = array
 	),
 	'align' => array
 	(
-		array (Amato\Tag::START, "<\n?#\n>[align=center]", array ('w' => 'c')),
-		array (Amato\Tag::START, "<\n?#\n>[align=left]", array ('w' => 'l')),
-		array (Amato\Tag::START, "<\n?#\n>[align=justify]", array ('w' => 'j')),
-		array (Amato\Tag::START, "<\n?#\n>[align=right]", array ('w' => 'r')),
-		array (Amato\Tag::STOP, "<\n?#\n>[/align]")
+		array (Amato\Tag::START, "[align=center]", array ('w' => 'c')),
+		array (Amato\Tag::START, "[align=left]", array ('w' => 'l')),
+		array (Amato\Tag::START, "[align=justify]", array ('w' => 'j')),
+		array (Amato\Tag::START, "[align=right]", array ('w' => 'r')),
+		array (Amato\Tag::STOP, "[/align]")
 	),
 	'b' => array
 	(
@@ -37,12 +37,12 @@ $syntax = array
 	),
 	'center' => array
 	(
-		array (Amato\Tag::START, "<\n?#\n>[center]"),
-		array (Amato\Tag::STOP, "<\n?#\n>[/center]")
+		array (Amato\Tag::START, "[center]"),
+		array (Amato\Tag::STOP, "[/center]")
 	),
 	'code' => array
 	(
-		array (Amato\Tag::ALONE, "<\n?#\n>[code=<[0-9a-zA-Z]+:l>]<.*?:b>[/code]")
+		array (Amato\Tag::ALONE, "[code=<[0-9a-zA-Z]+:l>]<.*?:b>[/code]")
 	),
 	'emoji' => array
 	(
@@ -79,8 +79,8 @@ $syntax = array
 	),
 	'list' => array
 	(
-		array (Amato\Tag::START, "<\n?#\n>[list]<\\s*#\n>[#]", array ('o' => '1')),
-		array (Amato\Tag::START, "<\n?#\n>[list]<\\s*#\n>[*]", array ('u' => '1')),
+		array (Amato\Tag::START, "[list]<\\s*#\n>[#]", array ('o' => '1')),
+		array (Amato\Tag::START, "[list]<\\s*#\n>[*]", array ('u' => '1')),
 		array (Amato\Tag::STEP, "<\\s*#\n>[#]", array ('o' => '1')),
 		array (Amato\Tag::STEP, "<\\s*#\n>[##]", array ('o' => '2')),
 		array (Amato\Tag::STEP, "<\\s*#\n>[###]", array ('o' => '3')),
@@ -89,16 +89,16 @@ $syntax = array
 		array (Amato\Tag::STEP, "<\\s*#\n>[**]", array ('u' => '2')),
 		array (Amato\Tag::STEP, "<\\s*#\n>[***]", array ('u' => '3')),
 		array (Amato\Tag::STEP, "<\\s*#\n>[*=<[0-9]+:u>]"),
-		array (Amato\Tag::STOP, "<\n?#\n>[/list]")
+		array (Amato\Tag::STOP, "[/list]")
 	),
 	'pre' => array
 	(
-		array (Amato\Tag::ALONE, "<\n?#\n>[pre]<.*?:b>[/pre]")
+		array (Amato\Tag::ALONE, "[pre]<.*?:b>[/pre]")
 	),
 	'quote' => array
 	(
-		array (Amato\Tag::START, "<\n?#\n>[quote]"),
-		array (Amato\Tag::STOP, "<\n?#\n>[/quote]")
+		array (Amato\Tag::START, "[quote]"),
+		array (Amato\Tag::STOP, "[/quote]")
 	),
 	's' => array
 	(
@@ -113,31 +113,31 @@ $syntax = array
 	),
 	'table' => array
 	(
-		array (Amato\Tag::START, "<\n?#\n>[table]<\\s*#\n>[|]", array ('d' => '1')),
-		array (Amato\Tag::START, "<\n?#\n>[table]<\\s*#\n>[||]", array ('d' => '2')),
-		array (Amato\Tag::START, "<\n?#\n>[table]<\\s*#\n>[|||]", array ('d' => '3')),
-		array (Amato\Tag::START, "<\n?#\n>[table]<\\s*#\n>[|=<[0-9]+:d>]"),
-		array (Amato\Tag::START, "<\n?#\n>[table]<\\s*#\n>[^]", array ('h' => '1')),
-		array (Amato\Tag::START, "<\n?#\n>[table]<\\s*#\n>[^^]", array ('h' => '2')),
-		array (Amato\Tag::START, "<\n?#\n>[table]<\\s*#\n>[^^^]", array ('h' => '3')),
-		array (Amato\Tag::START, "<\n?#\n>[table]<\\s*#\n>[^=<[0-9]+:h>]"),
-		array (Amato\Tag::STEP, "<\n?#\n>[|]", array ('d' => '1')),
-		array (Amato\Tag::STEP, "<\n?#\n>[||]", array ('d' => '2')),
-		array (Amato\Tag::STEP, "<\n?#\n>[|||]", array ('d' => '3')),
-		array (Amato\Tag::STEP, "<\n?#\n>[|=<[0-9]+:d>]"),
-		array (Amato\Tag::STEP, "<\n?#\n>[^]", array ('h' => '1')),
-		array (Amato\Tag::STEP, "<\n?#\n>[^^]", array ('h' => '2')),
-		array (Amato\Tag::STEP, "<\n?#\n>[^^^]", array ('h' => '3')),
-		array (Amato\Tag::STEP, "<\n?#\n>[^=<[0-9]+:h>]"),
-		array (Amato\Tag::STEP, "<\n?#\n>[-]<\\s*#\n>[|]", array ('d' => '1', 'r' => '1')),
-		array (Amato\Tag::STEP, "<\n?#\n>[-]<\\s*#\n>[||]", array ('d' => '2', 'r' => '1')),
-		array (Amato\Tag::STEP, "<\n?#\n>[-]<\\s*#\n>[|||]", array ('d' => '3', 'r' => '1')),
-		array (Amato\Tag::STEP, "<\n?#\n>[-]<\\s*#\n>[|=<[0-9]+:d>]", array ('r' => '1')),
-		array (Amato\Tag::STEP, "<\n?#\n>[-]<\\s*#\n>[^]", array ('h' => '1', 'r' => '1')),
-		array (Amato\Tag::STEP, "<\n?#\n>[-]<\\s*#\n>[^^]", array ('h' => '2', 'r' => '1')),
-		array (Amato\Tag::STEP, "<\n?#\n>[-]<\\s*#\n>[^^^]", array ('h' => '3', 'r' => '1')),
-		array (Amato\Tag::STEP, "<\n?#\n>[-]<\\s*#\n>[^=<[0-9]+:h>]", array ('r' => '1')),
-		array (Amato\Tag::STOP, "<\n?#\n>[/table]")
+		array (Amato\Tag::START, "[table]<\\s*#\n>[|]", array ('d' => '1')),
+		array (Amato\Tag::START, "[table]<\\s*#\n>[||]", array ('d' => '2')),
+		array (Amato\Tag::START, "[table]<\\s*#\n>[|||]", array ('d' => '3')),
+		array (Amato\Tag::START, "[table]<\\s*#\n>[|=<[0-9]+:d>]"),
+		array (Amato\Tag::START, "[table]<\\s*#\n>[^]", array ('h' => '1')),
+		array (Amato\Tag::START, "[table]<\\s*#\n>[^^]", array ('h' => '2')),
+		array (Amato\Tag::START, "[table]<\\s*#\n>[^^^]", array ('h' => '3')),
+		array (Amato\Tag::START, "[table]<\\s*#\n>[^=<[0-9]+:h>]"),
+		array (Amato\Tag::STEP, "[|]", array ('d' => '1')),
+		array (Amato\Tag::STEP, "[||]", array ('d' => '2')),
+		array (Amato\Tag::STEP, "[|||]", array ('d' => '3')),
+		array (Amato\Tag::STEP, "[|=<[0-9]+:d>]"),
+		array (Amato\Tag::STEP, "[^]", array ('h' => '1')),
+		array (Amato\Tag::STEP, "[^^]", array ('h' => '2')),
+		array (Amato\Tag::STEP, "[^^^]", array ('h' => '3')),
+		array (Amato\Tag::STEP, "[^=<[0-9]+:h>]"),
+		array (Amato\Tag::STEP, "[-]<\\s*#\n>[|]", array ('d' => '1', 'r' => '1')),
+		array (Amato\Tag::STEP, "[-]<\\s*#\n>[||]", array ('d' => '2', 'r' => '1')),
+		array (Amato\Tag::STEP, "[-]<\\s*#\n>[|||]", array ('d' => '3', 'r' => '1')),
+		array (Amato\Tag::STEP, "[-]<\\s*#\n>[|=<[0-9]+:d>]", array ('r' => '1')),
+		array (Amato\Tag::STEP, "[-]<\\s*#\n>[^]", array ('h' => '1', 'r' => '1')),
+		array (Amato\Tag::STEP, "[-]<\\s*#\n>[^^]", array ('h' => '2', 'r' => '1')),
+		array (Amato\Tag::STEP, "[-]<\\s*#\n>[^^^]", array ('h' => '3', 'r' => '1')),
+		array (Amato\Tag::STEP, "[-]<\\s*#\n>[^=<[0-9]+:h>]", array ('r' => '1')),
+		array (Amato\Tag::STOP, "[/table]")
 	),
 	'u' => array
 	(
