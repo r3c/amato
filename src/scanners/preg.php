@@ -15,9 +15,10 @@ class PregScanner extends Scanner
 	const DELIMITER			= '/';
 	const ESCAPE			= '%';
 
-	public function __construct ($escape = '\\')
+	public function __construct ($escape = '\\', $options = 'u')
 	{
 		$this->escape = $escape;
+		$this->options = $options;
 		$this->rules = array ();
 	}
 
@@ -56,7 +57,7 @@ class PregScanner extends Scanner
 				switch ($mode)
 				{
 					case self::CAPTURE_DEFAULT:
-						if (!preg_match (self::DELIMITER . $expression . self::DELIMITER, $value))
+						if (!preg_match (self::DELIMITER . $expression . self::DELIMITER . $this->options, $value))
 							throw new \Exception ('default value "' . $value . '" must match pattern "' . $expression . '"');
 
 						$parts[] = array (self::DECODE_PLAIN, $value);
@@ -90,7 +91,7 @@ class PregScanner extends Scanner
 
 		// Use look-ahead assertion to capture all overlapped matches
 		// See: http://stackoverflow.com/questions/22454032/preg-match-all-how-to-get-all-combinations-even-overlapping-ones
-		$this->rules[] = array (self::DELIMITER . '(?=(' . $regex . '))' . self::DELIMITER . 'ms', $names, $parts);
+		$this->rules[] = array (self::DELIMITER . '(?=(' . $regex . '))' . self::DELIMITER . 'ms' . $this->options, $names, $parts);
 
 		return array (count ($this->rules) - 1, $names);
 	}
@@ -125,7 +126,7 @@ class PregScanner extends Scanner
 		$tags = array ();
 
 		// Match all escape tags in input string
-		if (preg_match_all ('/(?=(' . preg_quote ($this->escape, '/') . '))/m', $string, $matches, PREG_OFFSET_CAPTURE) === false)
+		if (preg_match_all ('/(?=(' . preg_quote ($this->escape, '/') . '))/m' . $this->options, $string, $matches, PREG_OFFSET_CAPTURE) === false)
 			throw new \Exception ('invalid escape pattern "' . $this->escape . '"');
 
 		foreach ($matches[1] as $match)
