@@ -15,10 +15,10 @@ class PregScanner extends Scanner
 	const DELIMITER			= '/';
 	const ESCAPE			= '%';
 
-	public function __construct ($escape = '\\', $options = 'u')
+	public function __construct ($escape = '\\')
 	{
 		$this->escape = $escape;
-		$this->options = $options;
+		$this->options = preg_match ('/^utf-/', mb_internal_encoding ()) ? 'u' : '';
 		$this->rules = array ();
 	}
 
