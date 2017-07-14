@@ -53,6 +53,8 @@ class TagConverterMatch
 
 class TagConverter extends Converter
 {
+	const CLOSING_MAX = 25;
+
 	/*
 	** Constructor.
 	** $encoder:	encoder instance
@@ -87,7 +89,6 @@ class TagConverter extends Converter
 	public function convert ($markup, $context = null)
 	{
 		// Group compatible tags into array of matches by group candidate
-		$blocks = array ();
 		$candidates = array ();
 		$shift = 0;
 		$tags = $this->scanner->find ($markup);
@@ -128,18 +129,11 @@ class TagConverter extends Converter
 
 				// Append to compatible candidates
 				self::candidate_append ($candidates, $id, $type, $offset, $length, $params);
-
-				// Try to resolve candidates into marker groups and flag them for removal
-				$min = self::candidate_accept ($candidates, $blocks, false);
-
-				// Skip following overlapped tags
-				while ($i + 1 < count ($tags) && $tags[$i + 1][1] + $shift < $min)
-					++$i;
 			}
 		}
 
 		// Resolve compatible candidates into marker groups
-		self::candidate_accept ($candidates, $blocks, true);
+		$blocks = self::candidate_accept ($candidates);
 
 		// List markers from all groups and sort them by offset
 		$cursors = array ();
@@ -327,93 +321,63 @@ class TagConverter extends Converter
 	** Accept completed candidates, convert into blocks and flag for removal,
 	** remove overlapped candidates from list.
 	** &candidates:	candidates list
-	** &blocks:		resolved marker blocks (id, [(offset, length, params)]) list
-	** $finish:		true when all candidates are registered, false otherwise
-	** return:		highest matched candidate offset
+	** return:		resolved marker blocks (id, [(offset, length, params)]) list
 	*/
-	private static function candidate_accept (&$candidates, &$blocks, $finish)
+	private static function candidate_accept (&$candidates)
 	{
-		$offset = 0;
+		$blocks = array ();
 
-		for ($candidate_index = count ($candidates); $candidate_index-- > 0; )
+		for ($candidate_index = 0; $candidate_index < count ($candidates); ++$candidate_index)
 		{
 			$candidate = $candidates[$candidate_index];
 
-			// Ignore candidate if it doesn't contain any closing match yet
+			// Ignore candidate if it doesn't contain any closing match
 			if ($candidate->closings === 0)
 				continue;
 
-			// Search for candidates overlapping any match of current one
-			$drops = array ();
+			// Browse candidate matches and convert to markers
+			$markers = array ();
 
 			foreach ($candidate->matches as $candidate_match)
 			{
-				for ($overlap_index = count ($candidates); $overlap_index-- > 0; )
+				// Convert match into marker and append to list
+				$markers[] = array ($candidate_match->offset, $candidate_match->length, $candidate_match->params);
+
+				// Browse candidates following current one and starting before current match
+				$stop = $candidate_match->offset + $candidate_match->length;
+
+				for ($follower_index = $candidate_index + 1; $follower_index < count ($candidates) && $candidates[$follower_index]->matches[0]->offset <= $stop; )
 				{
-					$overlap = $candidates[$overlap_index];
+					$follower = $candidates[$follower_index];
 
-					foreach ($overlap->matches as $overlap_match_index => $overlap_match)
+					// Drop entire follower if its first match overlaps current one
+					if ($candidate_match->overlap ($follower->matches[0]))
 					{
-						// Current match overlaps match of another candidate...
-						if ($candidate_match->overlap ($overlap_match))
-						{
-							// ...which is unresolved and before current, abort
-							if ($candidate_index > $overlap_index && !$finish)
-								continue 4;
+						array_splice ($candidates, $follower_index, 1);
 
-							// ...which must be flagged for removal
-							$drops[$overlap_index][] = $overlap_match_index;
-						}
+						continue;
 					}
+
+					// Otherwise drop overlapped matches
+					for ($follower_match_index = count ($follower->matches); $follower_match_index-- > 0; )
+					{
+						if ($candidate_match->overlap ($follower->matches[$follower_match_index]))
+							$follower->remove_match ($follower_match_index);
+					}
+
+					++$follower_index;
 				}
 
+				// Break when first closing match is reached
 				if ($candidate_match->closing)
 					break;
 			}
 
-			// Remove all flagged overlapps from candidates
-			krsort ($drops);
-
-			foreach ($drops as $overlap_index => $indices)
-			{
-				// Drop entire candidate if its first match is removed
-				if (in_array (0, $indices, true))
-				{
-					if  ($overlap_index < $candidate_index)
-						--$candidate_index;
-
-					array_splice ($candidates, $overlap_index, 1);
-				}
-
-				// Otherwise just remove overlapped match
-				else
-				{
-					rsort ($indices);
-
-					foreach ($indices as $index)
-						$candidates[$overlap_index]->remove_match ($index);
-				}
-			}
-
-			// Convert matches into markers and insert into blocks
-			$markers = array ();
-
-			// FIXME: matches array only exists because of the optimization
-			// performed during drop where the entire candidate is removed and
-			// matches array is left untouched, but this is clearly unreliable.
-			foreach ($candidate->matches as $match)
-			{
-				$markers[] = array ($match->offset, $match->length, $match->params);
-				$offset = max ($match->offset + $match->length, $offset);
-
-				if ($match->closing)
-					break;
-			}
-
+			// Append markers to blocks
 			$blocks[] = array ($candidate->id, $markers);
 		}
 
-		return $offset;
+		return $blocks;
 	}
 
 	/*
@@ -427,31 +391,32 @@ class TagConverter extends Converter
 	*/
 	private static function candidate_append (&$candidates, $id, $type, $offset, $length, $params)
 	{
-		$inserts = array ();
-
 		// Tag can continue an existing group, find compatible candidates
 		if ($type === Tag::FLIP || $type === Tag::PULSE || $type === Tag::STEP || $type === Tag::STOP)
 		{
-			for ($i = 0; $i < count ($candidates); ++$i)
+			foreach ($candidates as $candidate)
 			{
-				$last_match = $candidates[$i]->matches[count ($candidates[$i]->matches) - 1];
+				$last = $candidate->matches[count ($candidate->matches) - 1];
+				$stop = $last->offset + $last->length;
 
-				// Tag share same id than candidate and doesn't overlap its last tag
-				if ($candidates[$i]->id === $id && $offset >= $last_match->offset + $last_match->length)
-					$inserts[$i] = $type !== Tag::PULSE && $type !== Tag::STEP;
+				// Tag share same id than candidate, doesn't overlap its last
+				// tag and has less than CLOSING_MAX closing matches already.
+				// Last condition is an optimization that brings significant
+				// performance boost but could lead to undesired effects if
+				// tag patterns generate many ambiguous matches.
+				if ($candidate->id === $id && $offset >= $stop && $candidate->closings < self::CLOSING_MAX)
+					$candidate->append_match ($offset, $length, $params, $type !== Tag::PULSE && $type !== Tag::STEP);
 			}
 		}
 
 		// Tag can start a new group, create new candidate
 		if ($type === Tag::ALONE || $type === Tag::PULSE || $type === Tag::FLIP || $type === Tag::START)
 		{
-			$candidates[] = new TagConverterCandidate ($id);
-			$inserts[count ($candidates) - 1] = $type === Tag::ALONE;
-		}
+			$candidate = new TagConverterCandidate ($id);
+			$candidate->append_match ($offset, $length, $params, $type === Tag::ALONE);
 
-		// Append match to compatible candidates
-		foreach ($inserts as $i => $closing)
-			$candidates[$i]->append_match ($offset, $length, $params, $closing);
+			$candidates[] = $candidate;
+		}
 	}
 }
 

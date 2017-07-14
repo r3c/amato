@@ -74,6 +74,17 @@ $syntax = array
 		array (Amato\Tag::PULSE, '##'),
 		array (Amato\Tag::STOP, "\n\n")
 	),
+	'overlap1' => array
+	(
+		array (Amato\Tag::START, '(['),
+		array (Amato\Tag::START, '[{'),
+		array (Amato\Tag::STOP, '])')
+	),
+	'overlap2' => array
+	(
+		array (Amato\Tag::START, '{'),
+		array (Amato\Tag::STOP, '}')
+	),
 	'param' => array
 	(
 		array (Amato\Tag::ALONE, '[paramA]', array ('bold' => '1')),
@@ -206,9 +217,10 @@ test_converter ('[url]http://google.fr[/url]', array (array ('anchor', array (ar
 test_converter ('[url=http://google.fr]test[/url]', array (array ('anchor', array (array (0, array ('u' => 'http://google.fr')), 5))), 'test');
 test_converter ('[url]\http://google.fr[/url]', array (), '[url]http://google.fr[/url]');
 test_converter ('[url=\http://google.fr]test[/url]', array (), '[url=http://google.fr]test[/url]');
+test_converter ('([{abc}])', array (array ('overlap1', array (0, 6)), array ('overlap2', array (1, 5))), 'abc');
 
 // Crossed matches
-test_converter ('[b][pre]text[/b][/pre]', array (array ('pre', array (array (3, array ('b' => 'text[/b]'))))), '[b]', '\\[b][pre]text[/b][/pre]');
+test_converter ('[b][pre]text[/b][/pre]', array (array ('bold', array (0, 10))), '[pre]text[/pre]');
 test_converter ('[pre][b]text[/pre][/b]', array (array ('pre', array (array (0, array ('b' => '[b]text'))))), '[/b]');
 
 // Charset
