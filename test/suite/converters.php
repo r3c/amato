@@ -107,22 +107,17 @@ $syntax = array
 
 Amato\autoload ();
 
-function test_converter ($markup, $markers_expected, $plain_expected, $canonical = null, $unstable = false)
+function test_converter ($markup, $markers_expected, $plain_expected, $canonical = null, $unstable = false, $iso_8859_1 = false)
 {
 	global $syntax;
-	static $converters;
-	static $encoder;
 
-	if (!isset ($encoder))
-		$encoder = new Amato\CompactEncoder ();
+	$encoder = new Amato\CompactEncoder ();
+	$scanner = new Amato\PregScanner ('\\', $iso_8859_1 ? '' : 'u');
 
-	if (!isset ($converters))
-	{
-		$converters = array
-		(
-			'tag'	=> new Amato\TagConverter ($encoder, new Amato\PregScanner (), $syntax)
-		);
-	}
+	$converters = array
+	(
+		'tag'	=> new Amato\TagConverter ($encoder, $scanner, $syntax)
+	);
 
 	foreach ($converters as $name => $converter)
 	{
@@ -221,10 +216,10 @@ $markers = array (array ('hr', array (6)), array ('bold', array (12, 19)), array
 $markup = 'Voilà [hr] une [b]chaîne[/b] qui _devrait_ être convertie sans [b]problèmes[/b].';
 $plain = 'Voilà  une chaîne qui devrait être convertie sans problèmes.';
 
-foreach (array ('ascii', 'iso-8859-1', 'utf-8') as $charset)
+foreach (array ('ascii' => false, 'iso-8859-1' => true, 'utf-8' => false) as $charset => $iso_8851_1)
 {
 	mb_internal_encoding ($charset);
-	test_converter (mb_convert_encoding ($markup, $charset, $native), $markers, mb_convert_encoding ($plain, $charset, $native));
+	test_converter (mb_convert_encoding ($markup, $charset, $native), $markers, mb_convert_encoding ($plain, $charset, $native), null, false, $iso_8851_1);
 }
 
 mb_internal_encoding ($native);
