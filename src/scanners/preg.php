@@ -18,7 +18,7 @@ class PregScanner extends Scanner
 	public function __construct ($escape = '\\')
 	{
 		$this->escape = $escape;
-		$this->options = preg_match ('/^utf-/', mb_internal_encoding ()) ? 'u' : '';
+		$this->options = preg_match ('/^utf-/i', mb_internal_encoding ()) ? 'u' : '';
 		$this->rules = array ();
 	}
 
