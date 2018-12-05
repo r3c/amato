@@ -80,9 +80,9 @@ function amato_format_html_code ($body, $params)
 		$brushes = array_flip (array ('as3', 'bash', 'csharp', 'c', 'cpp', 'css', 'delphi', 'diff', 'groovy', 'js', 'java', 'jfx', 'm68k', 'perl', 'php', 'plain', 'ps', 'py', 'rails', 'scala', 'sql', 'vb', 'xml'));
 
 	if (!isset ($brushes[$params['l']]))
-		return $body;
+		return $params['l'];
 
-	return '<pre class="brush: ' . $params['l'] . '">' . str_replace ('<br />', "\n", $body) . '</pre>';
+	return '<pre class="brush: ' . $params['l'] . '">' . str_replace ('<br />', "\n", $params['b']) . '</pre>';
 }
 
 function amato_format_html_color ($body, $params)

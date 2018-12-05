@@ -42,7 +42,8 @@ $syntax = array
 	),
 	'code' => array
 	(
-		array (Amato\Tag::ALONE, "[code=<[0-9a-zA-Z]+:l>]<.*?:b>[/code]")
+		array (Amato\Tag::ALONE, "[code=<[-0-9A-Za-z._+]{1,16}:l>]<(?%:(?!\\[/code\\]).)*:b>[/code]\n"),
+		array (Amato\Tag::ALONE, "[code=<[-0-9A-Za-z._+]{1,16}:l>]<(?%:(?!\\[/code\\]).)*:b>[/code]")
 	),
 	'emoji' => array
 	(
