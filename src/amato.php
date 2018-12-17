@@ -6,62 +6,59 @@
 
 namespace Amato;
 
-define ('AMATO', '1.0.0.0');
+define('AMATO', '1.0.0.0');
 
-require (dirname (__FILE__) . '/tag.php');
+require(dirname(__FILE__) . '/tag.php');
 
-function autoload ()
+function autoload()
 {
-	static $loaded;
+    static $loaded;
 
-	if (isset ($loaded))
-		return;
+    if (isset($loaded)) {
+        return;
+    }
 
-	$loaded = true;
+    $loaded = true;
 
-	spl_autoload_register (function ($class)
-	{
-		$path = dirname (__FILE__);
+    spl_autoload_register(function ($class) {
+        $path = dirname(__FILE__);
 
-		switch ($class)
-		{
-			case 'Amato\TagConverter':
-				require_once ($path . '/converter.php');
-				require ($path . '/converters/tag.php');
+        switch ($class) {
+            case 'Amato\TagConverter':
+                require_once($path . '/converter.php');
+                require($path . '/converters/tag.php');
 
-				break;
+                break;
 
-			case 'Amato\CompactEncoder':
-				require_once ($path . '/encoder.php');
-				require ($path . '/encoders/compact.php');
+            case 'Amato\CompactEncoder':
+                require_once($path . '/encoder.php');
+                require($path . '/encoders/compact.php');
 
-				break;
+                break;
 
-			case 'Amato\JSONEncoder':
-				require_once ($path . '/encoder.php');
-				require ($path . '/encoders/json.php');
+            case 'Amato\JSONEncoder':
+                require_once($path . '/encoder.php');
+                require($path . '/encoders/json.php');
 
-				break;
+                break;
 
-			case 'Amato\SleepEncoder':
-				require_once ($path . '/encoder.php');
-				require ($path . '/encoders/sleep.php');
+            case 'Amato\SleepEncoder':
+                require_once($path . '/encoder.php');
+                require($path . '/encoders/sleep.php');
 
-				break;
+                break;
 
-			case 'Amato\FormatRenderer':
-				require_once ($path . '/renderer.php');
-				require ($path . '/renderers/format.php');
+            case 'Amato\FormatRenderer':
+                require_once($path . '/renderer.php');
+                require($path . '/renderers/format.php');
 
-				break;
+                break;
 
-			case 'Amato\PregScanner':
-				require_once ($path . '/scanner.php');
-				require ($path . '/scanners/preg.php');
+            case 'Amato\PregScanner':
+                require_once($path . '/scanner.php');
+                require($path . '/scanners/preg.php');
 
-				break;
-		}
-	});
+                break;
+        }
+    });
 }
-
-?>

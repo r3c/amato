@@ -1,50 +1,50 @@
 <?php
 
-define ('CHARSET', 'utf-8');
+define('CHARSET', 'utf-8');
 
-header ('Content-Type: text/html; charset=' . CHARSET);
+header('Content-Type: text/html; charset=' . CHARSET);
 
-mb_internal_encoding (CHARSET);
+mb_internal_encoding(CHARSET);
 
-require ('../src/amato.php');
+require('../src/amato.php');
 
-Amato\autoload ();
+Amato\autoload();
 
-function escape ($input)
+function escape($input)
 {
-	return htmlspecialchars ($input, ENT_COMPAT, CHARSET);
+    return htmlspecialchars($input, ENT_COMPAT, CHARSET);
 }
 
-function format_html ($input)
+function format_html($input)
 {
-	$depth = 0;
-	$html = '';
-	$index = 0;
+    $depth = 0;
+    $html = '';
+    $index = 0;
 
-	while (preg_match ('@[\\s]*(<(/?)[^<>]*?(/?)>|[^<>]+)@s', $input, $matches, PREG_OFFSET_CAPTURE, $index))
-	{
-		if ($matches[1][0][0] == '<')
-		{
-			if ($matches[2][0])
-				$depth = max ($depth - 1, 0);
+    while (preg_match('@[\\s]*(<(/?)[^<>]*?(/?)>|[^<>]+)@s', $input, $matches, PREG_OFFSET_CAPTURE, $index)) {
+        if ($matches[1][0][0] == '<') {
+            if ($matches[2][0]) {
+                $depth = max($depth - 1, 0);
+            }
 
-			$html .= str_repeat ('&nbsp;&nbsp;&nbsp;&nbsp;', $depth) . '<span style="color: #800;">' . escape ($matches[1][0]) . '</span><br />';
+            $html .= str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $depth) . '<span style="color: #800;">' . escape($matches[1][0]) . '</span><br />';
 
-			if ($matches[2][0] == '' && $matches[3][0] == '')
-				$depth = min ($depth + 1, 16);
-		}
-		else if ($matches[1][0] != '')
-			$html .= str_repeat ('&nbsp;&nbsp;&nbsp;&nbsp;', $depth) . escape ($matches[1][0]) . '<br />';
+            if ($matches[2][0] == '' && $matches[3][0] == '') {
+                $depth = min($depth + 1, 16);
+            }
+        } elseif ($matches[1][0] != '') {
+            $html .= str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $depth) . escape($matches[1][0]) . '<br />';
+        }
 
-		$index = $matches[0][1] + strlen ($matches[0][0]);
-	}
+        $index = $matches[0][1] + strlen($matches[0][0]);
+    }
 
-	return $html;
+    return $html;
 }
 
-function format_w3c ($input)
+function format_w3c($input)
 {
-	return escape ('<!DOCTYPE html>
+    return escape('<!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="' . CHARSET . '" /> 
@@ -56,17 +56,18 @@ function format_w3c ($input)
 </html>');
 }
 
-function print_select ($name, $options)
+function print_select($name, $options)
 {
-	$current = isset ($_REQUEST[$name]) ? (string)$_REQUEST[$name] : null;
-	$html = '<select name="' . escape ($name) . '">';
+    $current = isset($_REQUEST[$name]) ? (string)$_REQUEST[$name] : null;
+    $html = '<select name="' . escape($name) . '">';
 
-	foreach ($options as $value => $caption)
-		$html .= '<option' . ($current === $value ? ' selected="selected"' : '') . ' value="' . escape ($value) . '">' . escape ($caption) . '</option>';
+    foreach ($options as $value => $caption) {
+        $html .= '<option' . ($current === $value ? ' selected="selected"' : '') . ' value="' . escape($value) . '">' . escape($caption) . '</option>';
+    }
 
-	$html .= '</select>';
+    $html .= '</select>';
 
-	return $html;
+    return $html;
 }
 
 ?>
@@ -75,33 +76,33 @@ function print_select ($name, $options)
 	<head>
 		<link href="res/amato.css" rel="stylesheet" type="text/css" />
 		<link href="res/demo.css" rel="stylesheet" type="text/css" />
-		<title>Agnostic Markup Tokenizer v<?php echo escape (AMATO); ?> Demo</title>
+		<title>Agnostic Markup Tokenizer v<?php echo escape(AMATO); ?> Demo</title>
 	</head>
 	<body>
 		<div class="window">
 			<h2>Markup</h2>
 			<div class="body">
 				<form action="" method="POST">
-					<textarea name="markup" rows="10" style="box-sizing: border-box; width: 100%;"><?php echo escape (isset ($_REQUEST['markup']) ? $_REQUEST['markup'] : file_get_contents ('data/demo.txt')); ?></textarea>
+					<textarea name="markup" rows="10" style="box-sizing: border-box; width: 100%;"><?php echo escape(isset($_REQUEST['markup']) ? $_REQUEST['markup'] : file_get_contents('data/demo.txt')); ?></textarea>
 					<div class="buttons" id="actions">
 						Convert
-						<?php echo print_select ('syntax', array ('bbcode' => 'BBCode', 'wiki' => 'Wiki Markup')); ?>
+						<?php echo print_select('syntax', array('bbcode' => 'BBCode', 'wiki' => 'Wiki Markup')); ?>
 						into
-						<?php echo print_select ('format', array ('html' => 'HTML')); ?>
+						<?php echo print_select('format', array('html' => 'HTML')); ?>
 						and
-						<?php echo print_select ('action', array ('print' => 'print result', 'html' => 'show HTML', 'debug' => 'debug cycle')); ?>
+						<?php echo print_select('action', array('print' => 'print result', 'html' => 'show HTML', 'debug' => 'debug cycle')); ?>
 						<input type="submit" value="Submit" />
 						<input onclick="var p = document.getElementById('options_panel'); p.style.display = p.style.display === 'none' ? 'block' : 'none';" type="button" value="Options" />
 					</div>
 					<div class="buttons" id="options_panel" style="display: none;">
 						Tokenize using
-						<?php echo print_select ('scanner', array ('preg' => 'preg')); ?>
+						<?php echo print_select('scanner', array('preg' => 'preg')); ?>
 						scanner and
-						<?php echo print_select ('converter', array ('tag' => 'tag')); ?>
+						<?php echo print_select('converter', array('tag' => 'tag')); ?>
 						converter, serialize using
-						<?php echo print_select ('encoder', array ('compact' => 'compact', 'json' => 'json', 'sleep' => 'sleep')); ?>
+						<?php echo print_select('encoder', array('compact' => 'compact', 'json' => 'json', 'sleep' => 'sleep')); ?>
 						encoder, render with
-						<?php echo print_select ('renderer', array ('format' => 'format')); ?>
+						<?php echo print_select('renderer', array('format' => 'format')); ?>
 						renderer
 					</div>
 				</form>
@@ -109,135 +110,125 @@ function print_select ($name, $options)
 		</div>
 <?php
 
-if (isset ($_REQUEST['action']) && isset ($_REQUEST['markup']))
-{
-	switch (isset ($_REQUEST['encoder']) ? $_REQUEST['encoder'] : null)
-	{
-		case 'compact':
-			$encoder = new Amato\CompactEncoder ();
+if (isset($_REQUEST['action']) && isset($_REQUEST['markup'])) {
+    switch (isset($_REQUEST['encoder']) ? $_REQUEST['encoder'] : null) {
+        case 'compact':
+            $encoder = new Amato\CompactEncoder();
 
-			break;
+            break;
 
-		case 'json':
-			$encoder = new Amato\JSONEncoder ();
+        case 'json':
+            $encoder = new Amato\JSONEncoder();
 
-			break;
+            break;
 
-		case 'sleep':
-			$encoder = new Amato\SleepEncoder ();
+        case 'sleep':
+            $encoder = new Amato\SleepEncoder();
 
-			break;
+            break;
 
-		default:
-			throw new Exception ('invalid encoder');
-	}
+        default:
+            throw new Exception('invalid encoder');
+    }
 
-	switch (isset ($_REQUEST['scanner']) ? $_REQUEST['scanner'] : null)
-	{
-		case 'preg':
-			$scanner = new Amato\PregScanner ();
+    switch (isset($_REQUEST['scanner']) ? $_REQUEST['scanner'] : null) {
+        case 'preg':
+            $scanner = new Amato\PregScanner();
 
-			break;
+            break;
 
-		default:
-			throw new Exception ('invalid scanner');
-	}
+        default:
+            throw new Exception('invalid scanner');
+    }
 
-	switch (isset ($_REQUEST['converter']) ? $_REQUEST['converter'] : null)
-	{
-		case 'tag':
-			switch (isset ($_REQUEST['syntax']) ? $_REQUEST['syntax'] : null)
-			{
-				case 'bbcode':
-					require ('config/syntax/bbcode.php');
+    switch (isset($_REQUEST['converter']) ? $_REQUEST['converter'] : null) {
+        case 'tag':
+            switch (isset($_REQUEST['syntax']) ? $_REQUEST['syntax'] : null) {
+                case 'bbcode':
+                    require('config/syntax/bbcode.php');
 
-					break;
+                    break;
 
-				case 'wiki':
-					require ('config/syntax/wiki.php');
+                case 'wiki':
+                    require('config/syntax/wiki.php');
 
-					break;
+                    break;
 
-				default:
-					throw new Exception ('invalid syntax');
-			}
+                default:
+                    throw new Exception('invalid syntax');
+            }
 
-			$converter = new Amato\TagConverter ($encoder, $scanner, $syntax);
+            $converter = new Amato\TagConverter($encoder, $scanner, $syntax);
 
-			break;
+            break;
 
-		default:
-			throw new Exception ('invalid converter');
-	}
+        default:
+            throw new Exception('invalid converter');
+    }
 
-	switch (isset ($_REQUEST['renderer']) ? $_REQUEST['renderer'] : null)
-	{
-		case 'format':
-			switch (isset ($_REQUEST['format']) ? $_REQUEST['format'] : null)
-			{
-				case 'html':
-					include ('config/format/html.php');
+    switch (isset($_REQUEST['renderer']) ? $_REQUEST['renderer'] : null) {
+        case 'format':
+            switch (isset($_REQUEST['format']) ? $_REQUEST['format'] : null) {
+                case 'html':
+                    include('config/format/html.php');
 
-					break;
+                    break;
 
-				default:
-					throw new Exception ('invalid format');
-			}
-		
-			$renderer = new Amato\FormatRenderer ($encoder, $format, 'escape');
+                default:
+                    throw new Exception('invalid format');
+            }
+        
+            $renderer = new Amato\FormatRenderer($encoder, $format, 'escape');
 
-			break;
+            break;
 
-		default:
-			throw new Exception ('invalid renderer');
-	}
+        default:
+            throw new Exception('invalid renderer');
+    }
 
-	$markup = str_replace ("\r", '', $_REQUEST['markup']);
-	$token = $converter->convert ($markup);
-	$render = $renderer->render ($token);
+    $markup = str_replace("\r", '', $_REQUEST['markup']);
+    $token = $converter->convert($markup);
+    $render = $renderer->render($token);
 
-	switch ($_REQUEST['action'])
-	{
-		case 'debug':
-			$revert = $converter->revert ($token);
+    switch ($_REQUEST['action']) {
+        case 'debug':
+            $revert = $converter->revert($token);
 
-			$output = '
+            $output = '
 <blockquote class="panel">
-	<p class="label">Markup string (' . mb_strlen ($markup) . ' characters:</p>
-	<div class="code">' . escape ($markup) . '</div>
+	<p class="label">Markup string (' . mb_strlen($markup) . ' characters:</p>
+	<div class="code">' . escape($markup) . '</div>
 </blockquote>
 <blockquote class="panel">
-	<p class="label">Token string (' . mb_strlen ($token) . ' characters):</p>
-	<div class="code">' . escape ($token) . '</div>
+	<p class="label">Token string (' . mb_strlen($token) . ' characters):</p>
+	<div class="code">' . escape($token) . '</div>
 </blockquote>
 <blockquote class="panel">
-	<p class="label">Render string (' . mb_strlen ($render) . ' characters):</p>
-	<div class="code">' . escape ($render) . '</div>
+	<p class="label">Render string (' . mb_strlen($render) . ' characters):</p>
+	<div class="code">' . escape($render) . '</div>
 </blockquote>
 <blockquote class="panel">
-	<p class="label">Revert string (' . mb_strlen ($revert) . ' characters):</p>
-	<div class="code" style="color: ' . ($markup === $revert ? 'green' : 'red') . ';">' . escape ($revert) . '</div>
+	<p class="label">Revert string (' . mb_strlen($revert) . ' characters):</p>
+	<div class="code" style="color: ' . ($markup === $revert ? 'green' : 'red') . ';">' . escape($revert) . '</div>
 </blockquote>';
 
-			break;
+            break;
 
-		case 'html':
-			$output = '<div class="code">' . format_html ($render) . '</div>';
+        case 'html':
+            $output = '<div class="code">' . format_html($render) . '</div>';
 
-			break;
+            break;
 
-		case 'print':
-			$output = '<div class="amato">' . $render . '</div>';
+        case 'print':
+            $output = '<div class="amato">' . $render . '</div>';
 
-			break;
+            break;
 
-		default:
-			$output = '';
+        default:
+            $output = '';
 
-			break;
-	}
-
-?>
+            break;
+    } ?>
 		<div class="window">
 			<h2>Output</h2>
 			<div class="body">
@@ -245,14 +236,13 @@ if (isset ($_REQUEST['action']) && isset ($_REQUEST['markup']))
 			</div>
 			<div class="body">
 				<form action="http://validator.w3.org/check" method="POST" enctype="multipart/form-data" target="_blank">
-					<textarea name="fragment" style="display: none;"><?php echo format_w3c ($render); ?></textarea>
+					<textarea name="fragment" style="display: none;"><?php echo format_w3c($render); ?></textarea>
 					<input name="charset" type="hidden" value="<?php echo CHARSET; ?>" />
 					<input type="submit" value="Submit to w3c validator" />
 				</form>
 			</div>
 		</div>
 <?php
-
 }
 
 ?>

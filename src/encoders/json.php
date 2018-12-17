@@ -2,25 +2,23 @@
 
 namespace Amato;
 
-defined ('AMATO') or die;
+defined('AMATO') or die;
 
 class JSONEncoder extends Encoder
 {
-	/*
-	** Override for Encoder::decode.
-	*/
-	public function decode ($token)
-	{
-		return json_decode ($token, true);
-	}
+    /*
+    ** Override for Encoder::decode.
+    */
+    public function decode($token)
+    {
+        return json_decode($token, true);
+    }
 
-	/*
-	** Override for Encoder::encode.
-	*/
-	public function encode ($plain, $groups)
-	{
-		return json_encode (array ($plain, $groups));
-	}
+    /*
+    ** Override for Encoder::encode.
+    */
+    public function encode($plain, $groups)
+    {
+        return json_encode(array($plain, $groups));
+    }
 }
-
-?>
