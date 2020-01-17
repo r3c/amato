@@ -79,7 +79,8 @@ $syntax = array(
         array(Amato\Tag::STOP, "[/list]")
     ),
     'pre' => array(
-        array(Amato\Tag::ALONE, "[pre]<.*?:b>[/pre]")
+        array(Amato\Tag::ALONE, "[pre]<(?%:(?!\\[/pre\\]).)*:b>[/pre]\n"),
+        array(Amato\Tag::ALONE, "[pre]<(?%:(?!\\[/pre\\]).)*:b>[/pre]")
     ),
     'quote' => array(
         array(Amato\Tag::START, "[quote]"),
