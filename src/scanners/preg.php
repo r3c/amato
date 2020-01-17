@@ -9,7 +9,7 @@ class PregScanner extends Scanner
     const CAPTURE_BEGIN		= '<';
     const CAPTURE_DEFAULT	= '#';
     const CAPTURE_END		= '>';
-    const CAPTURE_NAME		= ':';
+    const CAPTURE_NAME		= '@';
     const DECODE_CAPTURE	= 0;
     const DECODE_PLAIN		= 1;
     const DELIMITER			= '/';

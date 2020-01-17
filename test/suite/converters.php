@@ -8,7 +8,7 @@ require_once('assert/token.php');
 ** Map of available tags and associated conversion definitions:
 ** - [tag id => [definition]]
 ** -- definition: (type, pattern, defaults?, convert?)
-** --- pattern: plain1<pattern:name>plain2<pattern#default>plain3
+** --- pattern: plain1<pattern@name>plain2<pattern#default>plain3
 ** --- defaults: [name => value]
 */
 $syntax = array(
@@ -18,9 +18,9 @@ $syntax = array(
         array(Amato\Tag::STOP, '}}')
     ),
     'anchor' => array(
-        array(Amato\Tag::ALONE, '<(https?%://|www\\.)[-0-9A-Za-z._~%:/?%#@!$%%&\'*+,;=(%)*]+:u>'),
-        array(Amato\Tag::ALONE, '[url]<[-0-9A-Za-z._~%:/?%#@!$%%&\'*+,;=(%)*]+:u>[/url]'),
-        array(Amato\Tag::START, '[url=<[-0-9A-Za-z._~%:/?%#@!$%%&\'*+,;=(%)*]+:u>]'),
+        array(Amato\Tag::ALONE, '<(https?%://|www\\.)[-0-9A-Za-z._~:/?%#%@!$%%&\'*+,;=(%)*]+@u>'),
+        array(Amato\Tag::ALONE, '[url]<[-0-9A-Za-z._~:/?%#%@!$%%&\'*+,;=(%)*]+@u>[/url]'),
+        array(Amato\Tag::START, '[url=<[-0-9A-Za-z._~:/?%#%@!$%%&\'*+,;=(%)*]+@u>]'),
         array(Amato\Tag::STOP, '[/url]')
     ),
     'bold' => array(
@@ -29,7 +29,7 @@ $syntax = array(
         array(Amato\Tag::FLIP, '__')
     ),
     'callback'	=> array(
-        array(Amato\Tag::START, '[c=<[012]:n>]', null, function ($type, &$params, $context) {
+        array(Amato\Tag::START, '[c=<[012]@n>]', null, function ($type, &$params, $context) {
             $params['extra'] = 5;
 
             if ((int)$params['n'] === 2) {
@@ -38,7 +38,7 @@ $syntax = array(
 
             return (int)$params['n'] !== 0;
         }),
-        array(Amato\Tag::STOP, '[/c=<[012]:n>]', null, function ($type, &$params, $context) {
+        array(Amato\Tag::STOP, '[/c=<[012]@n>]', null, function ($type, &$params, $context) {
             $params['extra'] = 7;
 
             if ((int)$params['n'] === 2) {
@@ -50,7 +50,7 @@ $syntax = array(
     ),
     'default' => array(
         array(Amato\Tag::START, '[size=big]', array('p' => '200')),
-        array(Amato\Tag::START, '[size=<[0-9]+:p>]'),
+        array(Amato\Tag::START, '[size=<[0-9]+@p>]'),
         array(Amato\Tag::STOP, '[/size]')
     ),
     'hr' => array(
@@ -77,22 +77,22 @@ $syntax = array(
     'param' => array(
         array(Amato\Tag::ALONE, '[paramA]', array('bold' => '1')),
         array(Amato\Tag::ALONE, '[paramB]', array('bold' => '2')),
-        array(Amato\Tag::ALONE, '[paramC<.:c>]', array('bold' => '3')),
-        array(Amato\Tag::ALONE, '[paramD<.:c>]'),
+        array(Amato\Tag::ALONE, '[paramC<.@c>]', array('bold' => '3')),
+        array(Amato\Tag::ALONE, '[paramD<.@c>]'),
         array(Amato\Tag::ALONE, '[paramE]')
     ),
     'pre' => array(
-        array(Amato\Tag::ALONE, '[pre]<.*:b>[/pre]')
+        array(Amato\Tag::ALONE, '[pre]<.*@b>[/pre]')
     ),
     'reverse' => array(
-        array(Amato\Tag::START, '[r=<[012]:n>]', null, null, function ($type, &$params, $context) {
+        array(Amato\Tag::START, '[r=<[012]@n>]', null, null, function ($type, &$params, $context) {
             if ((int)$params['n'] === 2) {
                 $params['n'] = 1;
             }
 
             return (int)$params['n'] !== 0;
         }),
-        array(Amato\Tag::STOP, '[/r=<[012]:n>]', null, null, function ($type, &$params, $context) {
+        array(Amato\Tag::STOP, '[/r=<[012]@n>]', null, null, function ($type, &$params, $context) {
             if ((int)$params['n'] === 2) {
                 $params['n'] = 1;
             }

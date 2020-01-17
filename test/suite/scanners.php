@@ -75,8 +75,8 @@ test_scanner('x[127]y', array('[<[0-9]+#127>]'), array(array(0, 1, 5)));
 test_scanner('x[1987]y', array('[<[0-9]+#127>]'), array(array(0, 1, 6, array(), '[127]')));
 
 // Pattern with named capture
-test_scanner('abc[id=test]def', array('[id=<[a-z]+:i>]'), array(array(0, 3, 9, array('i' => 'test'))));
-test_scanner("[[Hello,\nWorld!]]", array('[[<.*:b>]]'), array(array(0, 0, 17, array('b' => "Hello,\nWorld!"))));
+test_scanner('abc[id=test]def', array('[id=<[a-z]+@i>]'), array(array(0, 3, 9, array('i' => 'test'))));
+test_scanner("[[Hello,\nWorld!]]", array('[[<.*@b>]]'), array(array(0, 0, 17, array('b' => "Hello,\nWorld!"))));
 
 // Test with different encodings
 $restore = mb_internal_encoding();
@@ -85,7 +85,7 @@ $source = 'utf-8';
 foreach (array('iso-8859-1', 'iso-8859-15', 'utf-8', 'windows-1252') as $encoding) {
     mb_internal_encoding($encoding);
 
-    test_scanner(mb_convert_encoding('aéb', $encoding, $source), array('<\\pL:c>'), array(
+    test_scanner(mb_convert_encoding('aéb', $encoding, $source), array('<\\pL@c>'), array(
         array(0, 0, 1, array('c' => 'a')),
         array(0, 1, 1, array('c' => mb_convert_encoding('é', $encoding, $source))),
         array(0, 2, 1, array('c' => 'b'))
