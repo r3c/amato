@@ -70,7 +70,7 @@ class FormatRendererState implements \ArrayAccess
     }
 }
 
-class FormatRenderer extends Renderer
+class FormatRenderer implements Renderer
 {
     /*
     ** Initialize a new renderer.
@@ -105,8 +105,8 @@ class FormatRenderer extends Renderer
         $scopes = array();
         $stop = 0;
 
-        for ($cursors = Encoder::begin($groups); Encoder::next($groups, $cursors, $next);) {
-            list($id, $offset, $is_first, $is_last, $params) = $next;
+        for ($iterator = new GroupIterator($groups); $iterator->next($value);) {
+            list($id, $offset, $is_first, $is_last, $params) = $value;
 
             // Get start and stop offsets of plain text since last position
             $start = $stop;

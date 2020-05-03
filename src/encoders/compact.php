@@ -4,7 +4,7 @@ namespace Amato;
 
 defined('AMATO') or die;
 
-class CompactEncoder extends Encoder
+class CompactEncoder implements Encoder
 {
     const CAPTURE = ',';
     const CAPTURE_VALUE = '=';

@@ -53,7 +53,7 @@ class TagConverterMatch
     }
 }
 
-class TagConverter extends Converter
+class TagConverter implements Converter
 {
     const CLOSING_MAX = 25;
 
@@ -215,8 +215,8 @@ class TagConverter extends Converter
         $markup = '';
         $start = 0;
 
-        for ($cursors = Encoder::begin($groups); Encoder::next($groups, $cursors, $next);) {
-            list($id, $offset, $is_first, $is_last, $params) = $next;
+        for ($iterator = new GroupIterator($groups); $iterator->next($value);) {
+            list($id, $offset, $is_first, $is_last, $params) = $value;
 
             // Escape and append skipped plain string to markup
             $markup .= $this->build_markup($levels, mb_substr($plain, $start, $offset - $start));

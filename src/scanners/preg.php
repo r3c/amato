@@ -4,7 +4,7 @@ namespace Amato;
 
 defined('AMATO') or die;
 
-class PregScanner extends Scanner
+class PregScanner implements Scanner
 {
     const CAPTURE_BEGIN		= '<';
     const CAPTURE_DEFAULT	= '#';

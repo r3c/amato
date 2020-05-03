@@ -4,7 +4,7 @@ namespace Amato;
 
 defined('AMATO') or die;
 
-class JSONEncoder extends Encoder
+class JSONEncoder implements Encoder
 {
     /*
     ** Override for Encoder::decode.

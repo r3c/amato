@@ -4,7 +4,7 @@ namespace Amato;
 
 defined('AMATO') or die;
 
-class SleepEncoder extends Encoder
+class SleepEncoder implements Encoder
 {
     /*
     ** Override for Encoder::decode.
