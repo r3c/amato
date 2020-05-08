@@ -6,19 +6,19 @@ defined('AMATO') or die;
 
 class PregScanner implements Scanner
 {
-    const CAPTURE_BEGIN		= '<';
-    const CAPTURE_DEFAULT	= '#';
-    const CAPTURE_END		= '>';
-    const CAPTURE_NAME		= '@';
-    const DECODE_CAPTURE	= 0;
-    const DECODE_PLAIN		= 1;
-    const DELIMITER			= '/';
-    const ESCAPE			= '%';
+    const CAPTURE_BEGIN = '<';
+    const CAPTURE_DEFAULT = '#';
+    const CAPTURE_END = '>';
+    const CAPTURE_NAME = '@';
+    const DECODE_CAPTURE = 0;
+    const DECODE_PLAIN = 1;
+    const DELIMITER = '/';
+    const ESCAPE = '%';
 
     public function __construct($escape = '\\')
     {
         $this->escape = $escape;
-        $this->options = preg_match('/^utf-/i', mb_internal_encoding()) ? 'u' : '';
+        $this->options = preg_match('/^utf-/i', mb_internal_encoding()) ? 'msu' : 'ms';
         $this->rules = array();
     }
 
@@ -90,9 +90,7 @@ class PregScanner implements Scanner
             }
         }
 
-        // Use look-ahead assertion to capture all overlapped matches
-        // See: http://stackoverflow.com/questions/22454032/preg-match-all-how-to-get-all-combinations-even-overlapping-ones
-        $this->rules[] = array(self::DELIMITER . '(?=(' . $regex . '))' . self::DELIMITER . 'ms' . $this->options, $names, $parts);
+        $this->rules[] = array($regex, $names, $parts);
 
         return array(count($this->rules) - 1, $names);
     }
@@ -128,39 +126,15 @@ class PregScanner implements Scanner
         $tags = array();
 
         // Match all escape tags in input string
-        if (preg_match_all('/(?=(' . preg_quote($this->escape, '/') . '))/m' . $this->options, $string, $matches, PREG_OFFSET_CAPTURE) === false) {
-            throw new \Exception('invalid escape pattern "' . $this->escape . '"');
-        }
-
-        foreach ($matches[1] as $match) {
-            $length = mb_strlen($match[0]);
-            $offset = mb_strlen(substr($string, 0, $match[1]));
-
+        foreach ($this->match(preg_quote($this->escape, self::DELIMITER), $string, array()) as list($offset, $length)) {
             $tags[self::index($offset, $length, $order)] = array(null, $offset, $length);
         }
 
         // Match all sequence tags in input string
-        foreach ($this->rules as $key => $rule) {
-            list($pattern, $names) = $rule;
-
-            if (preg_match_all($pattern, $string, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) === false) {
-                throw new \Exception('invalid tag pattern "' . $pattern . '"');
-            }
-
+        foreach ($this->rules as $key => list($pattern, $names)) {
             ++$order;
 
-            foreach ($matches as $match) {
-                // Copy named groups to captures array
-                $captures = array();
-
-                for ($i = min(count($match) - 2, count($names)); $i-- > 0;) {
-                    $captures[$names[$i]] = $match[$i + 2][0];
-                }
-
-                // Append to tags array, using custom key for fast sorting
-                $length = mb_strlen($match[1][0]);
-                $offset = mb_strlen(substr($string, 0, $match[1][1]));
-
+            foreach ($this->match($pattern, $string, $names) as list($offset, $length, $captures)) {
                 $tags[self::index($offset, $length, $order)] = array($key, $offset, $length, $captures);
             }
         }
@@ -169,6 +143,47 @@ class PregScanner implements Scanner
         ksort($tags);
 
         return array_values($tags);
+    }
+
+    /*
+    ** Apply regular expression pattern on given string and return all matches
+    ** including overlapping ones.
+    ** $expression: regular expression pattern without delimiters nor options
+    ** $string: input string
+    ** $names: ordered capture names
+    ** return: array of ($offset, $length, $captures)
+    */
+    private function match($expression, $string, $names)
+    {
+        // Use look-ahead assertion to capture all overlapped matches
+        // See: http://stackoverflow.com/questions/22454032/preg-match-all-how-to-get-all-combinations-even-overlapping-ones
+        $pattern = self::DELIMITER . '(?=(' . $expression . '))' . self::DELIMITER . $this->options;
+
+        if (preg_match_all($pattern, $string, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) === false) {
+            throw new \Exception('invalid pattern "' . $pattern . '"');
+        }
+
+        // Store offset, length and captures for each match
+        $results = array();
+
+        foreach ($matches as $match) {
+            // Copy named groups to captures array ; offset must be shifted by
+            // 2 as group 0 contains the whole match (empty string due to look
+            // ahead assert) and group 1 contains the actual entire capture
+            $captures = array();
+
+            for ($i = min(count($match) - 2, count($names)); $i-- > 0;) {
+                $captures[$names[$i]] = $match[$i + 2][0];
+            }
+
+            // Append to tags array, using custom key for fast sorting
+            $length = mb_strlen($match[1][0]);
+            $offset = mb_strlen(substr($string, 0, $match[1][1]));
+
+            $results[] = array($offset, $length, $captures);
+        }
+
+        return $results;
     }
 
     /*
